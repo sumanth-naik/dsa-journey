@@ -35,19 +35,34 @@ function setBadge(state, title) {
 
 // last-write-wins merge over the UNION of problem ids
 function merge(local, remote) {
-  console.log('[Sync] Merging - local problems:', Object.keys(local?.problems || {}).length, 'remote problems:', Object.keys(remote?.problems || {}).length);
+  const localSolved = Object.values(local?.problems || {}).filter(p => p.status === 'solved').length;
+  const remoteSolved = Object.values(remote?.problems || {}).filter(p => p.status === 'solved').length;
+  console.log('[Sync] Merging - local:', Object.keys(local?.problems || {}).length, 'problems,', localSolved, 'solved');
+  console.log('[Sync] Merging - remote:', Object.keys(remote?.problems || {}).length, 'problems,', remoteSolved, 'solved');
+
   if (!remote || !remote.problems) return local;
   if (!local || !local.problems) return remote;
   const out = { ...local, problems: { ...local.problems } };
   const ids = new Set([...Object.keys(local.problems), ...Object.keys(remote.problems)]);
+
+  let keptLocal = 0, keptRemote = 0;
   for (const id of ids) {
     const l = local.problems[id], r = remote.problems[id];
-    if (l && r) out.problems[id] = (new Date(r.updatedAt || 0) > new Date(l.updatedAt || 0)) ? r : l;
-    else out.problems[id] = l || r;
+    if (l && r) {
+      const useRemote = new Date(r.updatedAt || 0) > new Date(l.updatedAt || 0);
+      out.problems[id] = useRemote ? r : l;
+      if (useRemote) keptRemote++; else keptLocal++;
+    } else {
+      out.problems[id] = l || r;
+    }
   }
+
   out.updatedAt = (new Date(remote.updatedAt || 0) > new Date(local.updatedAt || 0)) ? remote.updatedAt : local.updatedAt;
   out.phaseStartedAt = { ...(remote.phaseStartedAt || {}), ...(local.phaseStartedAt || {}) };
-  console.log('[Sync] Merge result:', Object.keys(out.problems).length, 'problems');
+
+  const outSolved = Object.values(out.problems).filter(p => p.status === 'solved').length;
+  console.log('[Sync] Kept', keptLocal, 'local versions,', keptRemote, 'remote versions');
+  console.log('[Sync] Merge result:', Object.keys(out.problems).length, 'problems,', outSolved, 'solved');
   return out;
 }
 
