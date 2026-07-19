@@ -355,7 +355,33 @@ export async function revisionView(app) {
         ),
 
         el('div', { class: 'revision-header' },
-          el('div', { class: 'revision-progress-text', text: `Problem ${currentIndex + 1} of ${questions.length}` })
+          el('div', { class: 'revision-nav-buttons' },
+            el('button', {
+              class: 'btn btn-sm',
+              text: '← Previous',
+              disabled: currentIndex === 0,
+              onclick: () => {
+                if (currentIndex > 0) {
+                  currentIndex--;
+                  sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
+                  renderQuestion();
+                }
+              }
+            }),
+            el('div', { class: 'revision-progress-text', text: `Problem ${currentIndex + 1} of ${questions.length}` }),
+            el('button', {
+              class: 'btn btn-sm',
+              text: 'Next →',
+              disabled: currentIndex === questions.length - 1,
+              onclick: () => {
+                if (currentIndex < questions.length - 1) {
+                  currentIndex++;
+                  sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
+                  renderQuestion();
+                }
+              }
+            })
+          )
         ),
 
         el('div', { class: 'card revision-question-card' },

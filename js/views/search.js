@@ -105,9 +105,7 @@ export async function searchView(app) {
 
   function statusLabel(s) {
     const map = {
-      'attempted': '⏳ Attempted',
-      'solved': '✓ Solved',
-      'needs-revision': '📝 Review'
+      'solved': '✓ Solved'
     };
     return map[s] || s;
   }

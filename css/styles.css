@@ -82,9 +82,7 @@ h3 { font-size: 1.06rem; margin: 18px 0 8px; }
 .chip.Hard { color: var(--red); border-color: color-mix(in srgb, var(--red) 45%, transparent); }
 
 .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; background: var(--border); flex: none; }
-.status-dot.attempted { background: var(--amber); }
 .status-dot.solved { background: var(--green); }
-.status-dot.needs-revision { background: var(--purple); }
 
 /* Cards */
 .card {
@@ -207,8 +205,6 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
 }
 .search-item:hover { background: var(--bg-elev); }
 .search-item.status-solved { border-left-color: var(--green); }
-.search-item.status-attempted { border-left-color: var(--amber); }
-.search-item.status-needs-revision { border-left-color: var(--purple); }
 .search-item-title {
   display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 4px;
 }
@@ -219,8 +215,6 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
   border-radius: 6px; text-transform: uppercase; letter-spacing: 0.02em;
 }
 .status-tag.status-solved { background: rgba(67, 193, 135, 0.15); color: var(--green); }
-.status-tag.status-attempted { background: rgba(232, 182, 76, 0.15); color: var(--amber); }
-.status-tag.status-needs-revision { background: rgba(181, 140, 240, 0.15); color: var(--purple); }
 
 /* Quiz view */
 .revision-setup, .revision-question-view, .revision-summary { max-width: var(--maxw); margin: 0 auto; padding: 20px 18px; }
@@ -259,9 +253,12 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
 .revision-progress-fill { height: 100%; background: var(--accent); transition: width 0.3s; }
 
 .revision-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+  display: flex; justify-content: center; align-items: center; margin-bottom: 16px;
 }
-.revision-progress-text { font-size: 0.9rem; color: var(--text-dim); }
+.revision-nav-buttons {
+  display: flex; align-items: center; gap: 16px; justify-content: space-between; width: 100%;
+}
+.revision-progress-text { font-size: 0.9rem; color: var(--text-dim); font-weight: 600; }
 .revision-streak { font-size: 1.2rem; font-weight: 700; color: var(--amber); }
 .revision-streak-big { font-size: 2.5rem; }
 

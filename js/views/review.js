@@ -13,7 +13,7 @@ export async function reviewView(app) {
   let selectedDifficulties = new Set(['Easy', 'Medium', 'Hard']);
   let patternFilterMode = 'include';
   let selectedPatterns = new Set(manifest.patterns.map(p => p.id));
-  let statusFilter = 'all'; // all | solved | not-started | attempted | needs-revision
+  let statusFilter = 'all'; // all | solved | not-started
 
   function updateView() {
     mount(app, renderView());
@@ -136,8 +136,6 @@ export async function reviewView(app) {
           ...[
             ['all', 'All'],
             ['solved', 'Solved'],
-            ['attempted', 'Attempted'],
-            ['needs-revision', 'Needs Revision'],
             ['not-started', 'Not Started']
           ].map(([value, label]) => {
             return el('label', { class: 'revision-pattern-item' },
