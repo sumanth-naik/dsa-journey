@@ -7,7 +7,6 @@ export async function homeView(app) {
   const counts = store.counts();
   const totalProblems = m.problemIndex.length;
   const solved = counts.solved || 0;
-  const due = store.dueForRevision().length;
 
   const nodes = [];
   nodes.push(el('h1', { text: `Hi ${store.settings.name || 'there'} 👋` }));
@@ -18,7 +17,6 @@ export async function homeView(app) {
     stat(solved, 'Solved'),
     stat(totalProblems, 'Total'),
     stat(store.streak(), 'Day streak 🔥'),
-    stat(due, 'Due to revise'),
   ));
 
   // patterns grid

@@ -127,6 +127,8 @@ async function push() {
     return;
   }
   const fileName = getFileName();
+  const localSolved = Object.values(store.progress.problems).filter(p => p.status === 'solved').length;
+  console.log('[Sync] Push starting - local has', localSolved, 'solved');
   const body = JSON.stringify({
     description: `DSA Learning Path - ${store.settings.name || 'user'}`,
     public: false,
@@ -137,6 +139,7 @@ async function push() {
     let gistId = store.getGistId();
     let res;
     if (gistId) {
+      console.log('[Sync] Patching existing gist:', gistId);
       res = await fetch(`${API}/gists/${gistId}`, { method: 'PATCH', headers: headers(), body });
       if (res.status === 404) { store.setGistId(''); gistId = ''; } // gist deleted; recreate below
     }
@@ -146,24 +149,34 @@ async function push() {
       gistId = store.getGistId();
       if (gistId) {
         // Found existing, update it
+        console.log('[Sync] Found existing gist, patching:', gistId);
         res = await fetch(`${API}/gists/${gistId}`, { method: 'PATCH', headers: headers(), body });
       } else {
         // Create new
+        console.log('[Sync] Creating new gist');
         res = await fetch(`${API}/gists`, { method: 'POST', headers: headers(), body });
         if (res.ok) { const data = await res.json(); store.setGistId(data.id); }
       }
     }
     if (!res.ok) throw new Error('save ' + res.status);
+    console.log('[Sync] Push complete, status:', res.status);
     store.setLastSync(new Date().toISOString());
     setBadge('ok', 'Synced');
-  } catch (e) { setBadge('err', 'Sync error: ' + e.message); }
+  } catch (e) {
+    console.error('[Sync] Push failed:', e);
+    setBadge('err', 'Sync error: ' + e.message);
+  }
 }
 
 let timer = null;
 function scheduleFlush() {
   if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE') return;
+  console.log('[Sync] Change detected, scheduling push in', DEBOUNCE_MS, 'ms');
   clearTimeout(timer);
-  timer = setTimeout(push, DEBOUNCE_MS);
+  timer = setTimeout(() => {
+    console.log('[Sync] Debounce complete, pushing now...');
+    push();
+  }, DEBOUNCE_MS);
 }
 
 // flush immediately when the tab is hidden/closed (keepalive works even on backgrounding)
