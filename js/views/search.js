@@ -48,7 +48,8 @@ export async function searchView(app) {
             }
             mount(resultsContainer, renderResults(filtered));
           }
-        })
+        }),
+        el('p', { class: 'muted', style: 'font-size: 0.88rem; margin: 8px 0 0 0;', text: 'Results update as you type — try searching for a pattern name, difficulty level, or problem title.' })
       ),
       (resultsContainer = el('div', { class: 'search-results' }))
     );

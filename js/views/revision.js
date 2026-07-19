@@ -318,6 +318,9 @@ export async function revisionView(app) {
     sessionStorage.setItem('revision:session', JSON.stringify(questions));
     sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
 
+    // Keyboard shortcuts handler (defined at scope level for cleanup)
+    let handleKeydown = null;
+
     function renderQuestion() {
       const problem = questions[currentIndex];
 
@@ -325,6 +328,11 @@ export async function revisionView(app) {
       sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
 
       function markConfidence(gotIt) {
+        // Clean up keyboard listener before navigation
+        if (handleKeydown) {
+          document.removeEventListener('keydown', handleKeydown);
+        }
+
         // Update spaced repetition
         if (gotIt) {
           // Advance interval
@@ -348,6 +356,45 @@ export async function revisionView(app) {
           showSummary();
         }
       }
+
+      // Setup keyboard shortcuts
+      handleKeydown = function(e) {
+        // Don't trigger if user is typing in an input
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+        switch(e.key) {
+          case 'ArrowLeft':
+            e.preventDefault();
+            if (currentIndex > 0) {
+              document.removeEventListener('keydown', handleKeydown);
+              currentIndex--;
+              sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
+              renderQuestion();
+            }
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            if (currentIndex < questions.length - 1) {
+              document.removeEventListener('keydown', handleKeydown);
+              currentIndex++;
+              sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
+              renderQuestion();
+            }
+            break;
+          case 'Enter':
+          case ' ':
+            e.preventDefault();
+            markConfidence(true);
+            break;
+          case 'b':
+          case 'B':
+            e.preventDefault();
+            markConfidence(false);
+            break;
+        }
+      };
+
+      document.addEventListener('keydown', handleKeydown);
 
       const view = el('div', { class: 'revision-question-view' },
         el('div', { class: 'revision-progress-bar' },
@@ -431,6 +478,10 @@ export async function revisionView(app) {
               text: '✓ Got It',
               onclick: () => markConfidence(true)
             })
+          ),
+          el('div', { class: 'muted', style: 'text-align: center; font-size: 0.82rem; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);' },
+            el('span', { text: '⌨️ Keyboard shortcuts: ' }),
+            el('span', { text: '← Prev | → Next | Enter/Space = Got It | B = Need Practice' })
           )
         )
       );
@@ -440,6 +491,11 @@ export async function revisionView(app) {
     }
 
     function showSummary() {
+      // Clean up keyboard listener
+      if (handleKeydown) {
+        document.removeEventListener('keydown', handleKeydown);
+      }
+
       const total = questions.length;
 
       // Get revision data to show which were marked as needing practice
@@ -459,11 +515,8 @@ export async function revisionView(app) {
         }
       });
 
-      // Clear session state
-      sessionStorage.removeItem('revision:session');
-      sessionStorage.removeItem('revision:currentIndex');
-      sessionStorage.removeItem('revision:reviewed');
-      sessionStorage.removeItem('revision:needsPractice');
+      // Mark session as complete but don't clear yet (so we can return to summary)
+      sessionStorage.setItem('revision:complete', 'true');
 
       mount(app, el('div', { class: 'revision-summary' },
         el('div', { class: 'card' },
@@ -603,12 +656,32 @@ export async function revisionView(app) {
 
   // Check for existing session to resume
   const savedSession = sessionStorage.getItem('revision:session');
-  if (savedSession) {
+  const sessionComplete = sessionStorage.getItem('revision:complete');
+
+  if (savedSession && sessionComplete === 'true') {
+    // Session is complete, just need to show summary
+    try {
+      const questions = JSON.parse(savedSession);
+      const reviewed = parseInt(sessionStorage.getItem('revision:reviewed') || '0');
+      const needsPractice = parseInt(sessionStorage.getItem('revision:needsPractice') || '0');
+
+      // Directly call the showSummary logic without going through runRevision
+      showStandaloneSummary(questions, reviewed, needsPractice);
+      return;
+    } catch (e) {
+      // Invalid data, clear and continue
+      sessionStorage.removeItem('revision:session');
+      sessionStorage.removeItem('revision:currentIndex');
+      sessionStorage.removeItem('revision:reviewed');
+      sessionStorage.removeItem('revision:needsPractice');
+      sessionStorage.removeItem('revision:complete');
+    }
+  } else if (savedSession) {
     try {
       const questions = JSON.parse(savedSession);
       const currentIndex = parseInt(sessionStorage.getItem('revision:currentIndex') || '0');
       if (questions && questions.length > 0 && currentIndex < questions.length) {
-        // Resume the session
+        // Resume the session in progress
         runRevision(questions, currentIndex);
         return;
       }
@@ -618,7 +691,71 @@ export async function revisionView(app) {
       sessionStorage.removeItem('revision:currentIndex');
       sessionStorage.removeItem('revision:reviewed');
       sessionStorage.removeItem('revision:needsPractice');
+      sessionStorage.removeItem('revision:complete');
     }
+  }
+
+  function showStandaloneSummary(questions, reviewed, needsPractice) {
+    const total = questions.length;
+
+    mount(app, el('div', { class: 'revision-summary' },
+      el('div', { class: 'card' },
+        el('h1', { text: '✓ Revision Complete!' }),
+
+        el('div', { class: 'revision-summary-stats' },
+          el('div', { class: 'stat-item' },
+            el('div', { class: 'stat-value', text: reviewed }),
+            el('div', { class: 'stat-label', text: 'Got It' })
+          ),
+          el('div', { class: 'stat-item' },
+            el('div', { class: 'stat-value', text: needsPractice }),
+            el('div', { class: 'stat-label', text: 'Need Practice' })
+          ),
+          el('div', { class: 'stat-item' },
+            el('div', { class: 'stat-value', text: total }),
+            el('div', { class: 'stat-label', text: 'Total Reviewed' })
+          )
+        )
+      ),
+
+      el('div', { class: 'card' },
+        el('h2', { text: 'All Problems' }),
+        el('div', { class: 'revision-summary-list' },
+          ...questions.map((q, idx) => {
+            const revData = store.getRevisionData(q.id);
+            const needsPrac = revData.incorrect > 0 && revData.correct === 0;
+            const gotIt = !needsPrac && revData.lastAnswered;
+
+            return el('a', {
+              class: 'revision-summary-item',
+              href: `#/problem/${q.id}`
+            },
+              el('div', { class: 'revision-summary-item-number', text: (idx + 1).toString() }),
+              el('div', { class: 'revision-summary-item-content' },
+                el('div', { class: 'revision-summary-item-title', text: q.title }),
+                el('div', { class: 'revision-summary-item-meta' },
+                  el('span', { class: `chip ${q.difficulty}`, text: q.difficulty }),
+                  gotIt ? el('span', { class: 'revision-summary-badge got-it', text: '✓ Got It' }) : null,
+                  needsPrac ? el('span', { class: 'revision-summary-badge needs-practice', text: '🔄 Need Practice' }) : null
+                )
+              )
+            );
+          })
+        )
+      ),
+
+      el('div', { class: 'card revision-summary-actions' },
+        el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => {
+          sessionStorage.removeItem('revision:session');
+          sessionStorage.removeItem('revision:currentIndex');
+          sessionStorage.removeItem('revision:reviewed');
+          sessionStorage.removeItem('revision:needsPractice');
+          sessionStorage.removeItem('revision:complete');
+          mount(app, renderSetup());
+        }}),
+        el('a', { class: 'btn btn-secondary', href: '#/', text: '← Back to Roadmap' })
+      )
+    ));
   }
 
   // Start with setup screen

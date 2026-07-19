@@ -12,8 +12,12 @@ export async function bookmarkedView(app) {
     const bookmarkedProblems = m.problemIndex.filter(p => !!store.getProblem(p.id).revision);
 
     if (bookmarkedProblems.length === 0) {
-      nodes.push(el('div', { class: 'card' },
-        el('p', { class: 'muted', text: 'No bookmarked problems yet. Click the bookmark button on problems you want to review later!' })
+      nodes.push(el('div', { class: 'card', style: 'text-align: center; padding: 40px 20px;' },
+        el('p', { class: 'muted', text: 'No bookmarked problems yet. Click the bookmark button on problems you want to review later!' }),
+        el('div', { class: 'btn-row', style: 'justify-content: center; margin-top: 20px;' },
+          el('a', { class: 'btn primary', href: '#/', text: '📚 Browse Patterns' }),
+          el('a', { class: 'btn', href: '#/search', text: '🔍 Search Problems' })
+        )
       ));
       mount(app, nodes);
       return;

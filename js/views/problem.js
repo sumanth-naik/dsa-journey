@@ -10,10 +10,23 @@ export async function problemView(app, { id }) {
   if (!found) throw new Error('Problem not found');
   const { problem: p, pattern } = found;
 
+  // Find problem position within pattern
+  const problemIndex = pattern.problems.findIndex(prob => prob.id === id);
+  const totalProblems = pattern.problems.length;
+  const hasPrev = problemIndex > 0;
+  const hasNext = problemIndex < totalProblems - 1;
+  const prevProblem = hasPrev ? pattern.problems[problemIndex - 1] : null;
+  const nextProblem = hasNext ? pattern.problems[problemIndex + 1] : null;
+
   const nodes = [];
-  nodes.push(el('div', { class: 'crumbs' },
+
+  // Breadcrumbs with problem counter
+  const breadcrumbDiv = el('div', { class: 'crumbs' },
     el('a', { href: '#/', text: 'Roadmap' }), ' / ',
-    el('a', { href: `#/pattern/${pattern.id}`, text: pattern.name }), ' / ', p.title));
+    el('a', { href: `#/pattern/${pattern.id}`, text: pattern.name }), ' / ', p.title,
+    el('span', { class: 'muted', style: 'margin-left: 12px; font-size: 0.85rem;', text: `(Problem ${problemIndex + 1} of ${totalProblems})` })
+  );
+  nodes.push(breadcrumbDiv);
 
   nodes.push(el('div', { class: 'phase-head' },
     el('h1', { text: p.title, style: 'margin:0' }),
@@ -61,6 +74,39 @@ export async function problemView(app, { id }) {
       nodes.push(reveal(`${sol.label || 'Solution ' + (i + 1)}`, body, i === p.solutions.length - 1 && false));
     });
   }
+
+  // Navigation buttons
+  const navRow = el('div', { class: 'btn-row', style: 'margin-top: 24px; justify-content: space-between;' });
+
+  // Previous/Next buttons
+  const prevNextGroup = el('div', { class: 'btn-row', style: 'margin: 0; gap: 8px;' });
+  if (hasPrev) {
+    prevNextGroup.append(
+      el('a', {
+        class: 'btn',
+        href: `#/problem/${prevProblem.id}`,
+        text: `← Previous: ${prevProblem.title}`,
+        title: prevProblem.title
+      })
+    );
+  }
+  if (hasNext) {
+    prevNextGroup.append(
+      el('a', {
+        class: 'btn',
+        href: `#/problem/${nextProblem.id}`,
+        text: `Next: ${nextProblem.title} →`,
+        title: nextProblem.title
+      })
+    );
+  }
+
+  navRow.append(
+    el('a', { class: 'btn', href: `#/pattern/${pattern.id}`, text: '← Back to Pattern' }),
+    prevNextGroup
+  );
+
+  nodes.push(navRow);
 
   mount(app, nodes);
   // highlight after mount

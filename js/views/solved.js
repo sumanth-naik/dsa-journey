@@ -12,8 +12,12 @@ export async function solvedView(app) {
     const solvedProblems = m.problemIndex.filter(p => store.getProblem(p.id).status === 'solved');
 
     if (solvedProblems.length === 0) {
-      nodes.push(el('div', { class: 'card' },
-        el('p', { class: 'muted', text: 'No problems solved yet. Start solving from the patterns!' })
+      nodes.push(el('div', { class: 'card', style: 'text-align: center; padding: 40px 20px;' },
+        el('p', { class: 'muted', text: 'No problems solved yet. Start solving from the patterns!' }),
+        el('div', { class: 'btn-row', style: 'justify-content: center; margin-top: 20px;' },
+          el('a', { class: 'btn primary', href: '#/', text: '📚 Browse Patterns' }),
+          el('a', { class: 'btn', href: '#/search', text: '🔍 Search Problems' })
+        )
       ));
       mount(app, nodes);
       return;

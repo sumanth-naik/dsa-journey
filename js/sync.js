@@ -30,7 +30,35 @@ function setBadge(state, title) {
   badgeEl = badgeEl || document.getElementById('sync-badge');
   if (!badgeEl) return;
   badgeEl.className = 'sync-badge ' + state;
-  badgeEl.title = title || state;
+
+  // Add timestamp to tooltip if synced successfully
+  let tooltipText = title || state;
+  if (state === 'ok') {
+    const lastSync = store.settings.lastSync;
+    if (lastSync) {
+      const syncDate = new Date(lastSync);
+      const now = new Date();
+      const diffMs = now - syncDate;
+      const diffMins = Math.floor(diffMs / 60000);
+      const diffHours = Math.floor(diffMs / 3600000);
+      const diffDays = Math.floor(diffMs / 86400000);
+
+      let timeStr;
+      if (diffMins < 1) {
+        timeStr = 'just now';
+      } else if (diffMins < 60) {
+        timeStr = `${diffMins} min${diffMins > 1 ? 's' : ''} ago`;
+      } else if (diffHours < 24) {
+        timeStr = `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+      } else {
+        timeStr = `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+      }
+
+      tooltipText = `${title} (${timeStr})`;
+    }
+  }
+
+  badgeEl.title = tooltipText;
 }
 
 // last-write-wins merge over the UNION of problem ids

@@ -79,12 +79,17 @@ export async function patternView(app, { id }) {
         // Status dot
         const dot = el('span', { class: 'status-dot ' + st });
 
-        // Title (clickable link)
+        // Title (clickable link) with bookmark indicator
+        const titleWrapper = el('div', { style: 'flex: 1; display: flex; align-items: center; gap: 6px;' });
         const title = el('a', {
           href: `#/problem/${p.id}`,
-          style: 'flex: 1; color: var(--text); text-decoration: none;',
+          style: 'color: var(--text); text-decoration: none;',
           text: p.title
         });
+        titleWrapper.append(title);
+        if (needsRevision) {
+          titleWrapper.append(el('span', { style: 'font-size: 0.85rem; color: var(--amber);', text: '⭐' }));
+        }
 
         // Difficulty chip
         const diff = el('span', { class: 'chip ' + p.difficulty, text: p.difficulty });
@@ -119,7 +124,7 @@ export async function patternView(app, { id }) {
           }
         });
 
-        row.append(dot, title, diff, solvedBtn, bookmarkBtn);
+        row.append(dot, titleWrapper, diff, solvedBtn, bookmarkBtn);
         list.append(row);
       }
       nodes.push(list);
