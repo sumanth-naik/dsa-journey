@@ -5,6 +5,7 @@ import * as sync from '../sync.js';
 export function onboardingView(app) {
   let name = '';
   let token = '';
+  let error = '';
 
   function render() {
     mount(app, el('div', { class: 'onboarding' },
@@ -13,7 +14,7 @@ export function onboardingView(app) {
         el('p', { class: 'muted', text: 'Master DSA patterns one at a time. Learn the concept first, then solve curated problems.' }),
 
         el('div', { style: 'margin: 30px 0; text-align: left;' },
-          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'Name (optional)' }),
+          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'Name' }),
           el('input', {
             type: 'text',
             placeholder: 'Your name (optional)',
@@ -24,7 +25,7 @@ export function onboardingView(app) {
         ),
 
         el('div', { style: 'margin: 30px 0; text-align: left;' },
-          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'GitHub token (optional)' }),
+          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'Or GitHub token' }),
           el('input', {
             type: 'password',
             placeholder: 'github_pat_… (leave empty to skip)',
@@ -35,16 +36,25 @@ export function onboardingView(app) {
           el('p', { class: 'muted small', style: 'margin-top: 8px;', text: 'Paste your token to sync progress across devices, or skip and add later in Settings.' })
         ),
 
+        error ? el('p', { style: 'color: var(--red); margin: 16px 0;', text: error }) : null,
+
         el('button', {
           class: 'btn primary',
           text: 'Get Started',
           style: 'padding: 12px 32px; font-size: 16px;',
           onclick: async () => {
-            const finalName = name.trim() || 'there';
+            const finalName = name.trim();
             const finalToken = token.trim();
 
-            store.setSettings({ name: finalName });
-            store.progress.user = finalName;
+            // Require at least one
+            if (!finalName && !finalToken) {
+              error = 'Please enter your name or paste a token to continue.';
+              render();
+              return;
+            }
+
+            store.setSettings({ name: finalName || 'there' });
+            store.progress.user = finalName || 'there';
 
             if (finalToken) {
               store.setToken(finalToken);
