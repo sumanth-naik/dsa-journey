@@ -26,12 +26,14 @@ route('#/settings', settingsView);
 
 sync.init();
 
-// Check if first-time user
-if (!store.settings.name || store.settings.name === 'Shirisha') {
-  const isNew = !localStorage.getItem('dsa:progress');
-  if (isNew) {
-    location.hash = '#/onboarding';
+// Check if first-time user (wait a bit for sync to complete)
+setTimeout(() => {
+  if (!store.settings.name || store.settings.name === 'Shirisha') {
+    const isNew = !localStorage.getItem('dsa:progress') || Object.keys(store.progress.problems).length === 0;
+    if (isNew && location.hash !== '#/onboarding') {
+      location.hash = '#/onboarding';
+    }
   }
-}
+}, 500);
 
 startRouter();

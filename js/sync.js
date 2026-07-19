@@ -53,6 +53,10 @@ async function pull() {
     if (content) {
       const remote = JSON.parse(content);
       store.replaceProgress(merge(store.progress, remote));
+      // Sync name from progress.user to settings.name if not set
+      if (remote.user && !store.settings.name) {
+        store.setSettings({ name: remote.user });
+      }
     }
     store.setLastSync(new Date().toISOString());
     setBadge('ok', 'Synced');
