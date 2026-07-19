@@ -4,7 +4,6 @@ import * as sync from '../sync.js';
 
 export function onboardingView(app) {
   let name = '';
-  let token = '';
   let error = '';
 
   function render() {
@@ -14,26 +13,15 @@ export function onboardingView(app) {
         el('p', { class: 'muted', text: 'Master DSA patterns one at a time. Learn the concept first, then solve curated problems.' }),
 
         el('div', { style: 'margin: 30px 0; text-align: left;' },
-          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'Name' }),
+          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'Choose your name' }),
           el('input', {
             type: 'text',
-            placeholder: 'Your name (optional)',
+            placeholder: 'Enter your name',
             value: name,
             style: 'width: 100%; padding: 12px; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elev); color: var(--text);',
-            oninput: (e) => { name = e.target.value; }
-          })
-        ),
-
-        el('div', { style: 'margin: 30px 0; text-align: left;' },
-          el('label', { style: 'display: block; margin-bottom: 10px; font-weight: 600;', text: 'Or GitHub token' }),
-          el('input', {
-            type: 'password',
-            placeholder: 'github_pat_… (leave empty to skip)',
-            value: token,
-            style: 'width: 100%; padding: 12px; font-size: 16px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-elev); color: var(--text);',
-            oninput: (e) => { token = e.target.value; }
+            oninput: (e) => { name = e.target.value; error = ''; render(); }
           }),
-          el('p', { class: 'muted small', style: 'margin-top: 8px;', text: 'Paste your token to sync progress across devices, or skip and add later in Settings.' })
+          el('p', { class: 'muted small', style: 'margin-top: 8px;', text: 'Your progress will automatically sync across all your devices.' })
         ),
 
         error ? el('p', { style: 'color: var(--red); margin: 16px 0;', text: error }) : null,
@@ -44,26 +32,29 @@ export function onboardingView(app) {
           style: 'padding: 12px 32px; font-size: 16px;',
           onclick: async () => {
             const finalName = name.trim();
-            const finalToken = token.trim();
 
-            // Require at least one
-            if (!finalName && !finalToken) {
-              error = 'Please enter your name or paste a token to continue.';
+            if (!finalName) {
+              error = 'Please enter your name to continue.';
               render();
               return;
             }
 
-            store.setSettings({ name: finalName || 'there' });
-            store.progress.user = finalName || 'there';
-
-            if (finalToken) {
-              store.setToken(finalToken);
-              // Try to sync with the token
-              await sync.findOrCreateGist();
-              await sync.pull();
+            // Check if name is taken
+            const taken = await sync.checkNameCollision(finalName);
+            if (taken) {
+              error = `Name "${finalName}" is already taken. Choose another.`;
+              render();
+              return;
             }
 
+            store.setSettings({ name: finalName });
+            store.progress.user = finalName;
             store._persist();
+
+            // Auto-sync
+            await sync.findOrCreateGist();
+            await sync.pull();
+
             location.hash = '#/';
           }
         })

@@ -7,95 +7,74 @@ export async function settingsView(app) {
 
   // Name
   const nameInput = el('input', { type: 'text', value: store.settings.name || '' });
-  nameInput.addEventListener('change', () => {
+  const nameStatus = el('div', { class: 'muted small', style: 'margin-top: 8px; margin-bottom: 20px;' });
+
+  nameInput.addEventListener('change', async () => {
+    const oldName = store.settings.name;
     const newName = nameInput.value.trim();
+
+    if (!newName) {
+      mount(nameStatus, el('span', { style: 'color: var(--red)', text: 'Name cannot be empty' }));
+      nameInput.value = oldName;
+      return;
+    }
+
+    if (newName === oldName) return;
+
+    // Check for collision
+    mount(nameStatus, el('span', { text: 'Checking availability...' }));
+    const collision = await sync.checkNameCollision(newName);
+
+    if (collision) {
+      mount(nameStatus, el('span', { style: 'color: var(--red)', text: `Name "${newName}" is already taken. Choose another.` }));
+      nameInput.value = oldName;
+      return;
+    }
+
+    // Update name
     store.setSettings({ name: newName });
-    store.progress.user = newName; // Also update progress.user so it syncs
-    store._persist(); // Save to trigger sync
+    store.progress.user = newName;
+    store.setGistId(''); // Clear old gist ID to search for new one
+    store._persist();
+
+    mount(nameStatus, el('span', { style: 'color: var(--green)', text: '✓ Name updated. Syncing...' }));
+
+    // Find/create gist with new name
+    await sync.findOrCreateGist();
+    await sync.push();
+
+    mount(nameStatus, el('span', { style: 'color: var(--green)', text: '✓ Name updated and synced!' }));
   });
-  nodes.push(el('label', { text: 'Your name (shown on the home screen)' }), nameInput);
 
-  // ---- Cross-device sync ----
-  const syncCard = el('div', { class: 'card' });
-  syncCard.append(el('h2', { text: 'Cross-device sync (optional)', style: 'margin-top:0' }));
-  syncCard.append(el('p', { class: 'muted small', text: 'Your progress is always saved on this device. To sync between your laptop and phone, paste a GitHub token below. It’s stored only on this device and never leaves it except to talk to GitHub.' }));
-
-  const steps = el('ol', { class: 'prose small muted' },
-    el('li', { html: 'Open <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com → Fine-grained tokens</a> and click <b>Generate new token</b>.' }),
-    el('li', { text: 'Repository access: None. Then under Account permissions, set “Gists” → Read and write.' }),
-    el('li', { text: 'Pick an expiry (e.g. 1 year), generate, and copy the token.' }),
-    el('li', { text: 'Paste it below and tap Save. Do the same once on your phone. Done!' }),
+  nodes.push(
+    el('label', { text: 'Your name' }),
+    nameInput,
+    nameStatus
   );
-  syncCard.append(steps);
 
-  const tokenInput = el('input', { type: 'password', placeholder: 'github_pat_… (paste here)', value: store.getToken() });
-  const status = el('div', { class: 'muted small', style: 'margin-top:8px' });
+  // ---- Sync status ----
+  const syncCard = el(‘div’, { class: ‘card’ });
+  syncCard.append(el(‘h2’, { text: ‘Sync’, style: ‘margin-top:0’ }));
+  syncCard.append(el(‘p’, { class: ‘muted small’, text: ‘Your progress automatically syncs across all your devices using your name.’ }));
+
+  const status = el(‘div’, { class: ‘muted small’, style: ‘margin-top:12px’ });
   const gid = store.getGistId();
-  if (gid) status.append(el('span', {}, 'Synced gist: ', el('a', { href: 'https://gist.github.com/' + gid, target: '_blank', rel: 'noopener', text: gid })));
+  if (gid) {
+    status.append(el(‘span’, { style: ‘color: var(--green)’ }, ‘✓ Synced’));
+  } else {
+    status.append(el(‘span’, {}, ‘Not synced yet’));
+  }
 
-  const saveBtn = el('button', { class: 'btn primary', text: 'Save & test' });
-  saveBtn.addEventListener('click', async () => {
-    const t = tokenInput.value.trim();
-    const oldToken = store.getToken();
-
-    store.setToken(t);
-    if (!t) {
-      store.setGistId(''); // Clear gist ID when clearing token
-      sync.setBadge('local', 'Local only');
-      mount(status, el('span', { text: 'Token cleared — local-only mode.' }));
-      return;
-    }
-
-    mount(status, el('span', { text: 'Testing token…' }));
-    const ok = await sync.testToken(t);
-    if (!ok) {
-      mount(status, el('span', { style: 'color:var(--red)', text: 'Token rejected. Check the Gists permission and try again.' }));
-      return;
-    }
-
-    // If token changed, clear old gist ID and search for new one
-    if (t !== oldToken) {
-      store.setGistId('');
-      mount(status, el('span', { text: 'New token - searching for gist…' }));
-    }
-
-    // Search for existing gist or create new one
-    if (!store.getGistId()) {
-      mount(status, el('span', { text: 'Looking for existing gist…' }));
-      await sync.findOrCreateGist();
-    }
-
-    await sync.pull();  // pull first to get remote data
-    await sync.push();  // then push local changes
-
-    const gid = store.getGistId();
-    mount(status, el('span', { style: 'color:var(--green)' },
-      '✓ Connected and synced. ',
-      gid ? el('a', { href: 'https://gist.github.com/' + gid, target: '_blank', rel: 'noopener', text: gid }) : null,
-      el('br'),
-      el('a', { href: '#/', text: '← Back to home to see synced data' })
-    ));
-  });
-  const syncNow = el('button', { class: 'btn', text: 'Sync now' });
-  syncNow.addEventListener('click', async () => { await sync.push(); await sync.pull(); mount(status, el('span', { text: 'Synced ' + new Date().toLocaleTimeString() })); });
-
-  const clearBtn = el('button', { class: 'btn', text: 'Clear token & gist', style: 'color: var(--red)' });
-  clearBtn.addEventListener('click', () => {
-    if (confirm('Clear token and gist ID? You can re-paste the token to reconnect.')) {
-      store.setToken('');
-      store.setGistId('');
-      tokenInput.value = '';
-      mount(status, el('span', { text: 'Token and gist cleared.' }));
-      sync.setBadge('local', 'Local only');
-    }
+  const syncNow = el(‘button’, { class: ‘btn’, text: ‘Sync now’ });
+  syncNow.addEventListener(‘click’, async () => {
+    mount(status, el(‘span’, { text: ‘Syncing...’ }));
+    await sync.findOrCreateGist();
+    await sync.push();
+    await sync.pull();
+    mount(status, el(‘span’, { style: ‘color: var(--green)’ }, ‘✓ Synced ‘ + new Date().toLocaleTimeString()));
   });
 
-  syncCard.append(
-    el('label', { text: 'GitHub token (Gists: read & write)' }),
-    tokenInput,
-    el('div', { class: 'btn-row' }, saveBtn, syncNow, clearBtn),
-    status
-  );
+  syncCard.append(el(‘div’, { class: ‘btn-row’ }, syncNow), status);
   nodes.push(syncCard);
 
   // ---- Backup ----

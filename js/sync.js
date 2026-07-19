@@ -1,16 +1,22 @@
 // sync.js — private-Gist cross-device sync for progress.
-// The token lives ONLY in this browser's localStorage (never committed, never in the gist).
-// Progressive enhancement: with no token, everything still works from localStorage.
+// Uses a shared token (hardcoded) - each user gets their own gist based on username.
+// Progressive enhancement: with no name, everything still works from localStorage.
 
 import { store } from './store.js';
 
 const API = 'https://api.github.com';
-const FILE = 'dsa-journey-progress.json';
+// TODO: Replace with your actual GitHub token (Gists: Read and Write)
+const SYNC_TOKEN = 'YOUR_GITHUB_TOKEN_HERE';
 const DEBOUNCE_MS = 2500;
+
+function getFileName() {
+  const name = store.settings.name || store.progress.user || 'anonymous';
+  return `dsa-journey-${name}.json`;
+}
 
 function headers() {
   return {
-    'Authorization': `Bearer ${store.getToken()}`,
+    'Authorization': `Bearer ${SYNC_TOKEN}`,
     'Accept': 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
     'Content-Type': 'application/json',
@@ -42,8 +48,9 @@ function merge(local, remote) {
 }
 
 async function pull() {
-  const token = store.getToken(), gistId = store.getGistId();
-  if (!token || !gistId) return;
+  if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE') return;
+  const gistId = store.getGistId();
+  if (!gistId) return;
   try {
     setBadge('', 'Syncing…');
     const controller = new AbortController();
@@ -75,12 +82,15 @@ async function pull() {
 }
 
 async function push() {
-  const token = store.getToken();
-  if (!token) { setBadge('local', 'Local only (no token)'); return; }
+  if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE') {
+    setBadge('local', 'Local only');
+    return;
+  }
+  const fileName = getFileName();
   const body = JSON.stringify({
-    description: `dsa-journey progress (${store.settings.name || 'user'})`,
+    description: `DSA Learning Path - ${store.settings.name || 'user'}`,
     public: false,
-    files: { [FILE]: { content: store.exportJSON() } },
+    files: { [fileName]: { content: store.exportJSON() } },
   });
   try {
     setBadge('', 'Saving…');
@@ -91,8 +101,17 @@ async function push() {
       if (res.status === 404) { store.setGistId(''); gistId = ''; } // gist deleted; recreate below
     }
     if (!gistId) {
-      res = await fetch(`${API}/gists`, { method: 'POST', headers: headers(), body });
-      if (res.ok) { const data = await res.json(); store.setGistId(data.id); }
+      // Search for existing gist by filename first
+      await findOrCreateGist();
+      gistId = store.getGistId();
+      if (gistId) {
+        // Found existing, update it
+        res = await fetch(`${API}/gists/${gistId}`, { method: 'PATCH', headers: headers(), body });
+      } else {
+        // Create new
+        res = await fetch(`${API}/gists`, { method: 'POST', headers: headers(), body });
+        if (res.ok) { const data = await res.json(); store.setGistId(data.id); }
+      }
     }
     if (!res.ok) throw new Error('save ' + res.status);
     store.setLastSync(new Date().toISOString());
@@ -102,80 +121,78 @@ async function push() {
 
 let timer = null;
 function scheduleFlush() {
-  if (!store.getToken()) { setBadge('local', 'Local only (no token)'); return; }
+  if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE') return;
   clearTimeout(timer);
   timer = setTimeout(push, DEBOUNCE_MS);
 }
 
 // flush immediately when the tab is hidden/closed (keepalive works even on backgrounding)
 function flushNow() {
-  if (!store.getToken() || !timer) return;
+  if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE' || !timer) return;
   clearTimeout(timer); timer = null;
   const gistId = store.getGistId();
+  const fileName = getFileName();
   if (!gistId) { push(); return; }
-  const body = JSON.stringify({ files: { [FILE]: { content: store.exportJSON() } } });
+  const body = JSON.stringify({ files: { [fileName]: { content: store.exportJSON() } } });
   try { fetch(`${API}/gists/${gistId}`, { method: 'PATCH', headers: headers(), body, keepalive: true }); } catch {}
 }
 
-// Validate a token by hitting /gists (used by Settings "Test token").
-async function testToken(token) {
-  const res = await fetch(`${API}/gists?per_page=1`, {
-    headers: { 'Authorization': `Bearer ${token}`, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' },
-  });
-  return res.ok;
-}
-
-// Find existing dsa-journey gist or create new one
+// Find existing gist by username-based filename
 async function findOrCreateGist() {
-  const token = store.getToken();
-  if (!token) return;
+  if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE') return;
 
   try {
-    // Search for existing gist by filename (more reliable than description)
-    // Get up to 100 gists to handle users with many gists
+    const fileName = getFileName();
+    // Search for existing gist by filename (user-specific)
     const res = await fetch(`${API}/gists?per_page=100`, { headers: headers() });
     if (res.ok) {
       const gists = await res.json();
-      // Find gist that has our specific filename
-      const existing = gists.find(g => g.files?.[FILE]);
+      // Find gist that has our user-specific filename
+      const existing = gists.find(g => g.files?.[fileName]);
       if (existing) {
         store.setGistId(existing.id);
-        console.log('Found existing gist:', existing.id);
+        console.log('Found existing gist for', fileName, ':', existing.id);
         return;
       }
     }
-
-    // No existing gist found, create new one
-    console.log('No existing gist found, creating new one');
-    const body = JSON.stringify({
-      description: `dsa-journey progress (${store.settings.name || 'user'})`,
-      public: false,
-      files: { [FILE]: { content: store.exportJSON() } },
-    });
-    const createRes = await fetch(`${API}/gists`, { method: 'POST', headers: headers(), body });
-    if (createRes.ok) {
-      const data = await createRes.json();
-      store.setGistId(data.id);
-      console.log('Created new gist:', data.id);
-    }
+    console.log('No existing gist found for', fileName);
   } catch (e) {
     console.error('findOrCreateGist failed:', e);
   }
+}
+
+// Check if a name is already taken (gist exists with that filename)
+async function checkNameCollision(name) {
+  if (!SYNC_TOKEN || SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE') return false;
+
+  try {
+    const fileName = `dsa-journey-${name}.json`;
+    const res = await fetch(`${API}/gists?per_page=100`, { headers: headers() });
+    if (res.ok) {
+      const gists = await res.json();
+      return gists.some(g => g.files?.[fileName]);
+    }
+  } catch (e) {
+    console.error('checkNameCollision failed:', e);
+  }
+  return false;
 }
 
 function init() {
   store.onChange(scheduleFlush);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
   window.addEventListener('pagehide', flushNow);
-  if (store.getToken()) {
+
+  // Auto-sync if token configured and user has name
+  if (SYNC_TOKEN !== 'YOUR_GITHUB_TOKEN_HERE' && store.settings.name) {
     // Pull in background, don't block app startup
-    pull().catch(e => {
+    findOrCreateGist().then(() => pull()).catch(e => {
       console.error('Initial sync failed:', e);
       setBadge('err', 'Sync failed');
     });
   } else {
-    setBadge('local', 'Local only (no token)');
+    setBadge('local', 'Local only');
   }
 }
 
-export { init, pull, push, testToken, setBadge, findOrCreateGist };
+export { init, pull, push, setBadge, findOrCreateGist, checkNameCollision };
