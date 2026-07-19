@@ -658,8 +658,16 @@ export async function revisionView(app) {
   const savedSession = sessionStorage.getItem('revision:session');
   const sessionComplete = sessionStorage.getItem('revision:complete');
 
+  console.log('[Revision] Checking session state:', {
+    hasSavedSession: !!savedSession,
+    sessionComplete,
+    reviewed: sessionStorage.getItem('revision:reviewed'),
+    needsPractice: sessionStorage.getItem('revision:needsPractice')
+  });
+
   if (savedSession && sessionComplete === 'true') {
     // Session is complete, just need to show summary
+    console.log('[Revision] Restoring completed session summary');
     try {
       const questions = JSON.parse(savedSession);
       const reviewed = parseInt(sessionStorage.getItem('revision:reviewed') || '0');
