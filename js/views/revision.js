@@ -37,7 +37,7 @@ export async function revisionView(app) {
   });
 
   // Setup screen state
-  let mode = 'all'; // all | solved | solved-patterns
+  let mode = 'all'; // all | solved | solved-patterns | bookmarked
   let sessionLength = 5;
   let difficultyFilterMode = 'include'; // include | exclude
   let selectedDifficulties = new Set(['Easy', 'Medium', 'Hard']); // Default: all selected
@@ -46,7 +46,6 @@ export async function revisionView(app) {
 
   function renderSetup() {
     const stats = getRevisionStats();
-    const dueCount = getDueForReviewCount();
 
     function updateView() {
       mount(app, renderSetup());
@@ -54,14 +53,8 @@ export async function revisionView(app) {
 
     return el('div', { class: 'revision-setup' },
       el('div', { class: 'card' },
-        el('h1', { text: '🎯 Revision — Spaced Repetition' }),
-        el('p', { class: 'muted', text: 'Review problem approaches and key ideas. Mark what you know vs. what needs practice.' }),
-
-        dueCount > 0 ? el('div', { class: 'revision-due-banner' },
-          el('span', { text: `📝 ${dueCount} problem${dueCount > 1 ? 's' : ''} due for review` })
-        ) : null,
-
-        null
+        el('h1', { text: '🎯 Revision — Flashcards' }),
+        el('p', { class: 'muted', text: 'Review problem approaches and key ideas. Test yourself on which approach works for each problem.' })
       ),
 
       el('div', { class: 'card' },
@@ -69,6 +62,7 @@ export async function revisionView(app) {
         el('div', { class: 'revision-mode-grid' },
           modeButton('all', '📚 All Problems', `All ${problemPool.length} problems`),
           modeButton('solved', '✓ Solved Only', 'Only problems you\'ve solved'),
+          modeButton('bookmarked', '⭐ Bookmarked', 'Problems you bookmarked'),
           modeButton('solved-patterns', '🎯 Solved Patterns', 'All problems from patterns you\'ve solved at least one in')
         )
       ),
@@ -222,6 +216,8 @@ export async function revisionView(app) {
 
     if (mode === 'solved') {
       pool = pool.filter(p => store.getProblem(p.id).status === 'solved');
+    } else if (mode === 'bookmarked') {
+      pool = pool.filter(p => !!store.getProblem(p.id).revision);
     } else if (mode === 'solved-patterns') {
       const solvedPatterns = new Set();
       pool.forEach(p => {

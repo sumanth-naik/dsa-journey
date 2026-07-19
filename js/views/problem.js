@@ -105,11 +105,11 @@ function statusControls(id) {
     rerender();
   });
 
-  const revisionBtn = el('button', {
+  const bookmarkBtn = el('button', {
     class: 'btn' + (needsRevision ? ' primary' : ''),
-    text: needsRevision ? '🔁 Remove from Revision' : 'Add to Revision',
+    text: needsRevision ? '⭐ Remove Bookmark' : '⭐ Bookmark',
   });
-  revisionBtn.addEventListener('click', () => {
+  bookmarkBtn.addEventListener('click', () => {
     if (needsRevision) {
       store.clearRevision(id);
     } else {
@@ -118,11 +118,7 @@ function statusControls(id) {
     rerender();
   });
 
-  wrap.append(el('div', { class: 'btn-row' }, solvedBtn, revisionBtn));
-
-  if (cur.revision) {
-    wrap.append(el('div', { class: 'muted small', text: `Next revision: ${new Date(cur.revision.due).toLocaleDateString()}` }));
-  }
+  wrap.append(el('div', { class: 'btn-row' }, solvedBtn, bookmarkBtn));
 
   // Notes — USER INPUT: value goes in via .value (safe), never as html.
   const ta = el('textarea', { placeholder: 'Your notes (gotchas, what tripped you up)…' });

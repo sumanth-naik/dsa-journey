@@ -68,11 +68,11 @@ export async function solvedView(app) {
           }
         });
 
-        // Revision button
-        const revisionBtn = el('button', {
+        // Bookmark button
+        const bookmarkBtn = el('button', {
           class: 'btn btn-sm' + (needsRevision ? ' primary' : ''),
-          text: needsRevision ? '🔁 Revise' : 'Revise',
-          style: 'min-width: 80px;',
+          text: needsRevision ? '⭐ Bookmarked' : 'Bookmark',
+          style: 'min-width: 100px;',
           onclick: (e) => {
             e.stopPropagation();
             e.preventDefault();
@@ -85,7 +85,7 @@ export async function solvedView(app) {
           }
         });
 
-        row.append(dot, title, diff, solvedBtn, revisionBtn);
+        row.append(dot, title, diff, solvedBtn, bookmarkBtn);
         list.append(row);
       }
       nodes.push(list);

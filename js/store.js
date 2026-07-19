@@ -62,16 +62,16 @@ const store = {
 
   setNotes(id, notes) { const p = this._touch(id); p.notes = notes; this._persist(); },
 
-  // Add problem to revision queue (starts at 1 day)
+  // Add problem to bookmark (simple flag)
   addRevision(id) {
     const p = this._touch(id);
     if (!p.revision) {
-      p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
+      p.revision = { bookmarked: true };
     }
     this._persist();
   },
 
-  // Remove problem from revision queue
+  // Remove problem from bookmark
   clearRevision(id) {
     const p = this.progress.problems[id];
     if (p && p.revision) {
@@ -79,16 +79,6 @@ const store = {
       p.updatedAt = nowISO();
       this._persist();
     }
-  },
-
-  // advance a review one step along 1→3→7→21 then graduate (clear)
-  reviewed(id) {
-    const p = this.progress.problems[id]; if (!p || !p.revision) return;
-    const idx = REVIEW_STEPS.indexOf(p.revision.interval);
-    const next = REVIEW_STEPS[idx + 1];
-    if (next) { p.revision = { interval: next, due: new Date(Date.now() + next * DAY).toISOString(), lastReviewedAt: nowISO() }; }
-    else { delete p.revision; } // mastered
-    p.updatedAt = nowISO(); this._persist();
   },
 
   markPhaseStarted(phaseId) {
