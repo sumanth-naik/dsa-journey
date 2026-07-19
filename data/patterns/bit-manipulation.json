@@ -1,0 +1,388 @@
+{
+  "id": "bit-manipulation",
+  "name": "Bit Manipulation",
+  "phaseId": 8,
+  "order": 3,
+  "tagline": "XOR, masks, and bit counting.",
+  "concept": "## The idea\n\nBit manipulation treats integers as sequences of bits (0s and 1s) and uses bitwise operators to solve problems in clever ways. You already know the algorithmic thinking — this is just a new toolkit.\n\nKey patterns:\n- **XOR (`^`)** has magical properties: `a ^ a = 0`, `a ^ 0 = a`, and it's commutative (order doesn't matter). Great for finding the unique element or missing number.\n- **Masking with AND (`&`)** isolates specific bits. `n & 1` checks if the last bit (odd/even) is set.\n- **`n & (n - 1)`** clears the rightmost `1`-bit — perfect for counting set bits.\n- **Shifts (`<<`, `>>`)** move bits left/right, effectively multiplying or dividing by powers of 2.\n\nOne Python gotcha: Python has **arbitrary-precision integers** (no fixed 32-bit limit), so for problems like Sum of Two Integers that simulate fixed-width addition, you'll need a 32-bit mask (`0xFFFFFFFF`) to keep results in range.\n\n## Python you'll pick up here\n\n- Bitwise operators: `&` (AND), `|` (OR), `^` (XOR), `~` (NOT), `<<` (left shift), `>>` (right shift)\n- `bin(n)` converts an integer to its binary string representation (e.g., `bin(5)` → `'0b101'`)\n- `0xFFFFFFFF` is the 32-bit mask (all 1s in the lower 32 bits) for simulating fixed-width integers\n- `.bit_count()` (Python 3.10+) counts the number of set bits, or use `bin(n).count('1')` in older versions",
+  "whenToUse": [
+    "You need to find a single unique element in a sea of duplicates (XOR everything)",
+    "Counting set bits (1s) or checking specific bit positions",
+    "You need O(1) space and the constraints hint at bit tricks (small integer range, powers of 2)",
+    "Simulating arithmetic without +/− operators (bit-level addition with carries)"
+  ],
+  "problems": [
+    {
+      "id": "single-number",
+      "title": "Single Number",
+      "leetcodeSlug": "single-number",
+      "difficulty": "Easy",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "array",
+        "bit-manipulation"
+      ],
+      "video": {
+        "title": "NeetCode — Single Number (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Single+Number",
+        "lang": "python"
+      },
+      "keyIdeas": "Every number appears twice except one. XOR has the property `a ^ a = 0` and `a ^ 0 = a`, so XORing all numbers cancels out the duplicates and leaves the unique one. This is the gentlest introduction to XOR magic — one pass, O(1) space.",
+      "hints": [
+        "If you had two copies of every number except one, what operation cancels out pairs?",
+        "XOR is your friend: `a ^ a = 0`, and XOR is commutative/associative (order doesn't matter).",
+        "XOR all the numbers together. The duplicates cancel, leaving the single number."
+      ],
+      "solutions": [
+        {
+          "label": "Hash set (brute force)",
+          "keyIdea": "Track seen numbers in a set — if you see a duplicate, remove it; what remains is the unique number.",
+          "code": "class Solution:\n    def singleNumber(self, nums: list[int]) -> int:\n        seen = set()\n        for n in nums:\n            if n in seen:\n                seen.remove(n)\n            else:\n                seen.add(n)\n        return seen.pop()",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Optimal — XOR",
+          "keyIdea": "XOR all numbers — duplicates cancel to 0, leaving the unique one.",
+          "code": "class Solution:\n    def singleNumber(self, nums: list[int]) -> int:\n        result = 0\n        for n in nums:\n            result ^= n\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — Math",
+          "keyIdea": "Every number appears twice except one. If you sum the unique set and double it, then subtract the array sum, you're left with the single number: 2*sum(set(nums)) - sum(nums). Reach for this when the constraints allow (no overflow concerns) and you want a different perspective on the problem, but XOR is cleaner and doesn't require the intermediate set.",
+          "code": "class Solution:\n    def singleNumber(self, nums: list[int]) -> int:\n        return 2 * sum(set(nums)) - sum(nums)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) — for the set"
+        }
+      ],
+      "description": "Given a non-empty array of integers nums, every element appears twice except for one. Find that single one.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "xor-tricks"
+    },
+    {
+      "id": "number-of-1-bits",
+      "title": "Number of 1 Bits",
+      "leetcodeSlug": "number-of-1-bits",
+      "difficulty": "Easy",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "bit-manipulation"
+      ],
+      "video": {
+        "title": "NeetCode — Number of 1 Bits (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Number+of+1+Bits",
+        "lang": "python"
+      },
+      "keyIdeas": "Count the number of set bits (1s) in the binary representation of an integer. The classic trick: `n & (n - 1)` clears the rightmost 1-bit, so loop until n becomes 0. Each iteration represents one set bit. Alternatively, Python's `bin(n).count('1')` or `.bit_count()` (3.10+) is idiomatic.",
+      "hints": [
+        "How can you check if the last bit is 1? (Hint: `n & 1`)",
+        "After checking a bit, how do you move to the next? (Right shift: `n >>= 1`)",
+        "There's a faster trick: `n & (n - 1)` zeroes the rightmost 1-bit. How many times can you do this before n becomes 0?"
+      ],
+      "solutions": [
+        {
+          "label": "Check each bit with shift",
+          "keyIdea": "Right-shift and check the last bit 32 times (or until n is 0).",
+          "code": "class Solution:\n    def hammingWeight(self, n: int) -> int:\n        count = 0\n        while n:\n            count += n & 1  # check if last bit is 1\n            n >>= 1         # shift right\n        return count",
+          "timeComplexity": "O(log n) or O(32) for a 32-bit integer",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — n & (n - 1) trick",
+          "keyIdea": "`n & (n - 1)` clears the rightmost 1-bit. Loop until n is 0; the number of loops is the count of 1s.",
+          "code": "class Solution:\n    def hammingWeight(self, n: int) -> int:\n        count = 0\n        while n:\n            n &= n - 1  # clear the rightmost 1-bit\n            count += 1\n        return count",
+          "timeComplexity": "O(k) where k is the number of set bits",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Pythonic — bin().count()",
+          "keyIdea": "Convert to binary string and count '1' characters. Very readable, and what you'd write in a real Python codebase.",
+          "code": "class Solution:\n    def hammingWeight(self, n: int) -> int:\n        return bin(n).count('1')",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(log n) for the binary string"
+        }
+      ],
+      "description": "Given a positive integer n, write a function that returns the number of set bits in its binary representation (also known as the Hamming weight).",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "counting"
+    },
+    {
+      "id": "counting-bits",
+      "title": "Counting Bits",
+      "leetcodeSlug": "counting-bits",
+      "difficulty": "Easy",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "bit-manipulation",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Counting Bits (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Counting+Bits",
+        "lang": "python"
+      },
+      "keyIdeas": "Return an array where `ans[i]` is the number of 1-bits in `i`. Brute force: count bits for each number (O(n log n)). Optimal: notice that `i` and `i >> 1` differ by at most one bit (the last one). So `ans[i] = ans[i >> 1] + (i & 1)` — DP with bit shifts, O(n).",
+      "hints": [
+        "You could call the previous problem's solution n times, but there's repeated work. Can you reuse earlier counts?",
+        "What's the relationship between the bit count of `i` and `i // 2`? (Hint: dividing by 2 is a right shift, which drops the last bit.)",
+        "`ans[i] = ans[i >> 1] + (i & 1)` — the count for i is the count for i//2, plus 1 if i is odd."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — count bits for each",
+          "keyIdea": "For each number from 0 to n, count its set bits using the previous problem's logic.",
+          "code": "class Solution:\n    def countBits(self, n: int) -> list[int]:\n        def popcount(x):\n            count = 0\n            while x:\n                x &= x - 1\n                count += 1\n            return count\n        return [popcount(i) for i in range(n + 1)]",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1) extra (output array doesn't count)"
+        },
+        {
+          "label": "Optimal — DP with right shift",
+          "keyIdea": "`ans[i] = ans[i >> 1] + (i & 1)` — reuse the count for i//2, adding 1 if i is odd. This is the most intuitive DP recurrence: right-shifting drops the last bit, so you just need to add back 1 if that bit was set. Reach for this when you want the clearest explanation of the DP relationship.",
+          "code": "class Solution:\n    def countBits(self, n: int) -> list[int]:\n        ans = [0] * (n + 1)\n        for i in range(1, n + 1):\n            ans[i] = ans[i >> 1] + (i & 1)\n        return ans",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1) extra"
+        },
+        {
+          "label": "Alternative — DP with i & (i-1)",
+          "keyIdea": "`ans[i] = ans[i & (i-1)] + 1` — i&(i-1) clears the rightmost 1-bit, so the count for i is one more than the count for that smaller number. This leverages the Brian Kernighan trick and can be slightly faster in practice. Reach for this when you want to showcase the connection to the bit-clearing technique from Number of 1 Bits.",
+          "code": "class Solution:\n    def countBits(self, n: int) -> list[int]:\n        ans = [0] * (n + 1)\n        for i in range(1, n + 1):\n            ans[i] = ans[i & (i - 1)] + 1\n        return ans",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1) extra"
+        }
+      ],
+      "description": "Given an integer n, return an array ans of length n + 1 such that for each i (0 <= i <= n), ans[i] is the number of 1&#39;s in the binary representation of i.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "counting"
+    },
+    {
+      "id": "reverse-bits",
+      "title": "Reverse Bits",
+      "leetcodeSlug": "reverse-bits",
+      "difficulty": "Easy",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "bit-manipulation"
+      ],
+      "video": {
+        "title": "NeetCode — Reverse Bits (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Reverse+Bits",
+        "lang": "python"
+      },
+      "keyIdeas": "Reverse the bits of a 32-bit unsigned integer. Process each bit from right to left: extract it with `n & 1`, add it to the result (shifted left), then shift n right. After 32 iterations, result holds the reversed bits. It's like reversing a string, but at the bit level.",
+      "hints": [
+        "Think of it like reversing a string, but with bits. How do you extract the last bit of n?",
+        "Build the result bit by bit: shift result left to make space, add the current bit from n, then shift n right.",
+        "Loop 32 times (for a 32-bit integer), each time moving one bit from n to result."
+      ],
+      "solutions": [
+        {
+          "label": "Bit-by-bit reversal",
+          "keyIdea": "Extract each bit from n (right to left), shift it into result (left to right), 32 times. This is the most intuitive approach and what you'd write first in an interview. Reach for this when clarity matters more than micro-optimization.",
+          "code": "class Solution:\n    def reverseBits(self, n: int) -> int:\n        result = 0\n        for i in range(32):\n            result = (result << 1) | (n & 1)  # shift result left, add last bit of n\n            n >>= 1                            # shift n right\n        return result",
+          "timeComplexity": "O(1) — always 32 iterations",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — Divide and conquer with masks",
+          "keyIdea": "Swap adjacent bits, then adjacent pairs, then adjacent nibbles, etc., in log(32) = 5 stages. This is a parallel bit-reversal algorithm used in low-level code. Reach for this when you need maximum throughput (e.g., reversing millions of numbers) or want to demonstrate advanced bit manipulation, but the bit-by-bit approach is clearer for interviews.",
+          "code": "class Solution:\n    def reverseBits(self, n: int) -> int:\n        # swap adjacent bits\n        n = ((n & 0xaaaaaaaa) >> 1) | ((n & 0x55555555) << 1)\n        # swap adjacent pairs\n        n = ((n & 0xcccccccc) >> 2) | ((n & 0x33333333) << 2)\n        # swap adjacent nibbles\n        n = ((n & 0xf0f0f0f0) >> 4) | ((n & 0x0f0f0f0f) << 4)\n        # swap adjacent bytes\n        n = ((n & 0xff00ff00) >> 8) | ((n & 0x00ff00ff) << 8)\n        # swap adjacent 16-bit blocks\n        n = (n >> 16) | ((n & 0x0000ffff) << 16)\n        return n",
+          "timeComplexity": "O(1) — exactly 5 operations",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Reverse bits of a given 32 bits signed integer.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "bit-operations"
+    },
+    {
+      "id": "missing-number",
+      "title": "Missing Number",
+      "leetcodeSlug": "missing-number",
+      "difficulty": "Easy",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "array",
+        "bit-manipulation",
+        "math"
+      ],
+      "video": {
+        "title": "NeetCode — Missing Number (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Missing+Number",
+        "lang": "python"
+      },
+      "keyIdeas": "Array contains n distinct numbers from 0 to n, with one missing. XOR all array elements together with all numbers 0..n — the duplicates cancel (XOR self = 0), leaving only the missing number. Alternatively, use the sum formula `n*(n+1)//2 - sum(nums)`, but XOR is the bit-trick showcase.",
+      "hints": [
+        "You could sum 0..n and subtract the array sum. But there's a bit trick too.",
+        "XOR has the property that `a ^ a = 0`. If you XOR all numbers 0..n and all array elements, what remains?",
+        "XOR [0..n] with nums — duplicates cancel, leaving the missing number."
+      ],
+      "solutions": [
+        {
+          "label": "Math — Gauss sum formula",
+          "keyIdea": "Expected sum is `n*(n+1)//2` (Gauss formula). Subtract the actual sum to get the missing number. This is the most intuitive approach and what many people reach for first. Reach for this when clarity is key, but be aware of potential overflow in languages with fixed-width integers (Python is safe).",
+          "code": "class Solution:\n    def missingNumber(self, nums: list[int]) -> int:\n        n = len(nums)\n        expected = n * (n + 1) // 2\n        return expected - sum(nums)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — XOR",
+          "keyIdea": "XOR all indices (0..n) with all array values — duplicates cancel, leaving the missing number. This is the bit manipulation showcase solution: no overflow risk, works in any base, and demonstrates XOR's cancellation property. Reach for this in a bit manipulation interview or when you want to avoid arithmetic altogether.",
+          "code": "class Solution:\n    def missingNumber(self, nums: list[int]) -> int:\n        result = len(nums)  # start with n (the missing candidate)\n        for i, num in enumerate(nums):\n            result ^= i ^ num\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — Sort and scan",
+          "keyIdea": "Sort the array and scan for the first index where nums[i] != i. If none found, the missing number is n. This modifies the input and is O(n log n), so it's dominated by the other approaches, but it's a valid brute-force starting point that some candidates reach for. Reach for this only if you're not allowed to use extra space or arithmetic operations (rare), or as a first pass before optimizing.",
+          "code": "class Solution:\n    def missingNumber(self, nums: list[int]) -> int:\n        nums.sort()\n        for i in range(len(nums)):\n            if nums[i] != i:\n                return i\n        return len(nums)  # missing number is n",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1) if sort is in-place"
+        }
+      ],
+      "description": "Given an array nums containing n distinct numbers in the range [0, n], return the only number in the range that is missing from the array.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "xor-tricks"
+    },
+    {
+      "id": "sum-of-two-integers",
+      "title": "Sum of Two Integers",
+      "leetcodeSlug": "sum-of-two-integers",
+      "difficulty": "Medium",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "bit-manipulation",
+        "math"
+      ],
+      "video": {
+        "title": "NeetCode — Sum of Two Integers (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Sum+of+Two+Integers",
+        "lang": "python"
+      },
+      "keyIdeas": "Add two integers without using `+` or `-`. Use bitwise addition: `a ^ b` gives the sum without carries, `(a & b) << 1` gives the carries. Repeat until there are no carries. **Python gotcha**: Python has arbitrary-precision integers, so you need a 32-bit mask (`0xFFFFFFFF`) to simulate fixed-width addition and handle negatives correctly.",
+      "hints": [
+        "Think about how addition works at the bit level: XOR gives you the sum ignoring carries, AND gives you the carry positions.",
+        "`a ^ b` is the sum without carries. `(a & b) << 1` is the carry. Add them together (recursively or in a loop) until there's no carry.",
+        "Python's integers are unbounded, so for negative numbers you'll need to mask with `0xFFFFFFFF` to keep it in 32-bit range, then convert back."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Bitwise addition (iterative)",
+          "keyIdea": "XOR for sum without carry (`a ^ b`), AND-shift for carry (`(a & b) << 1`). Loop until there's no carry. Python needs a 32-bit mask (`0xFFFFFFFF`) to simulate fixed-width arithmetic and handle negatives correctly. This iterative approach is the standard interview solution — clearer than recursion for bit manipulation.",
+          "code": "class Solution:\n    def getSum(self, a: int, b: int) -> int:\n        mask = 0xFFFFFFFF  # 32-bit mask\n        while b != 0:\n            carry = (a & b) << 1\n            a = (a ^ b) & mask  # sum without carry, masked to 32 bits\n            b = carry & mask    # carry, masked to 32 bits\n        # if a is negative in 32-bit (highest bit set), convert to Python negative\n        return a if a < 0x80000000 else ~(a ^ mask)",
+          "timeComplexity": "O(1) — at most 32 iterations",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — Recursive",
+          "keyIdea": "Same XOR-and-carry logic, but recursive: base case is when b (the carry) becomes 0. Some find this more elegant, but the iterative version is more common in interviews and avoids call-stack overhead. Reach for this if you want to demonstrate recursion or prefer functional style, but stick with iterative for production code.",
+          "code": "class Solution:\n    def getSum(self, a: int, b: int) -> int:\n        mask = 0xFFFFFFFF\n        # base case: no carry\n        if b == 0:\n            # handle sign for Python's unbounded integers\n            return a if a < 0x80000000 else ~(a ^ mask)\n        # recursive case: sum without carry, and the carry shifted left\n        return self.getSum((a ^ b) & mask, ((a & b) << 1) & mask)",
+          "timeComplexity": "O(1) — at most 32 recursive calls",
+          "spaceComplexity": "O(1) — call stack depth is constant (32 max)"
+        }
+      ],
+      "description": "Given two integers a and b, return the sum of the two integers without using the operators + and -.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "arithmetic"
+    },
+    {
+      "id": "reverse-integer",
+      "title": "Reverse Integer",
+      "leetcodeSlug": "reverse-integer",
+      "difficulty": "Medium",
+      "patternId": "bit-manipulation",
+      "tags": [
+        "math"
+      ],
+      "video": {
+        "title": "NeetCode — Reverse Integer (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Reverse+Integer",
+        "lang": "python"
+      },
+      "keyIdeas": "Reverse the digits of a signed 32-bit integer. Extract digits with `%10` and `/10`, build the reversed number, and handle the sign. Check for 32-bit overflow ([-2³¹, 2³¹-1]) before returning. Python's unbounded ints make this easier than in languages with fixed-width types, but you still need the overflow check.",
+      "hints": [
+        "Extract digits one by one using `% 10` and `// 10`. How do you build a number from digits in reverse?",
+        "Handle the sign separately: work with the absolute value, then restore the sign at the end.",
+        "The result must fit in a signed 32-bit integer: [-2**31, 2**31 - 1]. If it overflows, return 0."
+      ],
+      "solutions": [
+        {
+          "label": "Digit extraction with overflow check",
+          "keyIdea": "Pop digits from x, push them onto result in reverse order, checking for 32-bit overflow.",
+          "code": "class Solution:\n    def reverse(self, x: int) -> int:\n        sign = -1 if x < 0 else 1\n        x = abs(x)\n        result = 0\n        while x:\n            digit = x % 10\n            x //= 10\n            # check overflow before adding\n            if result > (2**31 - 1) // 10:\n                return 0\n            result = result * 10 + digit\n        result *= sign\n        # final overflow check\n        if result < -2**31 or result > 2**31 - 1:\n            return 0\n        return result",
+          "timeComplexity": "O(log x) — number of digits",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given a signed 32-bit integer x, return x with its digits reversed. If reversing x causes the value to go outside the signed 32-bit integer range [-231, 231 - 1], then return 0.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "arithmetic"
+    },
+    {
+      "id": "bit-manipulation-tricks",
+      "title": "bit Manipulation Tricks",
+      "difficulty": "Medium",
+      "patternId": "bit-manipulation",
+      "subcategory": "basics",
+      "leetcodeSlug": "bit-manipulation-tricks",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "https://cp-algorithms.com/algebra/all-submasks.html#enumerating-all-submasks-of-a-given-mask         # ... you can use s ...",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "https://cp-algorithms.com/algebra/all-submasks.html#enumerating-all-submasks-of-a-given-mask         # ... you can use s ...",
+          "code": "'''\nhttps://leetcode.com/problems/fair-distribution-of-cookies/solutions/2141573/dp-submask-enumeration-most-optimal-solution-100-faster-c/\n#https://cp-algorithms.com/algebra/all-submasks.html#enumerating-all-submasks-of-a-given-mask\n\ns := m       = 1010100\ns-1          = 1010011\ns := m & s-1 = 1010000    <- effectively, removing right most 1 and keeping others\ns-1          = 1001111\nm & s-2      = 1000100    <- effectively, removing right most 1 and keeping others\n\nTC of subsetEnumeration(m) for m in range(1<<n) ->  O(3^n) \n'''\ndef subsetEnumeration(m):\n    s = m\n    while s>0:\n        # ... you can use s ...\n        s = (s-1) & m\n\n\n\n\n\n\n\n'''\nbitmask = 1010\nMSB =     1000\n'''\ndef getMSB(bitmask):\n    msb = 0\n    while bitmask:\n        msb += 1\n        bitmask >>= 1\n    return 1<<(msb-1)\n\n\n\n\n\n'''\nbitmask = 1010\nMSB =     0010\n'''\ndef getLSB(x):\n    return x & (-x)\n\n\n\n\n\n\n'''\nIdea : similar to subsetEnumeration but AND with subArrayMask \nbitmask = 10110\n{10110, 10101 & 10110 = 10100, 10011 & 10100 = 10000}\n10110 -> 00110\n{00110, 00100}\n00110 -> 00010\n{00010}\n'''\ndef subArrayEnumeration(bitmask):\n    while bitmask:\n        subArrayMask = bitmask\n        while subArrayMask:\n            yield subArrayMask\n            subArrayMask = (subArrayMask-1) & subArrayMask\n        bitmask &= ~getMSB(bitmask)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "bitwise-and-of-numbers-range",
+      "title": "bitwise And Of Numbers Range",
+      "difficulty": "Medium",
+      "patternId": "bit-manipulation",
+      "subcategory": "basics",
+      "leetcodeSlug": "bitwise-and-of-numbers-range",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "'''\nKey Idea 1: MSB should be same\n011001   <- left\n...\n100000   <- this will be in between => AND will be 0\n...\n111111   <- right\n\n\nKey Idea 2:\n11011-0-01\n...\n...       \n11011-1-00\n\n=> AND will be\n11011-000\n\ngiven left < right\nleft := common bits + 0 + remaining bits of left\nright := common bits + 1 + remaining bits of right\nthus repeatedly clear last bit of right and left, until right <= left\n'''\n\nclass Solution:\n    def rangeBitwiseAnd(self, left: int, right: int) -> int:\n        shifts = 0\n        while left<right:\n            left >>= 1\n            right >>= 1\n            shifts += 1\n        return right<<shifts",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given two integers left and right that represent the range [left, right], return the bitwise AND of all numbers in this range, inclusive.",
+      "phaseId": 3
+    }
+  ]
+}

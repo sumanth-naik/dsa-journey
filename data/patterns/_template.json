@@ -1,0 +1,51 @@
+{
+  "id": "pattern-id-kebab-case",
+  "name": "Human Readable Pattern Name",
+  "phaseId": 1,
+  "order": 1,
+  "concept": "## The idea\n\nMarkdown. Explain the pattern CONCEPT-FIRST, before any problem. Include a short 'Python you'll pick up here' note so Python is baked in, not taught separately.",
+  "whenToUse": [
+    "Cue 1",
+    "Cue 2",
+    "Cue 3"
+  ],
+  "problems": [
+    {
+      "id": "problem-id-kebab-case",
+      "title": "Problem Title",
+      "leetcodeSlug": "leetcode-slug-or-unknown",
+      "difficulty": "Easy | Medium | Hard",
+      "patternId": "pattern-id-kebab-case",
+      "tags": [
+        "array"
+      ],
+      "video": {
+        "title": "Optional video title",
+        "url": "https://...",
+        "lang": "python"
+      },
+      "keyIdeas": "PROBLEM-LEVEL key idea (markdown). This is what the 'Key Ideas' review view shows. Connect it to the pattern; make it revisable on its own.",
+      "hints": [
+        "Hint 1 — nudge toward the idea, don't give it away.",
+        "Hint 2 — more concrete.",
+        "Hint 3 — essentially the approach."
+      ],
+      "solutions": [
+        {
+          "label": "Brute Force",
+          "keyIdea": "Per-tier insight for THIS solution.",
+          "code": "class Solution:\n    def solve(self):\n        pass",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Why this is better.",
+          "code": "class Solution:\n    def solve(self):\n        pass",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ]
+    }
+  ]
+}

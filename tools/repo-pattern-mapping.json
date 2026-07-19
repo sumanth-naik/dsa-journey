@@ -1,0 +1,233 @@
+{
+  "mappings": {
+    "Two Pointer": {
+      "pattern": "two-pointers",
+      "subcategory": "basic"
+    },
+    "Sliding Window": {
+      "pattern": "sliding-window",
+      "subcategory": "basic"
+    },
+    "Binary Search": {
+      "pattern": "binary-search",
+      "subcategory": "basic"
+    },
+    "Binary Search on Answer": {
+      "pattern": "binary-search",
+      "subcategory": "on-answer"
+    },
+    "Binary Search in Two Arrays": {
+      "pattern": "binary-search",
+      "subcategory": "two-arrays"
+    },
+    "Binary Search on Weird Arrays": {
+      "pattern": "binary-search",
+      "subcategory": "rotated-sorted"
+    },
+    "Binary Search for Subsequence Matching": {
+      "pattern": "binary-search",
+      "subcategory": "advanced"
+    },
+    "Binary Search for length on DP solution": {
+      "pattern": "binary-search",
+      "subcategory": "on-length"
+    },
+    "Back Tracking": {
+      "pattern": "backtracking",
+      "subcategory": "basic"
+    },
+    "Bitmasking DP": {
+      "pattern": "backtracking",
+      "subcategory": "bitmask-dp"
+    },
+    "DP": {
+      "pattern": "one-d-dp",
+      "subcategory": "basic"
+    },
+    "DP - Coin Change": {
+      "pattern": "one-d-dp",
+      "subcategory": "coin-change"
+    },
+    "DP - Take or Not Take": {
+      "pattern": "one-d-dp",
+      "subcategory": "take-or-not-take"
+    },
+    "DP - LIS": {
+      "pattern": "one-d-dp",
+      "subcategory": "lis"
+    },
+    "DP - Partitions": {
+      "pattern": "one-d-dp",
+      "subcategory": "partitions"
+    },
+    "DP on Grids": {
+      "pattern": "two-d-dp",
+      "subcategory": "grids"
+    },
+    "DP on Trees": {
+      "pattern": "two-d-dp",
+      "subcategory": "tree-dp"
+    },
+    "DP - Digit DP": {
+      "pattern": "two-d-dp",
+      "subcategory": "digit-dp"
+    },
+    "DP - Subsequence Problems": {
+      "pattern": "two-d-dp",
+      "subcategory": "subsequence"
+    },
+    "Graphs - BFS": {
+      "pattern": "graphs",
+      "subcategory": "bfs"
+    },
+    "Graphs - DFS": {
+      "pattern": "graphs",
+      "subcategory": "dfs"
+    },
+    "Graphs - BFS In Grid": {
+      "pattern": "graphs",
+      "subcategory": "grid-bfs"
+    },
+    "Graphs - Djikstras": {
+      "pattern": "graphs",
+      "subcategory": "shortest-path"
+    },
+    "Graphs - Topological Sort": {
+      "pattern": "graphs",
+      "subcategory": "topological-sort"
+    },
+    "Graphs - Bipartite": {
+      "pattern": "graphs",
+      "subcategory": "bipartite"
+    },
+    "Graphs - Minimum Spanning Tree": {
+      "pattern": "graphs",
+      "subcategory": "mst"
+    },
+    "Union Find": {
+      "pattern": "graphs",
+      "subcategory": "union-find"
+    },
+    "Trees": {
+      "pattern": "trees",
+      "subcategory": "basic"
+    },
+    "Binary Search Tree Property - Inorder is sorted": {
+      "pattern": "trees",
+      "subcategory": "bst"
+    },
+    "Binary Search Tree Property - Validating": {
+      "pattern": "trees",
+      "subcategory": "bst"
+    },
+    "Binary Tree Properties": {
+      "pattern": "trees",
+      "subcategory": "properties"
+    },
+    "Binary Search Trees": {
+      "pattern": "trees",
+      "subcategory": "bst"
+    },
+    "Heaps": {
+      "pattern": "heap",
+      "subcategory": "basic"
+    },
+    "HashMaps": {
+      "pattern": "hashing",
+      "subcategory": "basic"
+    },
+    "Stacks - Parantheses": {
+      "pattern": "stack",
+      "subcategory": "parentheses"
+    },
+    "Monotonic Stacks": {
+      "pattern": "stack",
+      "subcategory": "monotonic"
+    },
+    "Monotonic Queue": {
+      "pattern": "stack",
+      "subcategory": "monotonic-queue"
+    },
+    "Intervals": {
+      "pattern": "intervals",
+      "subcategory": "basic"
+    },
+    "Greedy": {
+      "pattern": "greedy",
+      "subcategory": "basic"
+    },
+    "Tries": {
+      "pattern": "tries",
+      "subcategory": "basic"
+    },
+    "Bit Manipulation": {
+      "pattern": "bit-manipulation",
+      "subcategory": "basic"
+    },
+    "Linked List": {
+      "pattern": "linked-list",
+      "subcategory": "basic"
+    },
+    "Math": {
+      "pattern": "math-and-geometry",
+      "subcategory": "basic"
+    },
+    "Kadane": {
+      "pattern": "one-d-dp",
+      "subcategory": "kadane"
+    },
+    "Boyer Moore Majority Vote Algorithm": {
+      "pattern": "hashing",
+      "subcategory": "counting"
+    },
+    "Cyclic Sort": {
+      "pattern": "arrays",
+      "subcategory": "cyclic-sort"
+    },
+    "Count Sort": {
+      "pattern": "arrays",
+      "subcategory": "counting-sort"
+    },
+    "Quick Select": {
+      "pattern": "heap",
+      "subcategory": "quick-select"
+    },
+    "Character Combinations": {
+      "pattern": "backtracking",
+      "subcategory": "combinations"
+    },
+    "Convex Hull": {
+      "pattern": "math-and-geometry",
+      "subcategory": "convex-hull"
+    },
+    "Game Theory": {
+      "pattern": "math-and-geometry",
+      "subcategory": "game-theory"
+    },
+    "KMP Algorithm": {
+      "pattern": "two-pointers",
+      "subcategory": "string-matching"
+    },
+    "Manacher": {
+      "pattern": "two-pointers",
+      "subcategory": "palindrome"
+    },
+    "Rolling Hash": {
+      "pattern": "hashing",
+      "subcategory": "rolling-hash"
+    }
+  },
+  "skip": [
+    "Trie - Implementations",
+    "Union Find - Implementations",
+    "New Data Structures Implementation",
+    "Design new Data Structures",
+    "Doubly Linked List",
+    "Easy OR Repeated Patterns - ignore",
+    "incomplete",
+    "They dont want to hire you",
+    "Resume",
+    "Puzzling Ideas",
+    "CandyCrush"
+  ]
+}

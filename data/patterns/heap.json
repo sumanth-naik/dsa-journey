@@ -1,0 +1,309 @@
+{
+  "id": "heap",
+  "name": "Heap / Priority Queue",
+  "phaseId": 4,
+  "order": 2,
+  "tagline": "Always pull the min/max in O(log n) — top-k and streaming.",
+  "concept": "## The idea\n\nA **heap** is a complete binary tree that maintains a partial ordering: every parent is smaller (min-heap) or larger (max-heap) than its children. This single property gives you the **global extreme** (min or max) in O(1) and lets you insert or remove it in O(log n) — no need to sort the entire collection.\n\nWhen you need:\n- the **top k** elements (k smallest, k largest),\n- a **running median** or extreme,\n- to process items **in priority order** (earliest deadline, highest urgency),\n\n…a heap is the right tool. Python's `heapq` module is a **min-heap** by default. For a max-heap, negate your values on insert and negate again on pop.\n\nThe magic: you never sort all n elements. You just keep a heap of size k (or size related to the problem constraint), and every heap operation is O(log k) or O(log n). That turns a brute-force O(n log n) sort into O(n log k), or even O(n) with careful bucket tricks.\n\n## Python you'll pick up here\n\n- `import heapq` — Python's built-in min-heap\n- `heapq.heappush(heap, item)` — insert in O(log n)\n- `heapq.heappop(heap)` — remove and return the smallest in O(log n)\n- `heapq.heapify(list)` — turn a list into a heap in-place in O(n)\n- Negating for max-heap: `heappush(heap, -val)` then `-heappop(heap)`\n- Tuples as heap items: `(priority, data)` — Python compares tuples element-wise, so the first element determines priority",
+  "whenToUse": [
+    "You need the k smallest or k largest elements (Top K pattern)",
+    "You're maintaining a running minimum or maximum as data streams in",
+    "You need to process items in priority order (earliest deadline, highest weight)",
+    "You see 'median' or 'balance two halves' — often a two-heap trick (max-heap + min-heap)"
+  ],
+  "problems": [
+    {
+      "id": "kth-largest-element-in-a-stream",
+      "title": "Kth Largest Element in a Stream",
+      "leetcodeSlug": "kth-largest-element-in-a-stream",
+      "difficulty": "Easy",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "design",
+        "stream"
+      ],
+      "video": {
+        "title": "NeetCode — Kth Largest Element in a Stream (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Kth+Largest+Element+in+a+Stream",
+        "lang": "python"
+      },
+      "keyIdeas": "Keep a **min-heap of size k**. The top of the heap (the smallest among the k largest) is the kth largest overall. When a new number arrives, if it's bigger than the heap top, push it and pop the old top to keep size exactly k. This is the gentlest heap warm-up — it shows why a min-heap tracks the 'kth largest' and gets you comfortable with `heappush` and `heappop`.",
+      "hints": [
+        "You don't need to store all numbers — just the k largest seen so far. What data structure gives you the smallest of those k in O(1)?",
+        "A min-heap of size k. The top is the kth largest. When a new number comes in, if it's larger than the top, it belongs in your top-k.",
+        "Push the new number, then pop to keep size k. The heap top after this is always the kth largest."
+      ],
+      "solutions": [
+        {
+          "label": "Min-heap of size k",
+          "keyIdea": "Maintain exactly k elements in a min-heap. The root is the kth largest because it's the smallest among the k largest.",
+          "code": "import heapq\n\nclass KthLargest:\n    def __init__(self, k: int, nums: list[int]):\n        self.k = k\n        self.heap = nums\n        heapq.heapify(self.heap)        # turn list into a heap in O(n)\n        while len(self.heap) > k:       # trim to size k\n            heapq.heappop(self.heap)\n\n    def add(self, val: int) -> int:\n        heapq.heappush(self.heap, val)\n        if len(self.heap) > self.k:\n            heapq.heappop(self.heap)    # keep only k largest\n        return self.heap[0]             # top of min-heap is kth largest",
+          "timeComplexity": "O(log k) per add, O(n log k) initialization",
+          "spaceComplexity": "O(k)"
+        }
+      ],
+      "description": "You are part of a university admissions office and need to keep track of the kth highest test score from applicants in real-time. This helps to determine cut-off marks for interviews and admissions dynamically as new applicants submit their scores.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "design"
+    },
+    {
+      "id": "last-stone-weight",
+      "title": "Last Stone Weight",
+      "leetcodeSlug": "last-stone-weight",
+      "difficulty": "Easy",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "simulation"
+      ],
+      "video": {
+        "title": "NeetCode — Last Stone Weight (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Last+Stone+Weight",
+        "lang": "python"
+      },
+      "keyIdeas": "You always smash the **two heaviest** stones. That screams max-heap — but Python's `heapq` is a min-heap, so **negate all weights** on insert. Pop twice (the two largest), compute the difference, push it back if nonzero. Repeat until one or zero stones remain. This problem cements the 'negate for max-heap' trick.",
+      "hints": [
+        "You need the two heaviest stones repeatedly. A max-heap gives you the heaviest in O(1) and lets you pop and push in O(log n).",
+        "Python's heapq is a min-heap. Turn it into a max-heap by negating all weights: push `-stone`, pop and negate to get the actual weight.",
+        "Pop twice, compute the difference (if the two stones aren't equal), push the difference back. Loop until the heap has 0 or 1 stones."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — sort each time",
+          "keyIdea": "Sort the array after every smash to find the two heaviest. Intuitive but wasteful — O(n² log n) because you sort n times.",
+          "code": "class Solution:\n    def lastStoneWeight(self, stones: list[int]) -> int:\n        while len(stones) > 1:\n            stones.sort()  # sort each iteration\n            first = stones.pop()   # heaviest\n            second = stones.pop()  # second heaviest\n            if first != second:\n                stones.append(first - second)\n        return stones[0] if stones else 0",
+          "timeComplexity": "O(n² log n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — max-heap (negate for heapq)",
+          "keyIdea": "Negate weights so the heaviest stones sort to the top of Python's min-heap. Pop two, compute difference, push back. Each operation is O(log n) instead of O(n log n) sorting.",
+          "code": "import heapq\n\nclass Solution:\n    def lastStoneWeight(self, stones: list[int]) -> int:\n        # negate to turn min-heap into max-heap\n        heap = [-s for s in stones]\n        heapq.heapify(heap)\n        \n        while len(heap) > 1:\n            first = -heapq.heappop(heap)   # heaviest\n            second = -heapq.heappop(heap)  # second heaviest\n            if first != second:\n                heapq.heappush(heap, -(first - second))\n        \n        return -heap[0] if heap else 0",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "You are given an array of integers stones where stones[i] is the weight of the ith stone.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "simulation"
+    },
+    {
+      "id": "k-closest-points-to-origin",
+      "title": "K Closest Points to Origin",
+      "leetcodeSlug": "k-closest-points-to-origin",
+      "difficulty": "Medium",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "geometry",
+        "sorting"
+      ],
+      "video": {
+        "title": "NeetCode — K Closest Points to Origin (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+K+Closest+Points+to+Origin",
+        "lang": "python"
+      },
+      "keyIdeas": "The brute force sorts all n points by distance — O(n log n). But you only need the **k smallest** distances, so a **max-heap of size k** wins: O(n log k). Push `(distance, point)` tuples; Python compares by distance first. When the heap grows past k, pop the farthest. After scanning all points, the heap holds the k closest. This is the archetypal 'top-k smallest' pattern.",
+      "hints": [
+        "Sorting all points is O(n log n), but you only need k of them. Can you do better?",
+        "Keep a max-heap of size k. As you scan points, if a point's distance is smaller than the heap top (the farthest of your current k), replace it.",
+        "Push `(distance, point)`. When size exceeds k, pop. At the end, the heap contains the k closest points."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — sort",
+          "keyIdea": "Compute all distances, sort the points by distance, return the first k. Simple but wasteful for large n and small k.",
+          "code": "class Solution:\n    def kClosest(self, points: list[list[int]], k: int) -> list[list[int]]:\n        points.sort(key=lambda p: p[0]**2 + p[1]**2)\n        return points[:k]",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1) if in-place sort; O(n) otherwise"
+        },
+        {
+          "label": "Optimal — max-heap of size k",
+          "keyIdea": "Only track the k smallest distances with a max-heap. Push negated distances so the farthest among the k stays on top. Reach for this when k is small or data arrives as a stream.",
+          "code": "import heapq\n\nclass Solution:\n    def kClosest(self, points: list[list[int]], k: int) -> list[list[int]]:\n        heap = []  # max-heap of (-distance, point)\n        for x, y in points:\n            dist = x*x + y*y\n            heapq.heappush(heap, (-dist, [x, y]))  # negate dist for max-heap\n            if len(heap) > k:\n                heapq.heappop(heap)  # remove the farthest\n        return [point for (_, point) in heap]",
+          "timeComplexity": "O(n log k)",
+          "spaceComplexity": "O(k)"
+        },
+        {
+          "label": "Alternative — quickselect",
+          "keyIdea": "Partition around a pivot to find the k-th smallest distance in average O(n). Reach for it over a heap when you can mutate the array and want the best average time; use the heap instead when k is small or data streams in, and plain sort when you also need everything in order.",
+          "code": "import random\n\nclass Solution:\n    def kClosest(self, points: list[list[int]], k: int) -> list[list[int]]:\n        def dist(p):\n            return p[0]**2 + p[1]**2\n        \n        def partition(left, right, pivot_idx):\n            pivot_dist = dist(points[pivot_idx])\n            # move pivot to end\n            points[pivot_idx], points[right] = points[right], points[pivot_idx]\n            store_idx = left\n            for i in range(left, right):\n                if dist(points[i]) < pivot_dist:\n                    points[i], points[store_idx] = points[store_idx], points[i]\n                    store_idx += 1\n            # move pivot to its final place\n            points[store_idx], points[right] = points[right], points[store_idx]\n            return store_idx\n        \n        def select(left, right, k):\n            if left == right:\n                return\n            pivot_idx = random.randint(left, right)\n            pivot_idx = partition(left, right, pivot_idx)\n            if k == pivot_idx:\n                return\n            elif k < pivot_idx:\n                select(left, pivot_idx - 1, k)\n            else:\n                select(pivot_idx + 1, right, k)\n        \n        select(0, len(points) - 1, k - 1)\n        return points[:k]",
+          "timeComplexity": "O(n) average, O(n²) worst",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an array of points where points[i] = [xi, yi] represents a point on the X-Y plane and an integer k, return the k closest points to the origin (0, 0).",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "kth-element"
+    },
+    {
+      "id": "kth-largest-element-in-an-array",
+      "title": "Kth Largest Element in an Array",
+      "leetcodeSlug": "kth-largest-element-in-an-array",
+      "difficulty": "Medium",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "quickselect",
+        "sorting"
+      ],
+      "video": {
+        "title": "NeetCode — Kth Largest Element in an Array (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Kth+Largest+Element+in+an+Array",
+        "lang": "python"
+      },
+      "keyIdeas": "Three approaches: **sort** (O(n log n)), **min-heap of size k** (O(n log k) — same trick as the stream problem), or **quickselect** (O(n) average, O(n²) worst). For learning heaps, the min-heap solution is the sweet spot — faster than sorting and simpler than quickselect. The heap stays size k; after processing all n elements, the top is the kth largest.",
+      "hints": [
+        "Sorting works but is O(n log n). You only need one value, not a fully sorted array.",
+        "A min-heap of size k gives you the kth largest in O(n log k). After all elements, the heap top is the answer.",
+        "Quickselect can do O(n) average by partitioning like quicksort — but that's a separate pattern. Stick with the heap for now."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — sort",
+          "keyIdea": "Sort descending, pick the element at index k-1. Simple but inefficient for large arrays.",
+          "code": "class Solution:\n    def findKthLargest(self, nums: list[int], k: int) -> int:\n        nums.sort(reverse=True)\n        return nums[k - 1]",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1) if in-place sort"
+        },
+        {
+          "label": "Better — min-heap of size k",
+          "keyIdea": "Same as the stream problem: maintain k largest in a min-heap. The top is the kth largest. Reach for this when k is small or data streams in.",
+          "code": "import heapq\n\nclass Solution:\n    def findKthLargest(self, nums: list[int], k: int) -> int:\n        heap = []\n        for num in nums:\n            heapq.heappush(heap, num)\n            if len(heap) > k:\n                heapq.heappop(heap)  # keep only k largest\n        return heap[0]",
+          "timeComplexity": "O(n log k)",
+          "spaceComplexity": "O(k)"
+        },
+        {
+          "label": "Optimal — quickselect",
+          "keyIdea": "Partition around a pivot to find the k-th largest in average O(n). Reach for it over a heap when you can mutate the array and want the best average time; use the heap instead when k is small or the data arrives as a stream, and plain sort when you also need everything in order.",
+          "code": "import random\n\nclass Solution:\n    def findKthLargest(self, nums: list[int], k: int) -> int:\n        k = len(nums) - k  # convert to k-th smallest (0-indexed)\n        \n        def partition(left, right, pivot_idx):\n            pivot = nums[pivot_idx]\n            # move pivot to end\n            nums[pivot_idx], nums[right] = nums[right], nums[pivot_idx]\n            store_idx = left\n            for i in range(left, right):\n                if nums[i] < pivot:\n                    nums[i], nums[store_idx] = nums[store_idx], nums[i]\n                    store_idx += 1\n            # move pivot to its final place\n            nums[store_idx], nums[right] = nums[right], nums[store_idx]\n            return store_idx\n        \n        def select(left, right):\n            if left == right:\n                return nums[left]\n            pivot_idx = random.randint(left, right)\n            pivot_idx = partition(left, right, pivot_idx)\n            if k == pivot_idx:\n                return nums[k]\n            elif k < pivot_idx:\n                return select(left, pivot_idx - 1)\n            else:\n                return select(pivot_idx + 1, right)\n        \n        return select(0, len(nums) - 1)",
+          "timeComplexity": "O(n) average, O(n²) worst",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an integer array nums and an integer k, return the kth largest element in the array.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "kth-element"
+    },
+    {
+      "id": "task-scheduler",
+      "title": "Task Scheduler",
+      "leetcodeSlug": "task-scheduler",
+      "difficulty": "Medium",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "greedy",
+        "queue"
+      ],
+      "video": {
+        "title": "NeetCode — Task Scheduler (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Task+Scheduler",
+        "lang": "python"
+      },
+      "keyIdeas": "Greedy strategy: always run the **most-frequent remaining task** that isn't in cooldown. Use a **max-heap** (negate counts) to pick the most frequent, and a **queue** to track tasks cooling down (each entry is `[count, time_available_again]`). Each cycle, pop from the heap, decrement its count, push it into the cooldown queue. After `n` idle slots, pull tasks back from the queue into the heap. Count total time. This is a classic 'priority + delayed re-insertion' pattern.",
+      "hints": [
+        "You want to keep the CPU busy by always picking the most-frequent task that isn't cooling down. What structure gives you 'most frequent'?",
+        "A max-heap of counts. After you run a task, it goes on cooldown for n cycles. Track those in a queue of (count, time_available).",
+        "Each cycle: pop the max-heap, run that task, push it to the cooldown queue. After n cycles, re-enable tasks from the queue. Simulate time step-by-step."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — max-heap + cooldown queue",
+          "keyIdea": "Use a max-heap to greedily pick the most-frequent available task, and a queue to hold tasks in cooldown. Simulate each time unit. This is the most intuitive heap-based approach.",
+          "code": "import heapq\nfrom collections import Counter, deque\n\nclass Solution:\n    def leastInterval(self, tasks: list[str], n: int) -> int:\n        counts = Counter(tasks)\n        max_heap = [-cnt for cnt in counts.values()]  # negate for max-heap\n        heapq.heapify(max_heap)\n        \n        queue = deque()  # pairs of [count, time_available]\n        time = 0\n        \n        while max_heap or queue:\n            time += 1\n            if max_heap:\n                cnt = heapq.heappop(max_heap) + 1  # +1 because it was negated\n                if cnt < 0:  # still tasks left\n                    queue.append([cnt, time + n])  # available after cooldown\n            \n            # bring back tasks whose cooldown expired\n            if queue and queue[0][1] == time:\n                heapq.heappush(max_heap, queue.popleft()[0])\n        \n        return time",
+          "timeComplexity": "O(m) where m = total execution time (m ≤ n * len(tasks))",
+          "spaceComplexity": "O(26) = O(1) for task counts"
+        },
+        {
+          "label": "Alternative — greedy math",
+          "keyIdea": "The most-frequent task dictates the minimum time: (max_freq - 1) * (n + 1) + count_of_max_freq. If tasks overflow this frame, the answer is just len(tasks). No simulation needed — pure math. Reach for this when you want O(1) space and a closed-form solution.",
+          "code": "from collections import Counter\n\nclass Solution:\n    def leastInterval(self, tasks: list[str], n: int) -> int:\n        counts = Counter(tasks)\n        max_freq = max(counts.values())\n        # count how many tasks have the max frequency\n        max_count = sum(1 for c in counts.values() if c == max_freq)\n        \n        # minimum time: arrange max_freq tasks with n idle slots between\n        # (max_freq - 1) chunks of (n + 1) length, plus max_count at the end\n        min_time = (max_freq - 1) * (n + 1) + max_count\n        \n        # if tasks overflow the frame, the answer is just total tasks\n        return max(min_time, len(tasks))",
+          "timeComplexity": "O(n) to count, where n = len(tasks)",
+          "spaceComplexity": "O(1) for 26 task types"
+        }
+      ],
+      "description": "You are given an array of CPU tasks, each labeled with a letter from A to Z, and a number n. Each CPU interval can be idle or allow the completion of one task. Tasks can be completed in any order, but there&#39;s a constraint: there has to be a gap of at least n intervals between two tasks with the same label.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "scheduling"
+    },
+    {
+      "id": "design-twitter",
+      "title": "Design Twitter",
+      "leetcodeSlug": "design-twitter",
+      "difficulty": "Medium",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "design",
+        "hash-table"
+      ],
+      "video": {
+        "title": "NeetCode — Design Twitter (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Design+Twitter",
+        "lang": "python"
+      },
+      "keyIdeas": "The tricky operation is `getNewsFeed(userId)`: merge tweets from the user and all followees, then return the 10 most recent. **Don't merge and sort** all tweets (could be huge). Instead, keep a pointer at the head of each user's tweet list and use a **min-heap of size 10** to track the 10 largest timestamps. This is a k-way merge, just like merging k sorted lists. You only look at ~10 tweets per user instead of all of them.",
+      "hints": [
+        "Each user's tweets are a time-ordered list (newest first). Merging k such lists and taking the top 10 sounds like a k-way merge.",
+        "Use a max-heap (negate timestamps). Start with the first tweet from the user and each followee. Pop the max, add it to the result, and push the next tweet from that same user.",
+        "Stop when you have 10 tweets or the heap is empty. Store tweets as `[userId, tweetId, timestamp, index_in_user_list]` to track iteration."
+      ],
+      "solutions": [
+        {
+          "label": "Heap-based k-way merge",
+          "keyIdea": "Each user's tweets are stored newest-first. Use a max-heap to merge the heads of all relevant lists (user + followees) and collect the top 10.",
+          "code": "import heapq\nfrom collections import defaultdict\n\nclass Twitter:\n    def __init__(self):\n        self.time = 0\n        self.tweets = defaultdict(list)  # userId -> [(timestamp, tweetId), ...]\n        self.following = defaultdict(set)  # userId -> set of followeeIds\n\n    def postTweet(self, userId: int, tweetId: int) -> None:\n        self.tweets[userId].append((self.time, tweetId))\n        self.time += 1\n\n    def getNewsFeed(self, userId: int) -> list[int]:\n        res = []\n        max_heap = []  # (-timestamp, tweetId, userId, index)\n        \n        # add user's own tweets\n        self.following[userId].add(userId)  # treat self as followee for simplicity\n        for followeeId in self.following[userId]:\n            if followeeId in self.tweets and self.tweets[followeeId]:\n                index = len(self.tweets[followeeId]) - 1  # newest tweet\n                timestamp, tweetId = self.tweets[followeeId][index]\n                heapq.heappush(max_heap, (-timestamp, tweetId, followeeId, index))\n        \n        while max_heap and len(res) < 10:\n            _, tweetId, followeeId, index = heapq.heappop(max_heap)\n            res.append(tweetId)\n            if index > 0:  # push next older tweet from the same user\n                timestamp, tweetId = self.tweets[followeeId][index - 1]\n                heapq.heappush(max_heap, (-timestamp, tweetId, followeeId, index - 1))\n        \n        self.following[userId].discard(userId)  # clean up\n        return res\n\n    def follow(self, followerId: int, followeeId: int) -> None:\n        self.following[followerId].add(followeeId)\n\n    def unfollow(self, followerId: int, followeeId: int) -> None:\n        self.following[followerId].discard(followeeId)",
+          "timeComplexity": "O(k log k) per getNewsFeed, where k = number of followees",
+          "spaceComplexity": "O(n + m) where n = users, m = tweets"
+        }
+      ],
+      "description": "Design a simplified version of Twitter where users can post tweets, follow/unfollow another user, and is able to see the 10 most recent tweets in the user&#39;s news feed.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "design"
+    },
+    {
+      "id": "find-median-from-data-stream",
+      "title": "Find Median from Data Stream",
+      "leetcodeSlug": "find-median-from-data-stream",
+      "difficulty": "Hard",
+      "patternId": "heap",
+      "tags": [
+        "heap",
+        "design",
+        "two-heaps"
+      ],
+      "video": {
+        "title": "NeetCode — Find Median from Data Stream (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Find+Median+from+Data+Stream",
+        "lang": "python"
+      },
+      "keyIdeas": "The **two-heap trick**: keep a **max-heap** for the smaller half of numbers and a **min-heap** for the larger half. Balance them so their sizes differ by at most 1. The median is then the top(s) of the heaps in O(1). Adding a number is O(log n): push to the appropriate heap, then rebalance if sizes drift. This is the canonical 'running median' pattern and the capstone of the heap section.",
+      "hints": [
+        "A single heap gives you the min or max in O(1), but the median is in the *middle*. How can you keep the middle accessible?",
+        "Split the numbers into two halves: a max-heap for the smaller half (so the top is the largest among the small) and a min-heap for the larger half (top is the smallest among the large).",
+        "If both heaps have the same size, the median is the average of the two tops. If one is larger, its top is the median. Always balance so sizes differ by ≤1."
+      ],
+      "solutions": [
+        {
+          "label": "Two heaps (max-heap + min-heap)",
+          "keyIdea": "Max-heap stores the smaller half (negated), min-heap stores the larger half. Balance them; median is at the tops.",
+          "code": "import heapq\n\nclass MedianFinder:\n    def __init__(self):\n        self.small = []  # max-heap (negate values)\n        self.large = []  # min-heap\n\n    def addNum(self, num: int) -> None:\n        # always add to small first (as a max-heap)\n        heapq.heappush(self.small, -num)\n        \n        # ensure every element in small <= every element in large\n        if self.small and self.large and (-self.small[0] > self.large[0]):\n            val = -heapq.heappop(self.small)\n            heapq.heappush(self.large, val)\n        \n        # balance sizes (small can have at most 1 more element than large)\n        if len(self.small) > len(self.large) + 1:\n            val = -heapq.heappop(self.small)\n            heapq.heappush(self.large, val)\n        if len(self.large) > len(self.small):\n            val = heapq.heappop(self.large)\n            heapq.heappush(self.small, -val)\n\n    def findMedian(self) -> float:\n        if len(self.small) > len(self.large):\n            return -self.small[0]\n        return (-self.small[0] + self.large[0]) / 2",
+          "timeComplexity": "O(log n) per addNum, O(1) per findMedian",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "The median is the middle value in an ordered integer list. If the size of the list is even, there is no middle value, and the median is the mean of the two middle values.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "two-heaps"
+    }
+  ]
+}

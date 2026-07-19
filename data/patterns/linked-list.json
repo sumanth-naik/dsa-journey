@@ -1,0 +1,947 @@
+{
+  "id": "linked-list",
+  "name": "Linked List",
+  "phaseId": 3,
+  "order": 1,
+  "tagline": "Pointer surgery: reverse, merge, detect cycles.",
+  "concept": "## The idea\n\nYou already know linked lists — nodes with `.val` and `.next` pointers. **Linked-list problems** are all about manipulating those pointers: reversing direction, finding the middle, detecting cycles, merging sorted chains.\n\nKey patterns:\n\n1. **In-place reversal** — flip `.next` pointers as you walk, tracking `prev` and `curr`.\n2. **Fast/slow pointers** — move one pointer 1 step, another 2 steps per iteration. When fast hits the end, slow is at the middle. If they ever meet, there's a cycle.\n3. **Dummy head** — a fake node before the real head simplifies edge cases when the head itself might change (merge, insertion).\n4. **Runner technique** — maintain two pointers with a fixed gap (e.g. n steps apart) to find the nth-from-end node in one pass.\n\nMost solutions are **O(n) time, O(1) space** because you're just rewiring pointers, not building new structures.\n\n## Python you'll pick up here\n\n- `class ListNode:` definition with `self.val`, `self.next`\n- `while curr:` — the idiomatic way to traverse a linked list (loops until `None`)\n- Multiple assignment for pointer rewiring: `prev, curr.next, curr = curr, prev, curr.next`\n- `collections.OrderedDict` for LRU Cache (ordered dict with move-to-end)\n- `heapq.heappush/heappop` for merging k sorted lists\n- Tuple comparison: `(node.val, id(node))` for heap tiebreaking",
+  "whenToUse": [
+    "The problem explicitly gives you a linked list (head pointer)",
+    "You need to reverse or reorder nodes in-place",
+    "You're detecting cycles or finding the middle without knowing the length",
+    "You're merging sorted lists or maintaining insertion order with O(1) access"
+  ],
+  "problems": [
+    {
+      "id": "reverse-linked-list",
+      "title": "Reverse Linked List",
+      "leetcodeSlug": "reverse-linked-list",
+      "difficulty": "Easy",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Reverse Linked List (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Reverse+Linked+List",
+        "lang": "python"
+      },
+      "keyIdeas": "The simplest linked-list surgery: walk the list, flipping each `.next` pointer to point backward. Track `prev` (initially `None`) and `curr` (initially `head`), then swap `curr.next = prev` before stepping forward. This is the foundation for every pointer-reversal problem.",
+      "hints": [
+        "You need to reverse the direction of `.next` pointers. What do you need to track as you walk?",
+        "Keep a `prev` pointer (starts at None) and a `curr` pointer (starts at head). For each node, save the original `curr.next`, point `curr.next = prev`, then step both forward.",
+        "The iterative pattern: save next, reverse the link, advance prev and curr. The recursive version just reverses the rest first, then fixes the link."
+      ],
+      "solutions": [
+        {
+          "label": "Iterative",
+          "keyIdea": "Walk the list, reversing each pointer by setting curr.next = prev, then stepping both forward.",
+          "code": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\n\nclass Solution:\n    def reverseList(self, head: ListNode) -> ListNode:\n        prev, curr = None, head\n        while curr:\n            next_temp = curr.next      # save the original next\n            curr.next = prev           # reverse the link\n            prev = curr                # step prev forward\n            curr = next_temp           # step curr forward\n        return prev                    # prev is the new head",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Recursive",
+          "keyIdea": "Recursively reverse the rest of the list, then fix the link between the current node and the reversed tail.",
+          "code": "class Solution:\n    def reverseList(self, head: ListNode) -> ListNode:\n        if not head or not head.next:\n            return head\n        new_head = self.reverseList(head.next)  # reverse the rest\n        head.next.next = head                    # reverse the link\n        head.next = None                         # old head becomes tail\n        return new_head",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) — recursion stack"
+        }
+      ],
+      "description": "Given the head of a singly linked list, reverse the list, and return the reversed list.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "reversal"
+    },
+    {
+      "id": "merge-two-sorted-lists",
+      "title": "Merge Two Sorted Lists",
+      "leetcodeSlug": "merge-two-sorted-lists",
+      "difficulty": "Easy",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Merge Two Sorted Lists (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Merge+Two+Sorted+Lists",
+        "lang": "python"
+      },
+      "keyIdeas": "Use a **dummy head** to simplify edge cases when the real head isn't known yet. Walk both lists, always appending the smaller current node to the merged tail. At the end, attach any remaining nodes from the non-exhausted list. The dummy trick is the key takeaway for any merge/insertion problem.",
+      "hints": [
+        "You're merging two sorted lists — similar to the merge step in merge sort. Which node should come first?",
+        "Use a dummy node before the real head so you never have to special-case the first append.",
+        "Compare l1.val and l2.val. Append the smaller to your tail, advance that pointer, repeat."
+      ],
+      "solutions": [
+        {
+          "label": "Iterative with dummy head",
+          "keyIdea": "Dummy head eliminates edge cases. Compare the fronts, append the smaller, repeat.",
+          "code": "class Solution:\n    def mergeTwoLists(self, l1: ListNode, l2: ListNode) -> ListNode:\n        dummy = ListNode(0)       # dummy head simplifies appends\n        tail = dummy\n        while l1 and l2:\n            if l1.val < l2.val:\n                tail.next = l1\n                l1 = l1.next\n            else:\n                tail.next = l2\n                l2 = l2.next\n            tail = tail.next\n        tail.next = l1 if l1 else l2  # attach remaining nodes\n        return dummy.next",
+          "timeComplexity": "O(n + m)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Recursive",
+          "keyIdea": "The smaller node becomes the head; its .next is the merge of the rest.",
+          "code": "class Solution:\n    def mergeTwoLists(self, l1: ListNode, l2: ListNode) -> ListNode:\n        if not l1:\n            return l2\n        if not l2:\n            return l1\n        if l1.val < l2.val:\n            l1.next = self.mergeTwoLists(l1.next, l2)\n            return l1\n        else:\n            l2.next = self.mergeTwoLists(l1, l2.next)\n            return l2",
+          "timeComplexity": "O(n + m)",
+          "spaceComplexity": "O(n + m) — recursion stack"
+        }
+      ],
+      "description": "You are given the heads of two sorted linked lists list1 and list2.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "merging"
+    },
+    {
+      "id": "linked-list-cycle",
+      "title": "Linked List Cycle",
+      "leetcodeSlug": "linked-list-cycle",
+      "difficulty": "Easy",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "two-pointers",
+        "fast-slow"
+      ],
+      "video": {
+        "title": "NeetCode — Linked List Cycle (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Linked+List+Cycle",
+        "lang": "python"
+      },
+      "keyIdeas": "**Fast/slow pointers** (tortoise and hare): slow moves 1 step, fast moves 2 steps. If there's a cycle, fast will eventually lap slow and they'll meet. If fast hits `None`, there's no cycle. This is O(n) time, O(1) space — the canonical cycle-detection trick (Floyd's algorithm).",
+      "hints": [
+        "A hash set of visited nodes works but uses O(n) space. Can you detect a cycle with O(1) space?",
+        "Use two pointers moving at different speeds. If they ever meet, there's a cycle.",
+        "Slow advances 1 step, fast advances 2 steps each iteration. If fast == slow (and not None), cycle detected."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — hash set",
+          "keyIdea": "Track visited nodes in a set. If you see a node twice, there's a cycle. This is the straightforward O(n) space approach that motivates the O(1) space optimization below.",
+          "code": "class Solution:\n    def hasCycle(self, head: ListNode) -> bool:\n        visited = set()\n        curr = head\n        while curr:\n            if curr in visited:\n                return True\n            visited.add(curr)\n            curr = curr.next\n        return False",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) — set of node references"
+        },
+        {
+          "label": "Optimal — Fast/slow pointers (Floyd's)",
+          "keyIdea": "Two pointers at different speeds will meet inside a cycle; no cycle means fast hits None. Reach for this over the hash set when you need O(1) space — it's the canonical cycle-detection trick and works identically on any functional linked structure.",
+          "code": "class Solution:\n    def hasCycle(self, head: ListNode) -> bool:\n        slow, fast = head, head\n        while fast and fast.next:\n            slow = slow.next\n            fast = fast.next.next\n            if slow == fast:\n                return True\n        return False",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given head, the head of a linked list, determine if the linked list has a cycle in it.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "cycle"
+    },
+    {
+      "id": "reorder-list",
+      "title": "Reorder List",
+      "leetcodeSlug": "reorder-list",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "two-pointers",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Reorder List (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Reorder+List",
+        "lang": "python"
+      },
+      "keyIdeas": "Combine three techniques: (1) fast/slow to find the middle, (2) reverse the second half, (3) merge the two halves by alternating nodes. Each piece is a pattern you've seen — the challenge is orchestrating them in sequence. This is a great combo problem for interviews.",
+      "hints": [
+        "The final order is: first, last, second, second-last, etc. You need to interleave the first half with the reversed second half.",
+        "Step 1: find the middle with fast/slow. Step 2: reverse the second half. Step 3: merge the two halves alternating.",
+        "Use the reverse-linked-list technique on the second half, then zip the two halves together."
+      ],
+      "solutions": [
+        {
+          "label": "Find middle + reverse + merge",
+          "keyIdea": "Fast/slow finds middle; reverse the second half; merge by alternating from each half.",
+          "code": "class Solution:\n    def reorderList(self, head: ListNode) -> None:\n        # Step 1: find middle\n        slow, fast = head, head\n        while fast.next and fast.next.next:\n            slow = slow.next\n            fast = fast.next.next\n        \n        # Step 2: reverse second half\n        second = slow.next\n        slow.next = None    # split the list\n        prev = None\n        while second:\n            tmp = second.next\n            second.next = prev\n            prev = second\n            second = tmp\n        second = prev       # new head of reversed half\n        \n        # Step 3: merge alternating\n        first = head\n        while second:\n            tmp1, tmp2 = first.next, second.next\n            first.next = second\n            second.next = tmp1\n            first = tmp1\n            second = tmp2",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "You are given the head of a singly linked-list. The list can be represented as:",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "manipulation"
+    },
+    {
+      "id": "remove-nth-node-from-end-of-list",
+      "title": "Remove Nth Node From End of List",
+      "leetcodeSlug": "remove-nth-node-from-end-of-list",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "two-pointers"
+      ],
+      "video": {
+        "title": "NeetCode — Remove Nth Node From End of List (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Remove+Nth+Node+From+End+of+List",
+        "lang": "python"
+      },
+      "keyIdeas": "**Runner technique**: advance `fast` n steps ahead, then move both `fast` and `slow` together. When `fast` reaches the end, `slow` is exactly n steps from the end — the node before the one to remove. Use a dummy head to handle removing the head itself cleanly.",
+      "hints": [
+        "You need to find the node n steps from the end without knowing the length. Two passes work, but can you do it in one?",
+        "Use two pointers with a gap of n. When the front pointer hits the end, the back pointer is at the right spot.",
+        "A dummy head before the real head makes removing the head node the same as any other removal."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — two passes",
+          "keyIdea": "First pass counts the total length, second pass removes the (length - n)th node. This is the straightforward approach that motivates the one-pass optimization below.",
+          "code": "class Solution:\n    def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:\n        dummy = ListNode(0)\n        dummy.next = head\n        \n        # First pass: count length\n        length = 0\n        curr = head\n        while curr:\n            length += 1\n            curr = curr.next\n        \n        # Second pass: remove (length - n)th node\n        curr = dummy\n        for _ in range(length - n):\n            curr = curr.next\n        curr.next = curr.next.next\n        \n        return dummy.next",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — Two pointers with gap",
+          "keyIdea": "Maintain a gap of n between fast and slow. When fast reaches the end, slow is at the node before the target. Reach for this over the two-pass approach when you want to minimize traversals — one pass instead of two, which matters for very long lists or when the list is expensive to traverse (e.g., network-fetched nodes).",
+          "code": "class Solution:\n    def removeNthFromEnd(self, head: ListNode, n: int) -> ListNode:\n        dummy = ListNode(0)\n        dummy.next = head\n        fast = slow = dummy\n        \n        # Advance fast n+1 steps so gap is n\n        for _ in range(n + 1):\n            fast = fast.next\n        \n        # Move both until fast hits the end\n        while fast:\n            fast = fast.next\n            slow = slow.next\n        \n        # Remove the target node\n        slow.next = slow.next.next\n        return dummy.next",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given the head of a linked list, remove the nth node from the end of the list and return its head.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "two-pointer"
+    },
+    {
+      "id": "copy-list-with-random-pointer",
+      "title": "Copy List with Random Pointer",
+      "leetcodeSlug": "copy-list-with-random-pointer",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "hash-table"
+      ],
+      "video": {
+        "title": "NeetCode — Copy List with Random Pointer (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Copy+List+with+Random+Pointer",
+        "lang": "python"
+      },
+      "keyIdeas": "Each node has a `.next` and a `.random` pointer. **Two-pass solution**: first pass creates all new nodes and stores `old -> new` in a hash map, second pass wires up `.next` and `.random` using the map. The map is essential because `.random` can point to any node, including ones you haven't created yet.",
+      "hints": [
+        "You can't just walk and copy because `.random` might point forward to a node you haven't cloned yet.",
+        "Use a hash map: old_node -> new_node. First pass creates all clones, second pass wires the pointers.",
+        "For each old node, new_node.next = map[old.next] and new_node.random = map[old.random]."
+      ],
+      "solutions": [
+        {
+          "label": "Hash map (two passes)",
+          "keyIdea": "First pass: clone all nodes into a map. Second pass: wire .next and .random using the map.",
+          "code": "# Definition: class Node:\n#     def __init__(self, x, next=None, random=None):\n#         self.val = int(x)\n#         self.next = next\n#         self.random = random\n\nclass Solution:\n    def copyRandomList(self, head: 'Node') -> 'Node':\n        if not head:\n            return None\n        \n        # Map old -> new\n        old_to_new = {}\n        curr = head\n        while curr:\n            old_to_new[curr] = Node(curr.val)\n            curr = curr.next\n        \n        # Wire next and random\n        curr = head\n        while curr:\n            if curr.next:\n                old_to_new[curr].next = old_to_new[curr.next]\n            if curr.random:\n                old_to_new[curr].random = old_to_new[curr.random]\n            curr = curr.next\n        \n        return old_to_new[head]",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) — for the hash map"
+        },
+        {
+          "label": "Optimal — interleave nodes (O(1) space)",
+          "keyIdea": "Interleave new nodes into the original list (A -> A' -> B -> B'), use originals to find randoms, then split.",
+          "code": "class Solution:\n    def copyRandomList(self, head: 'Node') -> 'Node':\n        if not head:\n            return None\n        \n        # Step 1: interleave copies\n        curr = head\n        while curr:\n            copy = Node(curr.val, curr.next)\n            curr.next = copy\n            curr = copy.next\n        \n        # Step 2: assign random pointers\n        curr = head\n        while curr:\n            if curr.random:\n                curr.next.random = curr.random.next\n            curr = curr.next.next\n        \n        # Step 3: split the lists\n        curr = head\n        new_head = head.next\n        while curr:\n            copy = curr.next\n            curr.next = copy.next\n            curr = curr.next\n            if copy.next:\n                copy.next = copy.next.next\n        \n        return new_head",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "A linked list of length n is given such that each node contains an additional random pointer, which could point to any node in the list, or null.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "deep-copy"
+    },
+    {
+      "id": "add-two-numbers",
+      "title": "Add Two Numbers",
+      "leetcodeSlug": "add-two-numbers",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "math"
+      ],
+      "video": {
+        "title": "NeetCode — Add Two Numbers (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Add+Two+Numbers",
+        "lang": "python"
+      },
+      "keyIdeas": "Simulate digit-by-digit addition with a carry, exactly like you'd do on paper. Each node is one digit (reversed order, so the head is the least significant digit). Walk both lists, sum corresponding digits plus carry, create a new node for each result digit. Don't forget to append a final carry node if it's non-zero.",
+      "hints": [
+        "The lists store digits in reverse order (head = least significant). Add them digit by digit, tracking the carry.",
+        "Use a dummy head to simplify building the result list. For each position, sum l1.val + l2.val + carry.",
+        "The digit is (total % 10), the new carry is (total // 10). Keep going until both lists are exhausted AND carry is 0."
+      ],
+      "solutions": [
+        {
+          "label": "Digit-by-digit with carry",
+          "keyIdea": "Walk both lists, sum digits plus carry, append (sum % 10) to result, update carry to (sum // 10).",
+          "code": "class Solution:\n    def addTwoNumbers(self, l1: ListNode, l2: ListNode) -> ListNode:\n        dummy = ListNode(0)\n        tail = dummy\n        carry = 0\n        \n        while l1 or l2 or carry:\n            v1 = l1.val if l1 else 0\n            v2 = l2.val if l2 else 0\n            total = v1 + v2 + carry\n            carry = total // 10\n            tail.next = ListNode(total % 10)\n            tail = tail.next\n            if l1:\n                l1 = l1.next\n            if l2:\n                l2 = l2.next\n        \n        return dummy.next",
+          "timeComplexity": "O(max(n, m))",
+          "spaceComplexity": "O(max(n, m)) — for the result list"
+        }
+      ],
+      "description": "You are given two non-empty linked lists representing two non-negative integers. The digits are stored in reverse order, and each of their nodes contains a single digit. Add the two numbers and return the sum as a linked list.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "arithmetic"
+    },
+    {
+      "id": "find-the-duplicate-number",
+      "title": "Find the Duplicate Number",
+      "leetcodeSlug": "find-the-duplicate-number",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "tags": [
+        "array",
+        "two-pointers",
+        "binary-search",
+        "bit-manipulation"
+      ],
+      "video": {
+        "title": "NeetCode — Find the Duplicate Number (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Find+the+Duplicate+Number",
+        "lang": "python"
+      },
+      "keyIdeas": "This is a **linked-list cycle problem in disguise**: treat each array value as a pointer to the next index (nums[i] -> nums[nums[i]]). The duplicate creates a cycle. Use Floyd's fast/slow to find the cycle, then find the cycle entrance (which is the duplicate). O(n) time, O(1) space, no array modification — the clever twist on cycle detection.",
+      "hints": [
+        "Array has n+1 integers in range [1, n], so exactly one must repeat. Can you model this as a graph?",
+        "Treat nums[i] as a pointer: index i points to index nums[i]. A duplicate means two indices point to the same target — a cycle.",
+        "Use Floyd's cycle detection: fast/slow to detect the cycle, then find the entrance (the duplicate value)."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Floyd's cycle detection",
+          "keyIdea": "Model as a linked list via nums[i] -> nums[nums[i]]. The duplicate is the cycle entrance. Reach for this over binary search when you want the most direct O(n) time O(1) space solution without modification — it's the clever linked-list insight.",
+          "code": "class Solution:\n    def findDuplicate(self, nums: list[int]) -> int:\n        # Phase 1: detect cycle\n        slow = fast = nums[0]\n        while True:\n            slow = nums[slow]\n            fast = nums[nums[fast]]\n            if slow == fast:\n                break\n        \n        # Phase 2: find entrance (duplicate)\n        slow = nums[0]\n        while slow != fast:\n            slow = nums[slow]\n            fast = nums[fast]\n        \n        return slow",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — Binary search on value",
+          "keyIdea": "Binary search on the range [1, n]. For each mid, count how many numbers are ≤ mid. If count > mid, the duplicate is in [1, mid]; else it's in [mid+1, n]. Reach for this when you want a different O(n log n) paradigm that doesn't require modeling as a graph — it's the pigeonhole principle in action.",
+          "code": "class Solution:\n    def findDuplicate(self, nums: list[int]) -> int:\n        left, right = 1, len(nums) - 1\n        while left < right:\n            mid = (left + right) // 2\n            count = sum(num <= mid for num in nums)\n            if count > mid:\n                right = mid  # duplicate in [left, mid]\n            else:\n                left = mid + 1  # duplicate in [mid+1, right]\n        return left",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an array of integers nums containing n + 1 integers where each integer is in the range [1, n] inclusive.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "cycle"
+    },
+    {
+      "id": "lru-cache",
+      "title": "LRU Cache",
+      "leetcodeSlug": "lru-cache",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "tags": [
+        "design",
+        "hash-table",
+        "linked-list",
+        "doubly-linked-list"
+      ],
+      "video": {
+        "title": "NeetCode — LRU Cache (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+LRU+Cache",
+        "lang": "python"
+      },
+      "keyIdeas": "LRU = evict the **least recently used**. Need O(1) get, O(1) put. Use a **hash map** for O(1) key lookup and a **doubly-linked list** to track access order (most recent at head, least recent at tail). On get/put, move the node to the head. On capacity overflow, evict the tail. Python's `OrderedDict` does this out of the box with `move_to_end` and `popitem(last=False)`.",
+      "hints": [
+        "You need O(1) access and O(1) updates to the access order. A hash map gives O(1) lookup; how do you track order?",
+        "A doubly-linked list lets you move a node to the front in O(1) if you have a pointer to it. Combine a dict (key -> node) with a DLL.",
+        "Python shortcut: `collections.OrderedDict` tracks insertion order and has `.move_to_end(key)` and `.popitem(last=False)` for LRU."
+      ],
+      "solutions": [
+        {
+          "label": "Hash map + doubly-linked list",
+          "keyIdea": "Dict for O(1) key lookup; DLL for O(1) move-to-front and evict-tail.",
+          "code": "class Node:\n    def __init__(self, key=0, val=0):\n        self.key, self.val = key, val\n        self.prev = self.next = None\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.cap = capacity\n        self.cache = {}  # key -> node\n        # Dummy head and tail\n        self.head, self.tail = Node(), Node()\n        self.head.next = self.tail\n        self.tail.prev = self.head\n    \n    def _remove(self, node):\n        node.prev.next = node.next\n        node.next.prev = node.prev\n    \n    def _add_to_head(self, node):\n        node.next = self.head.next\n        node.prev = self.head\n        self.head.next.prev = node\n        self.head.next = node\n    \n    def get(self, key: int) -> int:\n        if key not in self.cache:\n            return -1\n        node = self.cache[key]\n        self._remove(node)\n        self._add_to_head(node)\n        return node.val\n    \n    def put(self, key: int, value: int) -> None:\n        if key in self.cache:\n            self._remove(self.cache[key])\n        node = Node(key, value)\n        self.cache[key] = node\n        self._add_to_head(node)\n        if len(self.cache) > self.cap:\n            lru = self.tail.prev\n            self._remove(lru)\n            del self.cache[lru.key]",
+          "timeComplexity": "O(1) per get/put",
+          "spaceComplexity": "O(capacity)"
+        },
+        {
+          "label": "Pythonic — OrderedDict",
+          "keyIdea": "OrderedDict tracks insertion order; move_to_end marks as recently used, popitem(last=False) evicts LRU.",
+          "code": "from collections import OrderedDict\n\nclass LRUCache:\n    def __init__(self, capacity: int):\n        self.cache = OrderedDict()\n        self.cap = capacity\n    \n    def get(self, key: int) -> int:\n        if key not in self.cache:\n            return -1\n        self.cache.move_to_end(key)  # mark as recently used\n        return self.cache[key]\n    \n    def put(self, key: int, value: int) -> None:\n        if key in self.cache:\n            self.cache.move_to_end(key)\n        self.cache[key] = value\n        if len(self.cache) > self.cap:\n            self.cache.popitem(last=False)  # evict LRU",
+          "timeComplexity": "O(1) per get/put",
+          "spaceComplexity": "O(capacity)"
+        }
+      ],
+      "description": "Design a data structure that follows the constraints of a Least Recently Used (LRU) cache.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "design"
+    },
+    {
+      "id": "add-two-numbers2",
+      "title": "Add Two Numbers2",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "basics",
+      "leetcodeSlug": "add-two-numbers2",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+          "code": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def addTwoNumbers(self, l1: Optional[ListNode], l2: Optional[ListNode]) -> Optional[ListNode]:\n        ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "delete-nth-node-from-last-recursive-and-two-pointer",
+      "title": "Delete Nth Node From Last- Recursive And Two Pointer",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "basics",
+      "leetcodeSlug": "delete-nth-node-from-last-recursive-and-two-pointer",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def removeNthFromEnd(head, n: int):\n    \n    if recursiveDeleteNthNode(head,n)!=0:\n        head = head.next\n    return head\n    \n    \n    \n    \ndef recursiveDeleteNthNode(node, n):\n    if not node:\n        return 1\n    numIndexFromReverse = recursiveDeleteNthNode(node.next,n)\n    if numIndexFromReverse==n+1:\n        node.next = node.next.next\n        return 0\n    return 0 if numIndexFromReverse==0 else numIndexFromReverse+1\n    \n\n\n\n\n\ndef removeNthFromEnd2(head, n: int):\n    return recursiveDeleteNthNode2(None, head, n)[0]\n    \n      \n    \ndef recursiveDeleteNthNode2(prevNode, currNode, n):\n    if not currNode:\n        return None,1\n    \n    _,numIndexFromReverse = recursiveDeleteNthNode2(currNode,currNode.next,n)\n    if numIndexFromReverse==n:\n        if prevNode:\n            prevNode.next = currNode.next\n        else:\n            return currNode.next,0\n    return currNode,numIndexFromReverse+1\n\n\ndef removeNthFromEndTwoPointer(head, n: int):\n    \n    right = head\n    for _ in range(n):\n        right = right.next\n    if not right:\n        return head.next\n    left = head\n    while right:\n        right = right.next\n        left = left.next\n    left.next = left.next.next\n    return head\n    \n    ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "l-f-u",
+      "title": "L F U",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "basics",
+      "leetcodeSlug": "l-f-u",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# update         # new             # not full             # full             # not full or full",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# update         # new             # not full             # full             # not full or full",
+          "code": "\nclass DoublyLinkedList:\n    def __init__(self, key, val, counterValue = 0, left=None, right=None):\n        self.key = key\n        self.val = val\n        self.counterValue = counterValue\n        self.left = left\n        self.right = right\n\n\nclass LFUCache:\n\n    def __init__(self, capacity: int):\n        self.keyToNodeMap = {}\n        self.counterToLinkedListHeadMap = {}\n        self.counterToLinkedListTailMap = {}\n        self.capacity = capacity\n        self.capacityUsedSoFar = 0\n        self.minCounterValue = 1\n\n\n    def removeNodeFromPreviousCounterValue(self, node, prevCounterValue):\n        if node.left:\n            node.left.right = node.right\n        else:\n            self.counterToLinkedListHeadMap[prevCounterValue] = node.right\n        if node.right:\n            node.right.left = node.left\n        else:\n            self.counterToLinkedListTailMap[prevCounterValue] = node.left\n\n        if self.counterToLinkedListHeadMap[prevCounterValue] is None:\n            del self.counterToLinkedListHeadMap[prevCounterValue]\n            if self.minCounterValue==prevCounterValue:\n                self.minCounterValue += 1\n\n    def addNodetoNewCounterValue(self, node, newCounterValue):\n        node.counterValue = newCounterValue\n        node.left = None\n        if not newCounterValue in self.counterToLinkedListHeadMap:\n            node.right = None\n            self.counterToLinkedListHeadMap[newCounterValue] = node\n            self.counterToLinkedListTailMap[newCounterValue] = node\n        else:\n            node.right = self.counterToLinkedListHeadMap[newCounterValue]\n            self.counterToLinkedListHeadMap[newCounterValue].left = node\n            self.counterToLinkedListHeadMap[newCounterValue] = node\n\n\n    def updateLinkedLists(self, node):\n        self.removeNodeFromPreviousCounterValue(node, node.counterValue)\n        self.addNodetoNewCounterValue(node, node.counterValue+1)\n        \n\n    def get(self, key: int) -> int:\n        if not key in self.keyToNodeMap:\n            return -1\n        node = self.keyToNodeMap[key]\n        self.updateLinkedLists(node)\n        return node.val\n\n        \n\n    def put(self, key: int, value: int):\n        # update\n        if key in self.keyToNodeMap:\n            node = self.keyToNodeMap[key]\n            node.val = value\n            self.updateLinkedLists(node)\n        # new\n        else:\n            # not full\n            if self.capacityUsedSoFar!=self.capacity:\n                self.capacityUsedSoFar += 1\n            # full\n            else:\n                evictedNode = self.counterToLinkedListTailMap[self.minCounterValue]\n                self.removeNodeFromPreviousCounterValue(evictedNode, evictedNode.counterValue)\n                del self.keyToNodeMap[evictedNode.key]\n            # not full or full\n            node = DoublyLinkedList(key, value)\n            self.keyToNodeMap[key] = node\n            self.addNodetoNewCounterValue(node, 1)            \n            self.minCounterValue = 1\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "closest-node-to-two-given-nodes",
+      "title": "closest Node To Two Given Nodes",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "basics",
+      "leetcodeSlug": "closest-node-to-two-given-nodes",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def closestMeetingNode(self, edges, node1: int, node2: int):\n        if node1 is node2: return node1\n        visited1, visited2 = set([node1]), set([node2])\n        while node1 is not None or node2 is not None:\n            if node1 is not None and edges[node1] not in visited1 and edges[node1]!=-1:\n                node1 = edges[node1]\n                visited1.add(node1)\n            else:\n                node1 = None\n            if node2 is not None and edges[node2] not in visited2 and edges[node2]!=-1:\n                node2 = edges[node2]\n                visited2.add(node2)\n            else: \n                node2 = None\n            solutions = []\n            if node1 in visited2:\n                solutions.append(node1)\n            if node2 in visited1:\n                solutions.append(node2)\n            if solutions:\n                return min(solutions)\n        return -1",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "convert-sorted-list-to-binary-search-tree",
+      "title": "convert Sorted List To Binary Search Tree",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "basics",
+      "leetcodeSlug": "convert-sorted-list-to-binary-search-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+          "code": "# # Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\n# # Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val = val\n#         self.left = left\n#         self.right = right\nclass Solution:\n    def sortedListToBST(self, head):\n\n        node = head\n        # create Tree nodes and store head and tail(prevTreeNode will be the tail)\n        headTreeNode, prevTreeNode = None, None\n        while node:\n            currTreeNode = TreeNode(node.val, prevTreeNode)\n            if not headTreeNode:\n                headTreeNode = currTreeNode\n            if prevTreeNode:\n                prevTreeNode.right = currTreeNode\n            prevTreeNode = currTreeNode\n            node = node.next\n\n        # find mid using (head, tail)\n        # remove links between mid-1 and mid; mid and mid+1\n        # call recursion on (head, mid-1) and (mid+1, tail) each returning their mids\n        # point current mid.left to left recursion answer and mid.right to right recursion answer\n\n        def recursion(head, tail):\n            if not head or not tail: return None \n            # finding mid (nodeMovingRight and nodeMovingLeft will point to mid in the end)\n            nodeMovingRight, nodeMovingLeft, turn = head, tail, True\n            while nodeMovingRight!=nodeMovingLeft:\n                if turn: nodeMovingRight = nodeMovingRight.right\n                else: nodeMovingLeft = nodeMovingLeft.left\n                turn = not turn\n            \n            mid, midMinusOne, midPlusOne = nodeMovingLeft, None, None\n            # removing links\n            if mid.left:\n                midMinusOne = mid.left\n                midMinusOne.right = None\n                mid.left = None\n            if mid.right:\n                midPlusOne = mid.right\n                midPlusOne.left = None\n                mid.right = None   \n\n            # calling recursions\n            mid.left = recursion(head, midMinusOne)\n            mid.right = recursion(midPlusOne, tail)\n\n            return mid\n        \n        return recursion(headTreeNode, prevTreeNode)\n    ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given the head of a singly linked list where elements are sorted in ascending order, convert it to a height-balanced binary search tree.",
+      "phaseId": 4
+    },
+    {
+      "id": "copy-random-list",
+      "title": "copy Random List",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "deep-copy",
+      "leetcodeSlug": "copy-random-list",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# create copy of each node and point original node's next as copied node and      # that copied node's next as original node's next     # add random pointers for each     # update next pointers for both newList and oldList. Update copyNode's next only if realNext exists     # find newHead",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# create copy of each node and point original node's next as copied node and      # that copied node's next as original node's next     # add random pointers for each     # update next pointers for both newList and oldList. Update copyNode's next only if realNext exists     # find newHead",
+          "code": "class Node:\n    def __init__(self, x: int, next: 'Node' = None, random: 'Node' = None):\n        self.val = int(x)\n        self.next = next\n        self.random = random\n\ndef createListWithoutRandom(node, nodesMap):\n    newNode = None\n    if not node.next:\n        newNode = Node(node.val)\n    else:\n        newNode = Node(node.val, createListWithoutRandom(node.next, nodesMap))\n    nodesMap[node] = newNode\n    return newNode\n\ndef addRandomtoCopiedList(head, nodesMap):\n    node = head\n    while node:\n        if node.random:\n            nodesMap[node].random = nodesMap[node.random]\n        node = node.next\n\n\n\ndef copyRandomList(head):\n    nodesMap = {}\n    newHead = createListWithoutRandom(head, nodesMap)\n    addRandomtoCopiedList(head, nodesMap)\n    return newHead\n\n\n\n\n\n\n\ndef copyRandomListWithoutMap(head):\n    # create copy of each node and point original node's next as copied node and \n    # that copied node's next as original node's next\n    node = head\n    while node:\n        newNode = Node(node.val, node.next)\n        node.next = newNode\n        node = node.next.next\n    \n    # add random pointers for each\n    node = head\n    while node:\n        if node.random:\n            node.next.random = node.random.next\n        node = node.next.next\n\n    # update next pointers for both newList and oldList. Update copyNode's next only if realNext exists\n    # find newHead\n    node = head\n    newHead = None\n    while node:\n        if not newHead:\n            newHead = node.next\n        realNext = node.next.next\n        if realNext:\n            node.next.next = realNext.next\n        node.next = realNext\n        node = node.next\n\n    return newHead\n\n\n\n\n\n\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "delete-node",
+      "title": "delete Node",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "simple-ops",
+      "leetcodeSlug": "delete-node",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def deleteNode(self, node):\n    node.val = node.next.val\n    node.next = node.next.next",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "detect-cycle",
+      "title": "detect Cycle",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "cycle",
+      "leetcodeSlug": "detect-cycle",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\ndef detectCycle(head) :\n    slowPointer = head\n    fastPointer = head.next  \n    while(slowPointer!=fastPointer and fastPointer):\n        slowPointer = slowPointer.next\n        if fastPointer.next:\n            fastPointer = fastPointer.next.next\n        else:\n            return False\n    if fastPointer:\n        return True\n    return False",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "intersection-of-two-linked-lists",
+      "title": "intersection Of Two Linked Lists",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "two-pointer",
+      "leetcodeSlug": "intersection-of-two-linked-lists",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\ndef findIntersection(firstHead, secondHead):\n\n    len1 = 0\n    len2 = 0\n    \n    node1, node2 = firstHead, secondHead\n    while(node1 or node2):\n        if node1:\n            len1 += 1\n            node1 = node1.next\n        if node2:\n            len2 += 1\n            node2 = node2.next\n\n    diff = abs(len1-len2)\n\n    if len1>len2:\n        node1, node2 = firstHead, secondHead\n    else:\n        node2, node1 = firstHead, secondHead\n    \n    for _ in range(diff):\n        node1 = node1.next\n\n    for _ in range(min(len1,len2)):\n        if node1==node2:\n            return node1.val\n        node1 = node1.next\n        node2 = node2.next\n    \n    return -1\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given the heads of two singly linked-lists headA and headB, return the node at which the two lists intersect. If the two linked lists have no intersection at all, return null.",
+      "phaseId": 4
+    },
+    {
+      "id": "linked-list-cycle2-starting-point-of-intersection",
+      "title": "linked List Cycle2 Starting Point Of Intersection",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "cycle",
+      "leetcodeSlug": "linked-list-cycle2-starting-point-of-intersection",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def detectCycle(head):\n    if not head: return None\n    slowPointer = head\n    fastPointer = head.next\n    while fastPointer and fastPointer.next and fastPointer!=slowPointer:\n        fastPointer = fastPointer.next.next\n        slowPointer = slowPointer.next\n\n    if not fastPointer or not fastPointer.next:\n        return None\n    slowPointer = head\n    fastPointer = fastPointer.next\n    while fastPointer!=slowPointer:\n        fastPointer = fastPointer.next\n        slowPointer = slowPointer.next\n    return fastPointer",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "linked-list-is-palindrome",
+      "title": "linked List Is Palindrome",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "palindrome",
+      "leetcodeSlug": "linked-list-is-palindrome",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# find mid     #reverse     #check palindrome     #undo reversing",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# find mid     #reverse     #check palindrome     #undo reversing",
+          "code": "           \n            \ndef isPalindrome(head):\n    if not head: return True\n    \n    # find mid\n    slowPointer = head\n    fastPointer = head.next\n    while fastPointer and fastPointer.next:\n        slowPointer = slowPointer.next\n        fastPointer = fastPointer.next\n        if fastPointer.next:\n            fastPointer = fastPointer.next\n    \n    #reverse\n    curr = slowPointer.next\n    prev = None\n    while curr:\n        next = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next\n\n\n    reversedListNode = prev\n    node = head\n    \n    #check palindrome\n    isNotPalindrome = False\n    while reversedListNode:\n        if node.data != reversedListNode.data:\n            isNotPalindrome = True\n            break\n        reversedListNode = reversedListNode.next\n        node = node.next\n\n    \n    #undo reversing\n    curr = prev\n    prev = None\n    while curr:\n        next = curr.next\n        curr.next = prev\n        prev = curr\n        curr = next\n    slowPointer.next = prev\n\n    return not isNotPalindrome\n\n\n\n    \n    \n    \n  ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "linked-list-random-node",
+      "title": "linked List Random Node",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "random-access",
+      "leetcodeSlug": "linked-list-random-node",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+          "code": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n\n    def __init__(self, head):\n        self.head = head    \n        self.k = 1   \n\n    def getRandom(self) -> int:\n        nodeValues = []\n        currNode = self.head\n        for _ in range(self.k):\n            nodeValues.append(currNode.val)\n            currNode = currNode.next\n            if not currNode: break\n\n        runningIndex = self.k\n        while currNode:\n            # replace with decreasing probability\n            indexToReplace = random.randint(0, runningIndex)\n            if indexToReplace<self.k:\n                nodeValues[indexToReplace] = currNode.val\n            runningIndex += 1\n            currNode = currNode.next\n\n        if self.k==1: return nodeValues[0]\n        return nodeValues\n\n# Your Solution object will be instantiated and called as such:\n# obj = Solution(head)\n# param_1 = obj.getRandom()",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given a singly linked list, return a random node&#39;s value from the linked list. Each node must have the same probability of being chosen.",
+      "phaseId": 5
+    },
+    {
+      "id": "maximum-twin-sum-of-a-linked-list",
+      "title": "maximum Twin Sum Of A Linked List",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "two-pointer",
+      "leetcodeSlug": "maximum-twin-sum-of-a-linked-list",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+          "code": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def pairSum(self, head: Optional[ListNode]) -> int:\n\n        # find middle (given even number of nodes)\n        slowPointer, fastPointer = head, head.next\n        while fastPointer.next:\n            slowPointer = slowPointer.next\n            fastPointer = fastPointer.next.next\n\n        def reverseLinkedList(node):\n            prev, curr = None, node\n            while curr:\n                next = curr.next\n                curr.next = prev\n                prev, curr = curr, next\n            return prev\n\n        secondHalfStartingNode = slowPointer.next\n        lastNode = reverseLinkedList(secondHalfStartingNode)\n\n        maxTwinSum, firstHalfNode, reversedSecondHalfNode = 0, head, lastNode\n        while reversedSecondHalfNode:\n            maxTwinSum = max(maxTwinSum, firstHalfNode.val + reversedSecondHalfNode.val)\n            firstHalfNode = firstHalfNode.next\n            reversedSecondHalfNode = reversedSecondHalfNode.next\n\n        # back to normal\n        reverseLinkedList(lastNode)\n\n        return maxTwinSum\n\nclass Solution:\n    def pairSum(self, head: Optional[ListNode]) -> int:\n        slow, fast = head, head\n        while fast and fast.next:\n            slow = slow.next\n            fast = fast.next.next\n\n        prev, curr = None, slow\n        while curr:\n            curr.next, prev, curr = prev, curr, curr.next\n\n        left, right, maxTwinSum = head, prev, 0\n        while right:\n            maxTwinSum = max(maxTwinSum, left.val + right.val)\n            left = left.next\n            right = right.next\n\n        prev, curr = None, prev\n        while curr:\n            curr.next, prev, curr = prev, curr, curr.next\n\n        return maxTwinSum",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "In a linked list of size n, where n is even, the ith node (0-indexed) of the linked list is known as the twin of the (n-1-i)th node, if 0 <= i <= (n / 2) - 1.",
+      "phaseId": 5
+    },
+    {
+      "id": "odd-even-linked-list",
+      "title": "odd Even Linked List",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "partitioning",
+      "leetcodeSlug": "odd-even-linked-list",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def oddEvenLinkedList(head):\n    node, oddTail, isOddList = head,  None, True\n    evenHead = head.next if head else None\n    while node:\n        nextNode = node.next\n        if nextNode:\n            node.next = nextNode.next\n        if isOddList:\n            oddTail = node\n        isOddList = not isOddList\n        node = nextNode\n    if oddTail:\n        oddTail.next = evenHead\n    return head\n    ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given the head of a singly linked list, group all the nodes with odd indices together followed by the nodes with even indices, and return the reordered list.",
+      "phaseId": 5
+    },
+    {
+      "id": "partition-list",
+      "title": "partition List",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "partitioning",
+      "leetcodeSlug": "partition-list",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for singly-linked list. class ListNode: def __init__(self, val=0, next=None): self.val = val self.next = next",
+          "code": "# Definition for singly-linked list.\n# class ListNode:\n#     def __init__(self, val=0, next=None):\n#         self.val = val\n#         self.next = next\nclass Solution:\n    def partition(self, head: Optional[ListNode], x: int) -> Optional[ListNode]:\n        smallerNodesHead = largerOrEqualNodesHead = None\n        smallerNode = largerOrEqualNode = None\n        node = head\n        while node:\n            newNode = ListNode(node.val)\n            if node.val<x: \n                if not smallerNodesHead: smallerNodesHead = newNode\n                else: smallerNode.next = newNode\n                smallerNode = newNode\n            else:\n                if not largerOrEqualNodesHead: largerOrEqualNodesHead = newNode\n                else: largerOrEqualNode.next = newNode\n                largerOrEqualNode = newNode\n            node = node.next\n        if smallerNode: smallerNode.next = largerOrEqualNodesHead\n        return smallerNodesHead if smallerNodesHead else largerOrEqualNodesHead\n\n \nclass Solution:\n    def partition(self, head: Optional[ListNode], x: int) -> Optional[ListNode]:\n        smallerNodesHead = largerOrEqualNodesHead = None\n        smallerNode = largerOrEqualNode = None\n        node = head\n        while node:\n            if node.val<x: \n                if not smallerNodesHead: smallerNodesHead = node\n                else: smallerNode.next = node\n                smallerNode = node\n            else:\n                if not largerOrEqualNodesHead: largerOrEqualNodesHead = node\n                else: largerOrEqualNode.next = node\n                largerOrEqualNode = node\n            node = node.next\n        if largerOrEqualNode: largerOrEqualNode.next = None\n        if smallerNode: smallerNode.next = largerOrEqualNodesHead\n        return smallerNodesHead if smallerNodesHead else largerOrEqualNodesHead\n\n\n \nclass Solution:\n    def partition(self, head: Optional[ListNode], x: int) -> Optional[ListNode]:\n        smallerNodesDummyHead, largerOrEqualNodesDummyHead = ListNode(), ListNode()\n        smallerNode, largerOrEqualNode = smallerNodesDummyHead, largerOrEqualNodesDummyHead\n        while head: \n            if head.val<x: \n                smallerNode.next = head\n                smallerNode = head\n            else:\n                largerOrEqualNode.next = head\n                largerOrEqualNode = head\n            head = head.next\n        largerOrEqualNode.next = None\n        smallerNode.next = largerOrEqualNodesDummyHead.next\n        return smallerNodesDummyHead.next",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given the head of a linked list and a value x, partition it such that all nodes less than x come before nodes greater than or equal to x.",
+      "phaseId": 5
+    },
+    {
+      "id": "rotate-right",
+      "title": "rotate Right",
+      "difficulty": "Medium",
+      "patternId": "linked-list",
+      "subcategory": "rotation",
+      "leetcodeSlug": "rotate-right",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\ndef rotateRight(head, k):\n    n = 0\n    tail = head\n    while tail.next:\n        tail = tail.next\n        n += 1\n    k = k%n\n    if k==0: return head\n    k = n-k\n    node = head\n    while k!=1:\n        k -= 1\n        node = node.next    \n        \n    node.next, head, tail.next = None, node.next, head\n\n    return head",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "merge-k-sorted-lists",
+      "title": "Merge k Sorted Lists",
+      "leetcodeSlug": "merge-k-sorted-lists",
+      "difficulty": "Hard",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "heap",
+        "divide-and-conquer"
+      ],
+      "video": {
+        "title": "NeetCode — Merge k Sorted Lists (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Merge+k+Sorted+Lists",
+        "lang": "python"
+      },
+      "keyIdeas": "You know how to merge 2 sorted lists. For k lists, use a **min-heap** to always pick the smallest front node across all k heads. Push `(node.val, node)` onto the heap (use `id(node)` as a tiebreaker for Python's heap), pop the min, append it to the result, and push its `.next` if it exists. O(N log k) where N = total nodes, k = number of lists.",
+      "hints": [
+        "Merging 2 lists is O(n). Merging k lists naively by merging them one by one is O(Nk). Can you do better?",
+        "Use a min-heap to track the smallest front node across all k lists. Extract-min, append, push its .next.",
+        "Python's heapq compares tuples lexicographically. Push (node.val, unique_id, node) to avoid comparison errors when vals tie."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — collect all and sort",
+          "keyIdea": "Collect all node values into an array, sort it, then build a new linked list from the sorted values. This is the straightforward O(N log N) approach that motivates the O(N log k) optimizations below when k << N.",
+          "code": "class Solution:\n    def mergeKLists(self, lists: list[ListNode]) -> ListNode:\n        # Collect all values\n        values = []\n        for head in lists:\n            curr = head\n            while curr:\n                values.append(curr.val)\n                curr = curr.next\n        \n        # Sort and build result\n        values.sort()\n        dummy = ListNode(0)\n        tail = dummy\n        for val in values:\n            tail.next = ListNode(val)\n            tail = tail.next\n        \n        return dummy.next",
+          "timeComplexity": "O(N log N) — N total nodes",
+          "spaceComplexity": "O(N) — for the values array"
+        },
+        {
+          "label": "Optimal — Min-heap",
+          "keyIdea": "Heap of size k tracks the smallest current node. Pop min, append, push its .next. O(N log k). Reach for this over brute-force sort when k << N (many short lists) — you only pay log k per node instead of log N. Use divide-and-conquer instead when you want better cache locality or when k is close to N.",
+          "code": "import heapq\n\nclass Solution:\n    def mergeKLists(self, lists: list[ListNode]) -> ListNode:\n        heap = []\n        # Initialize heap with the head of each list\n        for i, node in enumerate(lists):\n            if node:\n                heapq.heappush(heap, (node.val, i, node))  # i as tiebreaker\n        \n        dummy = ListNode(0)\n        tail = dummy\n        \n        while heap:\n            val, i, node = heapq.heappop(heap)\n            tail.next = node\n            tail = tail.next\n            if node.next:\n                heapq.heappush(heap, (node.next.val, i, node.next))\n        \n        return dummy.next",
+          "timeComplexity": "O(N log k) — N total nodes, k lists",
+          "spaceComplexity": "O(k) — heap size"
+        },
+        {
+          "label": "Alternative — Divide and conquer",
+          "keyIdea": "Recursively merge pairs of lists (like merge sort) until one list remains. O(N log k). Reach for this over the heap when you want better cache locality (merging two lists at a time is more sequential) or when the simplicity of repeated pairwise merges fits your codebase better than heap management.",
+          "code": "class Solution:\n    def mergeKLists(self, lists: list[ListNode]) -> ListNode:\n        if not lists:\n            return None\n        if len(lists) == 1:\n            return lists[0]\n        \n        def merge2(l1, l2):\n            dummy = ListNode(0)\n            tail = dummy\n            while l1 and l2:\n                if l1.val < l2.val:\n                    tail.next = l1\n                    l1 = l1.next\n                else:\n                    tail.next = l2\n                    l2 = l2.next\n                tail = tail.next\n            tail.next = l1 if l1 else l2\n            return dummy.next\n        \n        while len(lists) > 1:\n            merged = []\n            for i in range(0, len(lists), 2):\n                l1 = lists[i]\n                l2 = lists[i + 1] if i + 1 < len(lists) else None\n                merged.append(merge2(l1, l2))\n            lists = merged\n        \n        return lists[0]",
+          "timeComplexity": "O(N log k)",
+          "spaceComplexity": "O(1) extra (excluding recursion)"
+        }
+      ],
+      "description": "You are given an array of k linked-lists lists, each linked-list is sorted in ascending order.",
+      "phaseId": 5,
+      "important": true,
+      "subcategory": "merge"
+    },
+    {
+      "id": "reverse-nodes-in-k-group",
+      "title": "Reverse Nodes in k-Group",
+      "leetcodeSlug": "reverse-nodes-in-k-group",
+      "difficulty": "Hard",
+      "patternId": "linked-list",
+      "tags": [
+        "linked-list",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Reverse Nodes in k-Group (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Reverse+Nodes+in+k-Group",
+        "lang": "python"
+      },
+      "keyIdeas": "Reverse the list in chunks of exactly k nodes. First, check if there are k nodes remaining; if not, leave them as-is. If yes, reverse those k nodes using the standard reversal loop, then recursively process the rest. This combines cycle-counting, in-place reversal, and recursion — a true linked-list capstone.",
+      "hints": [
+        "Reverse every k nodes. If fewer than k remain at the end, leave them unreversed.",
+        "For each group: (1) check length >= k, (2) reverse those k nodes, (3) connect to the result of the rest.",
+        "Use a recursive approach or iterative with a dummy head. Track the tail of the previous reversed group to connect it."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive",
+          "keyIdea": "Count k nodes; if found, reverse them and recurse on the rest. Otherwise return as-is.",
+          "code": "class Solution:\n    def reverseKGroup(self, head: ListNode, k: int) -> ListNode:\n        # Check if there are k nodes left\n        curr = head\n        for _ in range(k):\n            if not curr:\n                return head  # fewer than k nodes, return as-is\n            curr = curr.next\n        \n        # Reverse the first k nodes\n        prev, curr = None, head\n        for _ in range(k):\n            tmp = curr.next\n            curr.next = prev\n            prev = curr\n            curr = tmp\n        \n        # Recurse on the rest and connect\n        head.next = self.reverseKGroup(curr, k)\n        return prev  # new head of the reversed group",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n/k) — recursion depth"
+        },
+        {
+          "label": "Iterative",
+          "keyIdea": "Use a dummy head; for each group of k, reverse in place and wire the tail of the previous group.",
+          "code": "class Solution:\n    def reverseKGroup(self, head: ListNode, k: int) -> ListNode:\n        dummy = ListNode(0)\n        dummy.next = head\n        prev_group_tail = dummy\n        \n        while True:\n            # Check if k nodes exist\n            kth = prev_group_tail\n            for _ in range(k):\n                kth = kth.next\n                if not kth:\n                    return dummy.next\n            \n            # Reverse k nodes\n            prev, curr = kth.next, prev_group_tail.next\n            for _ in range(k):\n                tmp = curr.next\n                curr.next = prev\n                prev = curr\n                curr = tmp\n            \n            # Connect previous group to the new head\n            tmp = prev_group_tail.next\n            prev_group_tail.next = prev\n            prev_group_tail = tmp",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given the head of a linked list, reverse the nodes of the list k at a time, and return the modified list.",
+      "phaseId": 6,
+      "subcategory": "manipulation"
+    }
+  ]
+}

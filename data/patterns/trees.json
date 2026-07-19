@@ -1,0 +1,1248 @@
+{
+  "id": "trees",
+  "name": "Trees",
+  "phaseId": 3,
+  "order": 2,
+  "tagline": "Recursion on binary trees — DFS, BFS, BST invariants.",
+  "concept": "## The idea\n\nYou already know binary trees: each node has at most two children. **Tree problems are recursion problems** — you define what to do at one node, then trust the recursion to handle the subtrees.\n\nTwo core traversal strategies:\n\n1. **DFS (Depth-First Search)** — dive all the way down a path before backtracking. Usually recursive and the most natural fit for property-checking, height, diameter, validation. Three classic flavors: preorder (root → left → right), inorder (left → root → right — gives sorted order for BSTs!), postorder (children → root — great for bottom-up calculations).\n2. **BFS (Breadth-First Search)** — level by level, left to right. Iterative with a queue. Perfect when you care about levels explicitly (level order traversal, right side view).\n\nFor **Binary Search Trees (BSTs)**, the invariant is: every node's left subtree has smaller values, right has larger. This unlocks O(log n) search if balanced, and inorder traversal gives sorted order.\n\n## Python you'll pick up here\n\n- `collections.deque` for BFS (efficient append/popleft, vs. list which is O(n) for pop(0))\n- Recursive functions calling themselves on `node.left` and `node.right`\n- Chaining conditionals: `if not root: return ...` (base case first)\n- Multiple return values: `def helper(node): ... return height, diameter`\n- `float('inf')` and `float('-inf')` for unbounded min/max sentinels\n- `nonlocal` keyword to update outer-scope variables in nested functions",
+  "whenToUse": [
+    "The problem mentions a binary tree or binary search tree",
+    "You need to check a property that holds across the whole tree (height, balance, validity)",
+    "You're asked to traverse level-by-level (→ BFS with a queue)",
+    "You need sorted order from a BST (→ inorder DFS)"
+  ],
+  "problems": [
+    {
+      "id": "invert-binary-tree",
+      "title": "Invert Binary Tree",
+      "leetcodeSlug": "invert-binary-tree",
+      "difficulty": "Easy",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "bfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Invert Binary Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Invert+Binary+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "Swap the left and right children at every node. The recursive version is the gentlest possible tree warm-up — literally 3 lines: base case, recurse on children, swap. This is the pattern's 'Hello World.'",
+      "hints": [
+        "If you swap a node's children and recursively invert both subtrees, what do you get?",
+        "Base case: if the node is None, return None. Otherwise swap left and right.",
+        "Write it recursively first (3 lines). An iterative BFS/DFS also works if you prefer."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS",
+          "keyIdea": "Swap children at each node, recurse on both subtrees. Base case is None.",
+          "code": "class Solution:\n    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:\n        if not root:\n            return None\n        # Swap the children\n        root.left, root.right = root.right, root.left\n        # Recurse on both subtrees\n        self.invertTree(root.left)\n        self.invertTree(root.right)\n        return root",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack, where h is tree height (O(n) worst case for skewed tree)"
+        },
+        {
+          "label": "Iterative BFS",
+          "keyIdea": "Use a queue to visit each node level-by-level and swap children as you go.",
+          "code": "from collections import deque\n\nclass Solution:\n    def invertTree(self, root: Optional[TreeNode]) -> Optional[TreeNode]:\n        if not root:\n            return None\n        queue = deque([root])\n        while queue:\n            node = queue.popleft()\n            # Swap children\n            node.left, node.right = node.right, node.left\n            if node.left:\n                queue.append(node.left)\n            if node.right:\n                queue.append(node.right)\n        return root",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) for the queue"
+        }
+      ],
+      "description": "Given the root of a binary tree, invert the tree, and return its root.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "simple-ops"
+    },
+    {
+      "id": "maximum-depth-of-binary-tree",
+      "title": "Maximum Depth of Binary Tree",
+      "leetcodeSlug": "maximum-depth-of-binary-tree",
+      "difficulty": "Easy",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "bfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Maximum Depth of Binary Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Maximum+Depth+of+Binary+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "Depth = 1 + max(depth of left, depth of right). Classic post-order recursion: compute for children first, then combine at the parent. The recursive version is one line after the base case.",
+      "hints": [
+        "What's the depth of an empty tree (None)? That's your base case.",
+        "The depth at a node is 1 (the node itself) + the maximum of the depths of its two subtrees.",
+        "Recurse on left and right, return 1 + max(left_depth, right_depth)."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS",
+          "keyIdea": "Base case: None has depth 0. Otherwise 1 + max of children's depths.",
+          "code": "class Solution:\n    def maxDepth(self, root: Optional[TreeNode]) -> int:\n        if not root:\n            return 0\n        return 1 + max(self.maxDepth(root.left), self.maxDepth(root.right))",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        },
+        {
+          "label": "Iterative BFS",
+          "keyIdea": "Count the number of levels as you traverse the tree level-by-level.",
+          "code": "from collections import deque\n\nclass Solution:\n    def maxDepth(self, root: Optional[TreeNode]) -> int:\n        if not root:\n            return 0\n        queue = deque([root])\n        depth = 0\n        while queue:\n            depth += 1\n            # Process all nodes at the current level\n            for _ in range(len(queue)):\n                node = queue.popleft()\n                if node.left:\n                    queue.append(node.left)\n                if node.right:\n                    queue.append(node.right)\n        return depth",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) for the queue"
+        },
+        {
+          "label": "Iterative DFS with stack",
+          "keyIdea": "Use a stack to track (node, current_depth) pairs; update max depth as you go. Useful when you need iterative tree traversal in interview settings where recursion is constrained.",
+          "code": "class Solution:\n    def maxDepth(self, root: Optional[TreeNode]) -> int:\n        if not root:\n            return 0\n        stack = [(root, 1)]  # (node, depth)\n        max_depth = 0\n        while stack:\n            node, depth = stack.pop()\n            max_depth = max(max_depth, depth)\n            if node.left:\n                stack.append((node.left, depth + 1))\n            if node.right:\n                stack.append((node.right, depth + 1))\n        return max_depth",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) for the stack"
+        }
+      ],
+      "description": "Given the root of a binary tree, return its maximum depth.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "properties"
+    },
+    {
+      "id": "diameter-of-binary-tree",
+      "title": "Diameter of Binary Tree",
+      "leetcodeSlug": "diameter-of-binary-tree",
+      "difficulty": "Easy",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Diameter of Binary Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Diameter+of+Binary+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "Diameter = longest path between any two nodes (may or may not go through root). At each node, the diameter *passing through* that node is `left_height + right_height`. Track the global max as you compute heights recursively. Classic pattern: post-order DFS returns one thing (height) while updating a global for another (diameter).",
+      "hints": [
+        "The diameter at a node is the sum of the heights of its left and right subtrees.",
+        "You need to compute height and update a global max diameter at each node. Use a helper function that returns height and updates an outer variable.",
+        "In Python, use `nonlocal` to let the inner function update the outer scope's max_diameter variable."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS with global max",
+          "keyIdea": "Post-order: compute height of each subtree, track max of (left_height + right_height) globally.",
+          "code": "class Solution:\n    def diameterOfBinaryTree(self, root: Optional[TreeNode]) -> int:\n        max_diameter = 0\n        \n        def height(node):\n            nonlocal max_diameter\n            if not node:\n                return 0\n            left_h = height(node.left)\n            right_h = height(node.right)\n            # Update diameter: longest path through this node\n            max_diameter = max(max_diameter, left_h + right_h)\n            return 1 + max(left_h, right_h)\n        \n        height(root)\n        return max_diameter",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        }
+      ],
+      "description": "Given the root of a binary tree, return the length of the diameter of the tree.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "diameter"
+    },
+    {
+      "id": "balanced-binary-tree",
+      "title": "Balanced Binary Tree",
+      "leetcodeSlug": "balanced-binary-tree",
+      "difficulty": "Easy",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Balanced Binary Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Balanced+Binary+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "A tree is balanced if at every node, left and right subtree heights differ by ≤1. Compute height recursively, but short-circuit with a sentinel (e.g. -1) when you detect imbalance — no need to keep recursing once you know it's unbalanced.",
+      "hints": [
+        "You already know how to compute height. Now check at each node whether |left_height - right_height| > 1.",
+        "If any subtree is unbalanced, propagate that fact up. A common trick: return -1 to signal 'unbalanced' and stop early.",
+        "Your helper returns height if balanced, -1 if not. Check children first, then check the current node."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS with sentinel",
+          "keyIdea": "Return height if balanced, -1 if not. Short-circuit as soon as imbalance is detected.",
+          "code": "class Solution:\n    def isBalanced(self, root: Optional[TreeNode]) -> bool:\n        def height(node):\n            if not node:\n                return 0\n            left_h = height(node.left)\n            if left_h == -1:  # left subtree unbalanced\n                return -1\n            right_h = height(node.right)\n            if right_h == -1:  # right subtree unbalanced\n                return -1\n            # Check current node\n            if abs(left_h - right_h) > 1:\n                return -1\n            return 1 + max(left_h, right_h)\n        \n        return height(root) != -1",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        }
+      ],
+      "description": "Given a binary tree, determine if it is height-balanced.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "properties"
+    },
+    {
+      "id": "same-tree",
+      "title": "Same Tree",
+      "leetcodeSlug": "same-tree",
+      "difficulty": "Easy",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Same Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Same+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "Two trees are the same if their roots match *and* their left subtrees match *and* their right subtrees match. Classic recursive structure check: handle the None cases first (both None → True, one None → False), then compare values and recurse.",
+      "hints": [
+        "What if both nodes are None? What if only one is None?",
+        "If both exist, check if their values match. Then recurse on left and right.",
+        "The whole function is about 5 lines: handle None cases, check values, recurse on children."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS",
+          "keyIdea": "Simultaneously traverse both trees; check value equality and recurse on children.",
+          "code": "class Solution:\n    def isSameTree(self, p: Optional[TreeNode], q: Optional[TreeNode]) -> bool:\n        if not p and not q:\n            return True\n        if not p or not q:\n            return False\n        if p.val != q.val:\n            return False\n        return self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        },
+        {
+          "label": "Iterative BFS",
+          "keyIdea": "Use a queue to traverse both trees level-by-level in parallel. Reach for this over recursion when you need explicit stack control or are working in an environment with recursion limits.",
+          "code": "from collections import deque\n\nclass Solution:\n    def isSameTree(self, p: Optional[TreeNode], q: Optional[TreeNode]) -> bool:\n        queue = deque([(p, q)])\n        while queue:\n            node1, node2 = queue.popleft()\n            # Both None is fine, continue\n            if not node1 and not node2:\n                continue\n            # One None or values differ\n            if not node1 or not node2 or node1.val != node2.val:\n                return False\n            # Enqueue children\n            queue.append((node1.left, node2.left))\n            queue.append((node1.right, node2.right))\n        return True",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) for the queue"
+        }
+      ],
+      "description": "Given the roots of two binary trees p and q, write a function to check if they are the same or not.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "simple-ops"
+    },
+    {
+      "id": "subtree-of-another-tree",
+      "title": "Subtree of Another Tree",
+      "leetcodeSlug": "subtree-of-another-tree",
+      "difficulty": "Easy",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Subtree of Another Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Subtree+of+Another+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "A tree is a subtree if it matches exactly starting at some node. Reuse the 'Same Tree' check: at every node in the main tree, check if that subtree matches the target. This composes two recursions: outer DFS over nodes, inner 'same tree' check at each.",
+      "hints": [
+        "You have a helper from 'Same Tree' that checks if two trees are identical. Use it here.",
+        "At each node of the main tree, check: does the tree rooted here match the subRoot exactly? If not, recurse left and right.",
+        "Two functions: `isSame(p, q)` and `isSubtree(root, subRoot)` which calls `isSame(root, subRoot)` or recurses."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS with helper",
+          "keyIdea": "Check if trees match at every node; if not, recurse to children.",
+          "code": "class Solution:\n    def isSubtree(self, root: Optional[TreeNode], subRoot: Optional[TreeNode]) -> bool:\n        if not subRoot:\n            return True  # empty tree is always a subtree\n        if not root:\n            return False\n        # Check if trees match at current node\n        if self.isSameTree(root, subRoot):\n            return True\n        # Otherwise recurse left and right\n        return self.isSubtree(root.left, subRoot) or self.isSubtree(root.right, subRoot)\n    \n    def isSameTree(self, p, q):\n        if not p and not q:\n            return True\n        if not p or not q:\n            return False\n        if p.val != q.val:\n            return False\n        return self.isSameTree(p.left, q.left) and self.isSameTree(p.right, q.right)",
+          "timeComplexity": "O(m * n) where m = nodes in root, n = nodes in subRoot",
+          "spaceComplexity": "O(h) call stack"
+        },
+        {
+          "label": "Iterative BFS",
+          "keyIdea": "Use a queue to check each node in the main tree as a potential subtree root, then verify with iterative same-tree check. Reach for this when you need explicit control over traversal or are constrained by recursion depth.",
+          "code": "from collections import deque\n\nclass Solution:\n    def isSubtree(self, root: Optional[TreeNode], subRoot: Optional[TreeNode]) -> bool:\n        if not subRoot:\n            return True\n        if not root:\n            return False\n        # BFS to check each node as potential subtree root\n        queue = deque([root])\n        while queue:\n            node = queue.popleft()\n            if self.isSameTree(node, subRoot):\n                return True\n            if node.left:\n                queue.append(node.left)\n            if node.right:\n                queue.append(node.right)\n        return False\n    \n    def isSameTree(self, p, q):\n        # Iterative same-tree check\n        queue = deque([(p, q)])\n        while queue:\n            node1, node2 = queue.popleft()\n            if not node1 and not node2:\n                continue\n            if not node1 or not node2 or node1.val != node2.val:\n                return False\n            queue.append((node1.left, node2.left))\n            queue.append((node1.right, node2.right))\n        return True",
+          "timeComplexity": "O(m * n) where m = nodes in root, n = nodes in subRoot",
+          "spaceComplexity": "O(m + n) for the queues"
+        }
+      ],
+      "description": "Given the roots of two binary trees root and subRoot, return true if there is a subtree of root with the same structure and node values of subRoot and false otherwise.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "matching"
+    },
+    {
+      "id": "lowest-common-ancestor-of-a-binary-search-tree",
+      "title": "Lowest Common Ancestor of a BST",
+      "leetcodeSlug": "lowest-common-ancestor-of-a-binary-search-tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "bst",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Lowest Common Ancestor of a Binary Search Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Lowest+Common+Ancestor+of+a+Binary+Search+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "In a BST, the LCA is the split point: the first node where p and q diverge to different subtrees. If both values < current, LCA is in the left subtree; both > current → right; otherwise current is the LCA. This exploits the BST property to avoid checking both subtrees.",
+      "hints": [
+        "Use the BST property: if both p and q are less than the current node, where must the LCA be?",
+        "If both are greater, where must it be? If one is on each side (or one equals the current node), what does that tell you?",
+        "Walk down the tree: if both < current, go left; if both > current, go right; else return current."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive",
+          "keyIdea": "Exploit BST ordering: recurse left if both smaller, right if both larger, else current is LCA.",
+          "code": "class Solution:\n    def lowestCommonAncestor(self, root: TreeNode, p: TreeNode, q: TreeNode) -> TreeNode:\n        if p.val < root.val and q.val < root.val:\n            return self.lowestCommonAncestor(root.left, p, q)\n        elif p.val > root.val and q.val > root.val:\n            return self.lowestCommonAncestor(root.right, p, q)\n        else:\n            return root",
+          "timeComplexity": "O(h) where h = tree height",
+          "spaceComplexity": "O(h) call stack"
+        },
+        {
+          "label": "Iterative",
+          "keyIdea": "Same logic but with a while loop instead of recursion.",
+          "code": "class Solution:\n    def lowestCommonAncestor(self, root: TreeNode, p: TreeNode, q: TreeNode) -> TreeNode:\n        while root:\n            if p.val < root.val and q.val < root.val:\n                root = root.left\n            elif p.val > root.val and q.val > root.val:\n                root = root.right\n            else:\n                return root",
+          "timeComplexity": "O(h)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given a binary search tree (BST), find the lowest common ancestor (LCA) node of two given nodes in the BST.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "lca"
+    },
+    {
+      "id": "binary-tree-level-order-traversal",
+      "title": "Binary Tree Level Order Traversal",
+      "leetcodeSlug": "binary-tree-level-order-traversal",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "bfs",
+        "queue"
+      ],
+      "video": {
+        "title": "NeetCode — Binary Tree Level Order Traversal (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Binary+Tree+Level+Order+Traversal",
+        "lang": "python"
+      },
+      "keyIdeas": "BFS with a queue. Process one level at a time: snapshot the queue's size at the start of each level, pop that many nodes, collect their values, enqueue their children. Each iteration of the outer while is one level.",
+      "hints": [
+        "BFS naturally visits nodes level-by-level. Use a queue (deque in Python).",
+        "At the start of each level, the queue contains exactly the nodes of that level. Loop over them, collect values, and enqueue children.",
+        "Use `for _ in range(len(queue)):` to process exactly one level per outer iteration."
+      ],
+      "solutions": [
+        {
+          "label": "BFS with queue",
+          "keyIdea": "Snapshot queue size to process one level at a time; append children for next level.",
+          "code": "from collections import deque\n\nclass Solution:\n    def levelOrder(self, root: Optional[TreeNode]) -> list[list[int]]:\n        if not root:\n            return []\n        result = []\n        queue = deque([root])\n        while queue:\n            level_size = len(queue)\n            level = []\n            for _ in range(level_size):\n                node = queue.popleft()\n                level.append(node.val)\n                if node.left:\n                    queue.append(node.left)\n                if node.right:\n                    queue.append(node.right)\n            result.append(level)\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) for the queue and result"
+        },
+        {
+          "label": "DFS by depth",
+          "keyIdea": "Recursive DFS passing depth as a parameter; append to result[depth]. Reach for this when you want to avoid explicit queue management or when recursion fits your mental model better, though BFS is more natural for level-order.",
+          "code": "class Solution:\n    def levelOrder(self, root: Optional[TreeNode]) -> list[list[int]]:\n        result = []\n        \n        def dfs(node, depth):\n            if not node:\n                return\n            # Ensure result has a list for this depth\n            if depth == len(result):\n                result.append([])\n            result[depth].append(node.val)\n            dfs(node.left, depth + 1)\n            dfs(node.right, depth + 1)\n        \n        dfs(root, 0)\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack + O(n) for result"
+        }
+      ],
+      "description": "Given the root of a binary tree, return the level order traversal of its nodes' values. (i.e., from left to right, level by level).",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "traversal"
+    },
+    {
+      "id": "binary-tree-right-side-view",
+      "title": "Binary Tree Right Side View",
+      "leetcodeSlug": "binary-tree-right-side-view",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "bfs",
+        "dfs"
+      ],
+      "video": {
+        "title": "NeetCode — Binary Tree Right Side View (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Binary+Tree+Right+Side+View",
+        "lang": "python"
+      },
+      "keyIdeas": "Right side view = the last (rightmost) node of each level. BFS level-order traversal makes this trivial: just take the last node of each level. Alternatively, DFS right-first can collect the first node seen at each depth.",
+      "hints": [
+        "Think of this as a variant of level-order traversal. What's the rightmost node at each level?",
+        "BFS: process each level and record the last node. Alternatively, DFS: visit right children first and record the first node seen at each depth.",
+        "BFS is more intuitive here — at the end of each level's loop, the last node processed is the rightmost."
+      ],
+      "solutions": [
+        {
+          "label": "BFS",
+          "keyIdea": "Level-order traversal; record the last node of each level.",
+          "code": "from collections import deque\n\nclass Solution:\n    def rightSideView(self, root: Optional[TreeNode]) -> list[int]:\n        if not root:\n            return []\n        result = []\n        queue = deque([root])\n        while queue:\n            level_size = len(queue)\n            for i in range(level_size):\n                node = queue.popleft()\n                if i == level_size - 1:  # last node of this level\n                    result.append(node.val)\n                if node.left:\n                    queue.append(node.left)\n                if node.right:\n                    queue.append(node.right)\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) for the queue"
+        },
+        {
+          "label": "DFS (right-first)",
+          "keyIdea": "DFS visiting right subtree first; first node seen at each depth is the rightmost.",
+          "code": "class Solution:\n    def rightSideView(self, root: Optional[TreeNode]) -> list[int]:\n        result = []\n        \n        def dfs(node, depth):\n            if not node:\n                return\n            if depth == len(result):  # first time seeing this depth\n                result.append(node.val)\n            dfs(node.right, depth + 1)  # right first\n            dfs(node.left, depth + 1)\n        \n        dfs(root, 0)\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        }
+      ],
+      "description": "Given the root of a binary tree, imagine yourself standing on the right side of it, return the values of the nodes you can see ordered from top to bottom.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "traversal"
+    },
+    {
+      "id": "count-good-nodes-in-binary-tree",
+      "title": "Count Good Nodes in Binary Tree",
+      "leetcodeSlug": "count-good-nodes-in-binary-tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Count Good Nodes in Binary Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Count+Good+Nodes+in+Binary+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "A node is 'good' if it's ≥ all nodes on the path from root to it. DFS while tracking the max value seen so far on the path. At each node, check if current value ≥ path_max; if yes, it's good and update path_max for children.",
+      "hints": [
+        "You need to track the maximum value on the path from root to the current node.",
+        "Pass the path maximum down as a parameter in your DFS. At each node, check if node.val >= path_max.",
+        "If it is, count it and update path_max to node.val for the recursive calls to children."
+      ],
+      "solutions": [
+        {
+          "label": "DFS with path maximum",
+          "keyIdea": "Track max-so-far on the path; a node is good if it's >= that max.",
+          "code": "class Solution:\n    def goodNodes(self, root: TreeNode) -> int:\n        def dfs(node, path_max):\n            if not node:\n                return 0\n            count = 1 if node.val >= path_max else 0\n            new_max = max(path_max, node.val)\n            count += dfs(node.left, new_max)\n            count += dfs(node.right, new_max)\n            return count\n        \n        return dfs(root, root.val)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        }
+      ],
+      "description": "Given a binary tree root, a node X in the tree is named good if in the path from root to X there are no nodes with a value greater than X.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "dfs"
+    },
+    {
+      "id": "validate-binary-search-tree",
+      "title": "Validate Binary Search Tree",
+      "leetcodeSlug": "validate-binary-search-tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "bst",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Validate Binary Search Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Validate+Binary+Search+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "A BST's left subtree must have all values < root, right subtree all > root. Checking immediate children isn't enough (the whole subtree must obey). Pass valid range bounds (min, max) down recursively and check each node is within bounds. Start with (-inf, inf) at root.",
+      "hints": [
+        "It's not enough to check node.left.val < node.val and node.right.val > node.val. Why? The whole subtree must obey the invariant.",
+        "Each node has a valid range it must fall within. For the root, it's (-inf, inf). For left child, it inherits the lower bound and the parent becomes the new upper bound.",
+        "Recurse with updated bounds: left child's range is (min, node.val), right child's is (node.val, max)."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive with bounds",
+          "keyIdea": "Pass valid range (min, max) down; check each node is within bounds and recurse with updated ranges.",
+          "code": "class Solution:\n    def isValidBST(self, root: Optional[TreeNode]) -> bool:\n        def valid(node, min_val, max_val):\n            if not node:\n                return True\n            if not (min_val < node.val < max_val):\n                return False\n            return valid(node.left, min_val, node.val) and valid(node.right, node.val, max_val)\n        \n        return valid(root, float('-inf'), float('inf'))",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        },
+        {
+          "label": "Inorder traversal",
+          "keyIdea": "Inorder of a BST is sorted. Traverse inorder and check each value > previous.",
+          "code": "class Solution:\n    def isValidBST(self, root: Optional[TreeNode]) -> bool:\n        prev = float('-inf')\n        \n        def inorder(node):\n            nonlocal prev\n            if not node:\n                return True\n            if not inorder(node.left):\n                return False\n            if node.val <= prev:\n                return False\n            prev = node.val\n            return inorder(node.right)\n        \n        return inorder(root)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        }
+      ],
+      "description": "Given the root of a binary tree, determine if it is a valid binary search tree (BST).",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "bst"
+    },
+    {
+      "id": "kth-smallest-element-in-a-bst",
+      "title": "Kth Smallest Element in a BST",
+      "leetcodeSlug": "kth-smallest-element-in-a-bst",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "bst",
+        "dfs",
+        "inorder"
+      ],
+      "video": {
+        "title": "NeetCode — Kth Smallest Element in a BST (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Kth+Smallest+Element+in+a+BST",
+        "lang": "python"
+      },
+      "keyIdeas": "Inorder traversal of a BST gives sorted order. Walk inorder, count nodes as you visit them, and return the kth one. You can collect all values or stop early once you hit k.",
+      "hints": [
+        "What does an inorder traversal of a BST give you?",
+        "Perform inorder traversal and keep a counter. When the counter hits k, you've found the kth smallest.",
+        "You can either collect all nodes in a list and index into it, or stop early by tracking count during traversal."
+      ],
+      "solutions": [
+        {
+          "label": "Inorder traversal",
+          "keyIdea": "Inorder gives sorted order; return the kth element.",
+          "code": "class Solution:\n    def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:\n        count = 0\n        result = None\n        \n        def inorder(node):\n            nonlocal count, result\n            if not node or result is not None:\n                return\n            inorder(node.left)\n            count += 1\n            if count == k:\n                result = node.val\n                return\n            inorder(node.right)\n        \n        inorder(root)\n        return result",
+          "timeComplexity": "O(n) worst case, O(h + k) average",
+          "spaceComplexity": "O(h) call stack"
+        },
+        {
+          "label": "Iterative inorder with stack",
+          "keyIdea": "Manually walk inorder with a stack; stop at the kth node.",
+          "code": "class Solution:\n    def kthSmallest(self, root: Optional[TreeNode], k: int) -> int:\n        stack = []\n        curr = root\n        count = 0\n        while curr or stack:\n            # Go left as far as possible\n            while curr:\n                stack.append(curr)\n                curr = curr.left\n            # Visit node\n            curr = stack.pop()\n            count += 1\n            if count == k:\n                return curr.val\n            # Go right\n            curr = curr.right",
+          "timeComplexity": "O(h + k)",
+          "spaceComplexity": "O(h) for stack"
+        }
+      ],
+      "description": "Given the root of a binary search tree, and an integer k, return the kth smallest value (1-indexed) of all the values of the nodes in the tree.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "bst"
+    },
+    {
+      "id": "construct-binary-tree-from-preorder-and-inorder-traversal",
+      "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+      "leetcodeSlug": "construct-binary-tree-from-preorder-and-inorder-traversal",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "array",
+        "recursion",
+        "divide-and-conquer"
+      ],
+      "video": {
+        "title": "NeetCode — Construct Binary Tree from Preorder and Inorder Traversal (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Construct+Binary+Tree+from+Preorder+and+Inorder+Traversal",
+        "lang": "python"
+      },
+      "keyIdeas": "Preorder gives you the root first; inorder splits left/right subtrees. The first element of preorder is the root. Find it in inorder to partition into left/right, then recurse on the subarrays. Use a hashmap to find root's index in inorder in O(1).",
+      "hints": [
+        "Preorder's first element is the root. Where does that element appear in inorder?",
+        "Everything to the left of root in inorder is the left subtree; everything to the right is the right subtree.",
+        "Recursively build left and right subtrees using the corresponding slices of preorder and inorder. A hashmap speeds up finding the root index."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive with hashmap",
+          "keyIdea": "Preorder[0] is root; find it in inorder to split left/right. Recurse on subarrays.",
+          "code": "class Solution:\n    def buildTree(self, preorder: list[int], inorder: list[int]) -> Optional[TreeNode]:\n        # Map value -> index in inorder for O(1) lookup\n        inorder_map = {val: i for i, val in enumerate(inorder)}\n        \n        def build(pre_start, pre_end, in_start, in_end):\n            if pre_start > pre_end:\n                return None\n            root_val = preorder[pre_start]\n            root = TreeNode(root_val)\n            in_root = inorder_map[root_val]\n            left_size = in_root - in_start\n            # Build left subtree\n            root.left = build(pre_start + 1, pre_start + left_size, in_start, in_root - 1)\n            # Build right subtree\n            root.right = build(pre_start + left_size + 1, pre_end, in_root + 1, in_end)\n            return root\n        \n        return build(0, len(preorder) - 1, 0, len(inorder) - 1)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n) for hashmap and call stack"
+        }
+      ],
+      "description": "Given two integer arrays preorder and inorder where preorder is the preorder traversal of a binary tree and inorder is the inorder traversal of the same tree, construct and return the binary tree.",
+      "phaseId": 4,
+      "important": true,
+      "subcategory": "construction"
+    },
+    {
+      "id": "kth-smallest-element-in-b-s-t",
+      "title": "Kth Smallest Element In B S T",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "bst-inorder",
+      "leetcodeSlug": "kth-smallest-element-in-b-s-t",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: BST's inorder traversal is sorted. Just do Inorder with nonlocal variable keeping index",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: BST's inorder traversal is sorted. Just do Inorder with nonlocal variable keeping index",
+          "code": "# Key Idea: BST's inorder traversal is sorted. Just do Inorder with nonlocal variable keeping index\n\nclass Solution:\n    def kthSmallest(self, root, k):                   \n\n        def kthSmallestinBSTUsingInorderTraversal(node):\n            if node:\n                nonlocal k\n                leftSubTreeAns = kthSmallestinBSTUsingInorderTraversal(node.left)\n                k -= 1\n                if k==0:\n                    return node\n                rightSubTreeAns = kthSmallestinBSTUsingInorderTraversal(node.right)\n                return leftSubTreeAns or rightSubTreeAns if leftSubTreeAns or rightSubTreeAns else None\n        \n        return kthSmallestinBSTUsingInorderTraversal(root).val\n    ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "bst-iterator",
+      "title": "bst Iterator",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "bst-inorder",
+      "leetcodeSlug": "bst-iterator",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: In order traversal can be done by recursion. What is recursion? A stack. Property: The values that BST Iterator gives are sorted",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: In order traversal can be done by recursion. What is recursion? A stack. Property: The values that BST Iterator gives are sorted",
+          "code": "# Key Idea: In order traversal can be done by recursion. What is recursion? A stack.\n\n# Property: The values that BST Iterator gives are sorted\n\nclass BSTIterator:\n\n    def __init__(self, root):\n        self.stack = []\n        self.addToStack(root)\n\n    def next(self) -> int:\n        nextElem = self.stack.pop()\n        self.addToStack(nextElem.right)\n        return nextElem.val\n        \n    def addToStack(self, node):\n        while node:\n            self.stack.append(node)\n            node = node.left\n\n    def hasNext(self) -> bool:\n        return len(self.stack)\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "bst-iterator-on-steroids-two-sum-b-s-t",
+      "title": "bst Iterator On Steroids_two Sum B S T",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "bst-inorder",
+      "leetcodeSlug": "bst-iterator-on-steroids-two-sum-b-s-t",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Classic two-pointer two-sum approach along with BST Iterator from left to right and right to left Property: BST is already sorted",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Classic two-pointer two-sum approach along with BST Iterator from left to right and right to left Property: BST is already sorted",
+          "code": "# Key Idea: Classic two-pointer two-sum approach along with BST Iterator from left to right and right to left\n\n# Property: BST is already sorted\n\nclass TreeNode :\n    def __init__(self, data) :\n        self.data = data\n        self.left = None\n        self.right = None\n\n\ndef pairSumBST(root, k):\n\n    def nextRight(leftToRightStack):\n        if leftToRightStack:\n            nextRightElem = leftToRightStack.pop()\n            addAllLeft(nextRightElem.right, leftToRightStack)\n            return nextRightElem\n\n    def addAllLeft(node, leftToRightStack):\n        while node:\n            leftToRightStack.append(node)\n            node = node.left\n\n    def nextLeft(rightToLeftStack):\n        if rightToLeftStack:\n            nextLeftElem = rightToLeftStack.pop()\n            addAllRight(nextLeftElem.left, rightToLeftStack)\n            return nextLeftElem\n\n    def addAllRight(node, rightToLeftStack):\n        while node:\n            rightToLeftStack.append(node)\n            node = node.right\n\n    leftToRightStack, rightToLeftStack = [], []\n    addAllLeft(root, leftToRightStack)\n    addAllRight(root, rightToLeftStack)\n    \n    leftToRightIteratorElem = nextRight(leftToRightStack)\n    rightToLeftIteratorElem = nextLeft(rightToLeftStack)\n\n    while leftToRightIteratorElem and rightToLeftIteratorElem and leftToRightIteratorElem.data<rightToLeftIteratorElem.data:\n        currSum = leftToRightIteratorElem.data + rightToLeftIteratorElem.data\n        if currSum<k:\n            leftToRightIteratorElem = nextRight(leftToRightStack)\n        elif currSum>k:\n            rightToLeftIteratorElem = nextLeft(rightToLeftStack)\n        else:\n            return True \n    return False\n\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "max-sum-b-s-t-in-binary-tree",
+      "title": "max Sum B S T In Binary Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "bst-validation",
+      "leetcodeSlug": "max-sum-b-s-t-in-binary-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: DFS should return min, max in subtree along with sum Note 1: Base case is tricky Note 2: Use \"is not None\", since sumLeft=0 gives False Bottom up BST check",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: DFS should return min, max in subtree along with sum Note 1: Base case is tricky Note 2: Use \"is not None\", since sumLeft=0 gives False Bottom up BST check",
+          "code": "# Key Idea: DFS should return min, max in subtree along with sum\n\n# Note 1: Base case is tricky\n# Note 2: Use \"is not None\", since sumLeft=0 gives False\n\n# Bottom up BST check\n\nclass Solution:\n    def maxSumBST(self, root) -> int:\n        maxSum = 0\n\n        def dfs(node):\n            if not node: return (1e9, -1e9, 0) # Note 1\n            minLeft, maxLeft, sumLeft = dfs(node.left)\n            minRight, maxRight, sumRight = dfs(node.right)\n            if sumLeft is not None and sumRight is not None and maxLeft<node.val<minRight: # Note 2\n                nonlocal maxSum\n                maxSum = max(maxSum, sumLeft+sumRight+node.val)\n                return (min(minLeft, node.val), max(maxRight, node.val), sumLeft+sumRight+node.val)\n            return (None, None, None)\n        \n        dfs(root)\n        return maxSum            ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "validate-binary-tree-nodes",
+      "title": "validate Binary Tree Nodes",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "properties",
+      "leetcodeSlug": "validate-binary-tree-nodes",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "solves with condition 1,2 and 3 in mind Key Idea 1: Create indegreeArr to find if there is one and only one root Key Idea 2: Use DFS/BFS to find cycles with visited set Key Idea 3: Use visited set size to check if all belong to same component solves with condition 1,2 and 3 in mind",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "solves with condition 1,2 and 3 in mind Key Idea 1: Create indegreeArr to find if there is one and only one root Key Idea 2: Use DFS/BFS to find cycles with visited set Key Idea 3: Use visited set size to check if all belong to same component solves with condition 1,2 and 3 in mind",
+          "code": "'''\nKey Idea: Figure out all necessary conditions\nNecessary Conditions: \n1. A binary tree must have one and only one root. \n2. Every node other than the root must have exactly one parent. \n3. The tree must be connected - every node must be reachable from one node (the root).\n4. There cannot be a cycle. \n\n1,2,3 or 2,3,4 are enough. 4 can be derived if 1,2,3 are guaranteed. 1 can be derived if 2,3,4 are guaranteed.\n'''\n\n# solves with condition 1,2 and 3 in mind\n# Key Idea 1: Create indegreeArr to find if there is one and only one root\n# Key Idea 2: Use DFS/BFS to find cycles with visited set\n# Key Idea 3: Use visited set size to check if all belong to same component\nclass Solution:\n    def validateBinaryTreeNodes(self, n: int, leftChild: List[int], rightChild: List[int]) -> bool:\n        indegreeArr = [0]*n\n        for left, right in zip(leftChild, rightChild):\n            if left!=-1:\n                indegreeArr[left] += 1\n            if right!=-1:\n                indegreeArr[right] += 1 \n                \n        if indegreeArr.count(0)==1: # condition 1\n            root = indegreeArr.index(0)\n        else:\n            return False\n\n        visited = set()\n        def dfs(node):  # condition 2\n            visited.add(node)\n            if leftChild[node]!=-1:\n                if leftChild[node] in visited: return False\n                if not dfs(leftChild[node]): return False\n            if rightChild[node]!=-1:\n                if rightChild[node] in visited: return False\n                if not dfs(rightChild[node]): return False\n            return True\n        \n        if not dfs(root): return False\n        return len(visited)==n # condition 3\n\n\n# solves with condition 1,2 and 3 in mind\n# Key Idea 1: Create a set of children. Every node except root must be there in that set.\n# Key Idea 2: Use DFS/BFS to find cycles with visited set\n# Key Idea 3: Use visited set size to check if all belong to same component\nclass Solution:\n    def validateBinaryTreeNodes(self, n: int, leftChild: List[int], rightChild: List[int]) -> bool:\n        children = set(leftChild+rightChild)\n        children.discard(-1)\n        if not len(children)==n-1: return False # condition 1\n\n        root = (set(range(n)) - children).pop()\n\n        visited = set()\n        def dfs(node): #condition 2\n            if node==-1: return True\n            if node in visited: return False\n            visited.add(node)\n            return dfs(leftChild[node]) and dfs(rightChild[node])\n\n        return dfs(root) and len(visited)==n # condition 3\n\n            \n# solves with condition 2,3 and 4 in mind\n# Key Idea 1: Use union find to prevent two parents and cycle while performing union\n# Key Idea 2: Track number of components\nclass UnionFind:\n    def __init__(self, n):\n        self.components = n\n        self.parent =list(range(n))\n    \n    def findParent(self, node):\n        if self.parent[node]!=node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def union(self, parent, child):\n        if child==-1: return True\n        parentParent = self.findParent(parent)\n        childParent = self.findParent(child)\n\n        if childParent!=child or parentParent==child: return False # condition 2, 4\n\n        self.parent[child] = parent\n        self.components -= 1\n        return True\n\nclass Solution:\n    def validateBinaryTreeNodes(self, n: int, leftChild: List[int], rightChild: List[int]) -> bool:\n        unionFind = UnionFind(n)\n        for parent, (left, right) in enumerate(zip(leftChild, rightChild)):\n            if not unionFind.union(parent, left) or not unionFind.union(parent, right): return False\n        return unionFind.components==1 # condition 3\n\n\n# solves with conditions 1,2 and 3 in mind\n# Key Idea 1: Create indegreeArr to find if there is one and only one root\n# Key Idea 2: Use Kahn's Algorithm(without any topoSortArr). Check that there isn't any node with indeg>1\n# Key Idea 3: Use visited set size to check if all belong to same component\nclass Solution:\n    def validateBinaryTreeNodes(self, n: int, leftChild: List[int], rightChild: List[int]) -> bool:\n        indegreeArr = [0] * n\n        for parent, (left, right) in enumerate(zip(leftChild, rightChild)):\n            if left!=-1: indegreeArr[left] += 1\n            if right!=-1: indegreeArr[right] += 1\n        \n        queue = deque([node for node in range(n) if indegreeArr[node]==0])\n        if len(queue)!=1: return False # condition 1\n        visited = set(queue)\n\n        while queue:\n            node = queue.popleft()\n            for child in [leftChild[node], rightChild[node]]:\n                if child!=-1:\n                    indegreeArr[child] -= 1\n                    if indegreeArr[child] == 0:\n                        visited.add(child)\n                        queue.append(child)\n                    else:\n                        return False # condition 2\n        return len(visited)==n # condition 3\n                ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You have n binary tree nodes numbered from 0 to n - 1 where node i has two children leftChild[i] and rightChild[i], return true if and only if all the given nodes form exactly one valid binary tree.",
+      "phaseId": 4
+    },
+    {
+      "id": "all-nodes-distance-k-in-binary-array",
+      "title": "all Nodes Distance K In Binary Array",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "basics",
+      "leetcodeSlug": "all-nodes-distance-k-in-binary-array",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for a binary tree node. class TreeNode: def __init__(self, x): self.val = x self.left = None",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for a binary tree node. class TreeNode: def __init__(self, x): self.val = x self.left = None",
+          "code": "# Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, x):\n#         self.val = x\n#         self.left = None\n#         self.right = None\n\nclass Solution:\n    def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> List[int]:\n\n        distMap = defaultdict(int)\n\n        def dfs(node, dist):\n            if not node: return\n\n            if node==target:\n                dist = 0\n\n            nonlocal distMap\n            if dist!=None:\n                distMap[node.val] = dist\n                dfs(node.left, dist+1)\n                dfs(node.right, dist+1)\n            else:\n                dfs(node.left, None)\n                dfs(node.right, None)\n                if node.left is not None and node.left.val in distMap:\n                    distMap[node.val] = distMap[node.left.val] + 1\n                    dfs(node.right, distMap[node.val]+1)\n                elif node.right is not None and node.right.val in distMap:\n                    distMap[node.val] = distMap[node.right.val] + 1\n                    dfs(node.left, distMap[node.val]+1)\n\n        dfs(root, None)\n        return [node for node in distMap.keys() if distMap[node]==k]\n    \n\nclass Solution:\n    def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> List[int]:\n\n        adjList = defaultdict(set)\n\n        def dfsToPopulateGraph(node, parent):\n            if not node: return\n            nonlocal adjList\n            if parent is not None:\n                adjList[node.val].add(parent.val)\n                adjList[parent.val].add(node.val)\n            \n            dfsToPopulateGraph(node.left, node)\n            dfsToPopulateGraph(node.right, node)\n        \n        dfsToPopulateGraph(root, None)\n        \n        levelArr = [target.val]\n        while levelArr:\n            if k==0: return levelArr\n            nextLevelArr = []\n            for nodeInLevel in levelArr:\n                for neigh in adjList[nodeInLevel]:\n                    nextLevelArr.append(neigh)\n                    adjList[neigh].discard(nodeInLevel)\n            levelArr = nextLevelArr\n            k-=1\n        return []\n    \n\nclass Solution:\n    def distanceK(self, root: TreeNode, target: TreeNode, k: int) -> List[int]:\n\n        adjList = defaultdict(set)\n\n        def dfsToPopulateGraph(node, parent):\n            if not node: return\n            nonlocal adjList\n            if parent is not None:\n                adjList[node.val].add(parent.val)\n                adjList[parent.val].add(node.val)\n            \n            dfsToPopulateGraph(node.left, node)\n            dfsToPopulateGraph(node.right, node)\n        \n        dfsToPopulateGraph(root, None)\n        \n        kDistNodes, visited = [], set()\n        def dfs(node, dist):\n            nonlocal kDistNodes, visited \n            visited.add(node)\n            if dist==k: kDistNodes.append(node)\n            for neigh in adjList[node]:\n                if neigh not in visited:\n                    dfs(neigh, dist+1)\n        \n        dfs(target.val, 0)\n        return kDistNodes",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "binary-tree-from-pre-order-and-in-order",
+      "title": "binary Tree From Pre Order And In Order",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "basics",
+      "leetcodeSlug": "binary-tree-from-pre-order-and-in-order",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\nclass Solution:\n    def buildTree(self, preorder, inorder):\n        inorderValToIndexMap = {}\n        for index, val in enumerate(inorder):\n            inorderValToIndexMap[val] = index\n        return createTree(inorder, 0, len(preorder)-1, inorderValToIndexMap, preorder, 0)[0]\n\ndef createTree(inorder, inorderLeft, inorderRight, inorderValToIndexMap, preorder, preorderIndex):\n    if inorderLeft>inorderRight:\n        return None, preorderIndex\n    currentNodePreorderIndex = inorderValToIndexMap[preorder[preorderIndex]]\n    node = TreeNode(preorder[preorderIndex])\n    preorderIndex += 1\n    if preorderIndex!=len(preorder):\n        node.left, preorderIndex = createTree(inorder, inorderLeft, currentNodePreorderIndex-1, inorderValToIndexMap, preorder, preorderIndex)\n    if preorderIndex!=len(preorder):\n        node.right, preorderIndex = createTree(inorder, currentNodePreorderIndex+1, inorderRight, inorderValToIndexMap, preorder, preorderIndex)\n    return node, preorderIndex\n\n\n\n\nclass Solution2:\n    def buildTree(self, preorder, inorder):\n       \n        def createTree(inorderLeft, inorderRight):\n            nonlocal preorderIndex\n            if inorderLeft>inorderRight:\n                return None\n            currentNodePreorderIndex = inorderValToIndexMap[preorder[preorderIndex]]\n            node = TreeNode(preorder[preorderIndex])\n            preorderIndex += 1\n            node.left = createTree(inorderLeft, currentNodePreorderIndex-1)\n            node.right = createTree(currentNodePreorderIndex+1, inorderRight)\n            return node\n\n        preorderIndex = 0\n        inorderValToIndexMap = {}\n        for index, val in enumerate(inorder):\n            inorderValToIndexMap[val] = index\n        return createTree(0, len(preorder)-1)\n\n\n\n\nclass SolutionPostOrder:\n    def buildTree(self, inorder, postorder):\n\n        def buildTreeFromArr(inorderLeft, inorderRight):\n            nonlocal postorderIndex\n            if inorderLeft>inorderRight:\n                return None\n            nodeVal = postorder[postorderIndex]\n            node = TreeNode(nodeVal)\n            postorderIndex -= 1\n            node.right = buildTreeFromArr(inorderValToIndexMap[nodeVal]+1,inorderRight)\n            node.left = buildTreeFromArr(inorderLeft, inorderValToIndexMap[nodeVal]-1)\n            return node\n\n        postorderIndex = len(postorder)-1\n        inorderValToIndexMap = {}\n        for index, val in enumerate(inorder):\n            inorderValToIndexMap[val] = index\n        return buildTreeFromArr(0, len(inorder)-1)\n\n        \n\n ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "check-completeness-of-a-binary-tree",
+      "title": "check Completeness Of A Binary Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "basics",
+      "leetcodeSlug": "check-completeness-of-a-binary-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# Definition for a binary tree node. class TreeNode: def __init__(self, val=0, left=None, right=None): self.val = val self.left = left",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# Definition for a binary tree node. class TreeNode: def __init__(self, val=0, left=None, right=None): self.val = val self.left = left",
+          "code": "# # Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val = val\n#         self.left = left\n#         self.right = right\nclass Solution:\n    def isCompleteTree(self, root):\n\n        depthOfLastSeenLeafNode, leafNodeHeightDecreased = None, False\n        def traversal(node, height):\n            nonlocal depthOfLastSeenLeafNode, leafNodeHeightDecreased\n            if not node:\n                if not depthOfLastSeenLeafNode:\n                    depthOfLastSeenLeafNode = height\n                elif height!=depthOfLastSeenLeafNode:\n                    if height>depthOfLastSeenLeafNode or height<depthOfLastSeenLeafNode-1 or leafNodeHeightDecreased:\n                        return False\n                    depthOfLastSeenLeafNode = height\n                    leafNodeHeightDecreased = True\n            else:\n                if not traversal(node.left, height + 1): return False\n                if not traversal(node.right, height + 1): return False\n            return True\n        \n        return traversal(root, 0)\n        \n\n                \n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given the root of a binary tree, determine if it is a complete binary tree.",
+      "phaseId": 5
+    },
+    {
+      "id": "construct-b-s-t-from-pre-order-traversal",
+      "title": "construct B S T From Pre Order Traversal",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "basics",
+      "leetcodeSlug": "construct-b-s-t-from-pre-order-traversal",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef bstFromPreorder(self, preorder):\n    def bstSearch(node, searchVal):\n        if node:\n            if node.val<searchVal:\n                if node.right:\n                    bstSearch(node.right, searchVal)\n                else:\n                    node.right = TreeNode(searchVal)\n            else:\n                if node.left:\n                    bstSearch(node.left, searchVal)\n                else:\n                    node.left = TreeNode(searchVal)\n\n    root = TreeNode(preorder[0])\n    for index in range(1, len(preorder)):\n        bstSearch(root, preorder[index])\n\n    return root\n\n\n\ndef bstFromPreorder(self, preorder):\n   \n    root = TreeNode(preorder[0])\n    stack = [root]\n    for index in range(1, len(preorder)):\n        while len(stack)>1 and stack[-2].val<preorder[index]:\n            stack.pop()\n        nodeToAdd = TreeNode(preorder[index])\n        if stack[-1].val>preorder[index]:\n            stack[-1].left = nodeToAdd\n        else:\n            stack[-1].right = nodeToAdd\n            stack.pop()\n            stack.append(nodeToAdd)\n            \n\n    return root",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "find-duplicate-subtrees",
+      "title": "find Duplicate Subtrees",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "basics",
+      "leetcodeSlug": "find-duplicate-subtrees",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for a binary tree node. class TreeNode: def __init__(self, val=0, left=None, right=None): self.val = val self.left = left",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for a binary tree node. class TreeNode: def __init__(self, val=0, left=None, right=None): self.val = val self.left = left",
+          "code": "# Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val = val\n#         self.left = left\n#         self.right = right\nclass Solution:\n    def findDuplicateSubtrees(self, root):\n        preorderTraversalsSet, duplicatePreorderTraversalsSet, duplicateNodesSet = set(), set(), set()\n        def preorderTraversal(node):\n            if not node: return tuple(\"null\")\n            preorderTraversalFromNode = tuple([node.val]) + preorderTraversal(node.left) + preorderTraversal(node.right)\n            if preorderTraversalFromNode in preorderTraversalsSet and preorderTraversalFromNode not in duplicatePreorderTraversalsSet:\n                duplicateNodesSet.add(node)\n                duplicatePreorderTraversalsSet.add(preorderTraversalFromNode)\n            else:\n                preorderTraversalsSet.add(preorderTraversalFromNode)\n            return preorderTraversalFromNode\n        preorderTraversal(root)\n        return duplicateNodesSet\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given the root of a binary tree, return all duplicate subtrees.",
+      "phaseId": 5
+    },
+    {
+      "id": "flattening-a-binary-tree",
+      "title": "flattening A Binary Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "flattening-a-binary-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\nclass Solution:\n    def flatten(self, root):\n        \n        def preorderTraversal(node):\n            if node:\n                leftFirst, leftLast = preorderTraversal(node.left)\n                rightFirst, rightLast = preorderTraversal(node.right)\n                if leftFirst:\n                    node.right = leftFirst\n                    node.left = None\n                    if rightFirst:\n                        leftLast.right = rightFirst\n                        leftLast.left = None\n                elif rightFirst:\n                    node.right = rightFirst\n                    node.left = None\n                return node, rightLast if rightLast else leftLast if leftLast else node\n            return None, None\n\n        preorderTraversal(root)\n        return root  \n\n\n    def flatten2(root):\n        def reversedPreorder(node):\n            if node:\n                nonlocal prevNode\n                reversedPreorder(node.right)\n                reversedPreorder(node.left)\n                node.right = prevNode\n                node.left = None\n                prevNode = node\n\n        prevNode = None\n        reversedPreorder(root)\n        return root\n\n    def morrisTraversal(root):\n        currNode = root\n        while(currNode):\n            if currNode.left:\n                rightMostNode = currNode.left\n                while rightMostNode.right:\n                    rightMostNode = rightMostNode.right\n                rightMostNode.right = currNode.right\n                currNode.right = currNode.left\n                currNode.left = None\n            currNode = currNode.right\n        return root",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "get-directions-between-nodes",
+      "title": "get Directions Between Nodes",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "get-directions-between-nodes",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "out of memory error     #LCA is one of source or destination nodes; at thaat type of LCA      #LCA is not in source or destination nodes; at that type of LCA     #the current node is one of source or destintation     #some node in the middle, returns whichever is not -1, if both are -1, returns -1",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "out of memory error     #LCA is one of source or destination nodes; at thaat type of LCA      #LCA is not in source or destination nodes; at that type of LCA     #the current node is one of source or destintation     #some node in the middle, returns whichever is not -1, if both are -1, returns -1",
+          "code": "\n\n\n# out of memory error\ndef findPath(node, num1, num2, pathSoFar):\n    \n    if(node==None):\n        return (\"\", -1)\n    \n\n    left = findPath(node.left, num1, num2, pathSoFar+\"L\")\n    right = findPath(node.right, num1, num2, pathSoFar+\"R\")\n    \n   \n    #LCA is one of source or destination nodes; at thaat type of LCA \n    if (left[1]!=-1 or right[1]!=-1) and (num1==node.val or num2==node.val):\n        if(num1==node.val):\n            if(left[1]!=-1):\n                return left\n            else:\n                return right\n        else:\n            if(left[1]!=-1):\n                return (\"U\" * len(left[0]), -1)\n            else:\n                return (\"U\" * len(right[0]), -1)\n\n        \n    #LCA is not in source or destination nodes; at that type of LCA\n    if(left[1]!=-1 and right[1]!=-1):\n        path = \"\"\n        if(num1==left[1]):\n            path = path + \"U\" * len(left[0]) + right[0]\n        else:\n            path = path + \"U\" * len(right[0]) + left[0]                        \n        return (path, -1)\n    \n    #the current node is one of source or destintation\n    if(num1 == node.val):\n        return (pathSoFar, num1)\n    if(num2 == node.val):\n        return (pathSoFar, num2)\n        \n    #some node in the middle, returns whichever is not -1, if both are -1, returns -1\n    if(right[1]==-1):\n        return left\n    \n    return right\n\n\n# too lengthy\ndef lowestCommonAncestorHelper(node, p, q):\n\n    #base case of any tree recursion\n    if(node == None):\n        return (0, None)\n    \n    #case to handle p = q\n    if(p.val==q.val):\n        return (2, p)\n    \n    count = 0\n    \n    #dont return as this may be the LCA, so need to check if any child is p or q\n    if(node.val==p.val or node.val==q.val):\n        count += 1\n\n    left = lowestCommonAncestorHelper(node.left, p, q)\n    right = lowestCommonAncestorHelper(node.right, p, q)\n\n    #if LCA already found, return that only                                       \n    if(left[0] == 2):\n        return left\n    if(right[0] == 2):\n        return right\n                                       \n    count = count + left[0]\n    count = count + right[0]\n    \n    #this is LCA        \n    if(count==2):\n        return (2, node)\n    \n    #returns 0 or 1\n    return (count, None)\n\n'''\ntaken from leetcode https://leetcode.com/problems/step-by-step-directions-from-a-binary-tree-node-to-another/discuss/1612179/Python3-lca\n\ndef lca(node):\n       if not node or node.val in [startValue, destValue]:\n           return node\n       left = lca(node.left)\n       right = lca(node.right)\n       return node if left and right else left or right\n       \n'''\nclass TreeNode:\n     def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n# LCA + DFS\ndef getDirections(self, root: TreeNode, startValue: int, destValue: int) -> str:\n        \n    def lca(node):\n       if not node or node.val in [startValue, destValue]:\n           return node\n       left = lca(node.left)\n       right = lca(node.right)\n       return node if left and right else left or right\n\n    lca = lca(root)\n\n    stack = [(lca,\"\")]\n    pathToSource = \"\"\n    numFound = 0\n    pathToDest = \"\"\n    while(len(stack)):\n        if(numFound==2): break\n        node = stack.pop()\n        if(node[0].left): stack.append((node[0].left, node[1]+\"L\"))\n        if(node[0].right): stack.append((node[0].right, node[1]+\"R\"))\n        if(startValue==node[0].val): \n            pathToSource = node[1]\n            numFound += 1\n        if(destValue==node[0].val):\n            pathToDest = node[1]\n            numFound += 1\n\n    return \"U\" * len(pathToSource) + pathToDest \n\n\n\n# DFS single pass with string cutting\ndef getDirections(self, root: [TreeNode], startValue: int, destValue: int) -> str:\n        \n    stack = [(root,\"\")]\n    pathToSource = \"\"\n    numFound = 0\n    pathToDest = \"\"\n    while(len(stack)):\n        if(numFound==2): break\n        node = stack.pop()\n        if(node[0].left): stack.append((node[0].left, node[1]+\"L\"))\n        if(node[0].right): stack.append((node[0].right, node[1]+\"R\"))\n        if(startValue==node[0].val): \n            pathToSource = node[1]\n            numFound += 1\n        if(destValue==node[0].val):\n            pathToDest = node[1]\n            numFound += 1\n  \n    numSame = 0\n    for i in range(0, min(len(pathToSource), len(pathToDest))):\n        if(pathToSource[i]!=pathToDest[i]): break\n        numSame += 1\n   \n    return \"U\" * (len(pathToSource) - numSame) + pathToDest[numSame:]\n    \n\n\n\n\npathToSource = \"ABCDF\"\npathToDest = \"ABCDE\"\nnumSame = 0\nfor i in range(0, min(len(pathToSource), len(pathToDest))):\n   if(pathToSource[i]!=pathToDest[i]): break\n   numSame += 1\nprint(numSame)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "max-difference-between-node-and-ancestor",
+      "title": "max Difference Between Node And Ancestor",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "max-difference-between-node-and-ancestor",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef traversal(node, minAncestorVal, maxAncestorVal, maxDiff):\n    if node:\n        maxDiff[0] = max(maxDiff[0], max(abs(node.val - minAncestorVal), abs(node.val - maxAncestorVal)))\n        traversal(node.left, min(minAncestorVal, node.val), max(maxAncestorVal, node.val), maxDiff)\n        traversal(node.right, min(minAncestorVal, node.val), max(maxAncestorVal, node.val), maxDiff)\n        \n\ndef maxAncestorDiff(root):\n    maxDiff = []\n    traversal(root, root.val, root.val, maxDiff)\n    return maxDiff[0]",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "max-path-sum",
+      "title": "max Path Sum",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "max-path-sum",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef binaryTreeMaxPathSum(node):\n    if not node:\n        return -float('inf'),-float('inf')\n    leftSubTreeMaxBranchSum, leftSubTreeMaxPathSum = binaryTreeMaxPathSum(node.left)\n    rightSubTreeMaxBranchSum, rightSubTreeMaxPathSum = binaryTreeMaxPathSum(node.right)\n    subTreeMax = max(max(max(leftSubTreeMaxBranchSum + rightSubTreeMaxBranchSum + node.val, node.val), leftSubTreeMaxBranchSum + node.val), rightSubTreeMaxBranchSum + node.val)\n    return max(max(leftSubTreeMaxBranchSum + node.val, rightSubTreeMaxBranchSum + node.val), node.val), max(subTreeMax, max(leftSubTreeMaxPathSum, rightSubTreeMaxPathSum))\n \n\nclass Solution:\n    def maxPathSum(self, root: Optional[TreeNode]) -> int:\n        maxSumSeen = -1e9\n\n        def dfs(node):\n            nonlocal maxSumSeen\n            if not node: return -1e9\n            leftSubtreeMax = dfs(node.left)\n            rightSubtreeMax = dfs(node.right)\n            onlyNode = node.val\n            nodeAndLeft = node.val + leftSubtreeMax\n            nodeAndRight = node.val + rightSubtreeMax\n            nodeAndBoth = node.val + leftSubtreeMax + rightSubtreeMax\n            maxSumSeen = max(maxSumSeen, onlyNode, nodeAndLeft, nodeAndRight, nodeAndBoth)\n            return max(onlyNode, nodeAndLeft, nodeAndRight)\n        dfs(root)\n        return maxSumSeen\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 6
+    },
+    {
+      "id": "max-product-of-splitted-binary-tree",
+      "title": "max Product Of Splitted Binary Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "max-product-of-splitted-binary-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for a binary tree node.",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for a binary tree node.",
+          "code": "# Definition for a binary tree node.\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef getTotalSum(node):\n    if not node:\n        return 0\n    return (getTotalSum(node.left) + getTotalSum(node.right) + node.val)\n\ndef getMaxProductSplit(node, totalSum):\n    if not node:\n        return 0\n    if node:\n        leftSubtreeSum, leftMax = getMaxProductSplit(node.left, totalSum)\n        rightSubtreeSum, rightMax = getMaxProductSplit(node.right, totalSum)\n        maxVal = max(leftMax,max(rightMax,max(leftSubtreeSum*(totalSum-leftSubtreeSum), rightSubtreeSum*(totalSum-leftSubtreeSum))))\n        return (leftSubtreeSum+rightSubtreeSum+node.val, maxVal)\n\n\ndef maxProductOfSplittedBinaryTree(root):\n    totalSum = getTotalSum(root)\n    return getMaxProductSplit(root, totalSum)[1]%(10**9+7)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 6
+    },
+    {
+      "id": "max-width-of-a-binary-tree",
+      "title": "max Width Of A Binary Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "max-width-of-a-binary-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\ndef traversal(node, minMaxTupleArr, height, indexInLevel):\n    if node:\n        if not len(minMaxTupleArr)>height:\n            minMaxTupleArr.append([float('inf'), -float('inf')])\n        minMaxTupleArr[height][0] = min(minMaxTupleArr[height][0], indexInLevel)\n        minMaxTupleArr[height][1] = max(minMaxTupleArr[height][1], indexInLevel)\n        traversal(node.left, minMaxTupleArr, height+1, 2*indexInLevel)\n        traversal(node.right, minMaxTupleArr, height+1, 2*indexInLevel+1)\n\ndef maxWidthOfABinaryTree(root):\n    minMaxTupleArr = []\n    traversal(root, minMaxTupleArr, 0, 0)\n    maxDiff = 0\n    print(minMaxTupleArr)\n    for left, right in minMaxTupleArr:\n        maxDiff = max(maxDiff, right-left+1)\n        print(maxDiff)\n    return maxDiff\n\n\n\ndef maxWidthBFS(root):\n    levelList = [(1, root)]\n    maxWidth = 1\n    while levelList:\n        maxWidth = max(maxWidth, levelList[-1][0] - levelList[0][0]+1)\n        nextLevelList = []\n        for nodeIndex, node in levelList:\n            if node.left:\n                nextLevelList.append((2*nodeIndex, node.left))\n            if node.right:\n                nextLevelList.append((2*nodeIndex+1, node.right))\n        levelList = nextLevelList\n    return maxWidth",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 6
+    },
+    {
+      "id": "minimum-fuel-cost-to-report-to-the-capital",
+      "title": "minimum Fuel Cost To Report To The Capital",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "minimum-fuel-cost-to-report-to-the-capital",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "import math\nclass Solution:\n    def minimumFuelCost(self, roads, seats):\n        adjList = [[] for _ in range(len(roads)+1)]\n        for road in roads:\n            adjList[road[0]].append(road[1])\n            adjList[road[1]].append(road[0])\n\n        fuelCost = 0\n        def dfs(node, parent):\n            nonlocal fuelCost\n            numChildren = 1\n            for neigh in adjList[node]:\n                if neigh != parent:\n                    numChildren += dfs(neigh, node)\n            if parent!=-1:\n                fuelCost += math.ceil(numChildren/seats)\n            return numChildren\n        dfs(0,-1)\n        return fuelCost",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "There is a tree (i.e., a connected, undirected graph with no cycles) structure country network consisting of n cities numbered from 0 to n - 1 and exactly n - 1 roads. The capital city is city 0. You are given a 2D integer array roads where roads[i] = [ai, bi] denotes that there exists a bidirectional road connecting cities ai and bi.",
+      "phaseId": 6
+    },
+    {
+      "id": "number-of-good-paths",
+      "title": "number Of Good Paths",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "union-find",
+      "leetcodeSlug": "number-of-good-paths",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\nfrom collections import Counter\nclass Solution:\n    def numberOfGoodPaths(self, vals, edges):\n        adjList = {}\n        for edge in edges:\n            if not edge[0] in adjList:\n                adjList[edge[0]] = []\n            if not edge[1] in adjList:\n                adjList[edge[1]] = []\n            adjList[edge[0]].append(edge[1])\n            adjList[edge[1]].append(edge[0])\n\n        visited = set()\n        numGoodPaths = 0\n        def dfs(num):\n            visited.add(num)\n            nonlocal numGoodPaths\n            counter = Counter()\n            counter[vals[num]] = 1\n            \n            possiblePathEndingVertexToCountMapAcrossAllBranches = []\n            for neighbor in adjList[num]:\n                if neighbor not in visited:\n                    possiblePathEndingVertexToCountMap = dfs(neighbor)\n                    for endingVertex in list(possiblePathEndingVertexToCountMap.keys()):\n                        if endingVertex<vals[num]:\n                            del possiblePathEndingVertexToCountMap[endingVertex]\n                        if endingVertex==vals[num]:\n                            numGoodPaths += possiblePathEndingVertexToCountMap[endingVertex]\n                    possiblePathEndingVertexToCountMapAcrossAllBranches.append(possiblePathEndingVertexToCountMap)\n                    counter += possiblePathEndingVertexToCountMap\n                    \n            for i in range(len(possiblePathEndingVertexToCountMapAcrossAllBranches)):\n                for j in range(i+1, len(possiblePathEndingVertexToCountMapAcrossAllBranches)):\n                    for numKey in possiblePathEndingVertexToCountMapAcrossAllBranches[i]:\n                        if numKey in possiblePathEndingVertexToCountMapAcrossAllBranches[j]:\n                            numGoodPaths += (possiblePathEndingVertexToCountMapAcrossAllBranches[i][numKey] * possiblePathEndingVertexToCountMapAcrossAllBranches[j][numKey]) \n        \n            return counter\n\n        def dfs2(num):\n            visited.add(num)\n            nonlocal numGoodPaths\n            counter = Counter()\n            counter[vals[num]] = 1\n            \n            for neighbor in adjList[num]:\n                if neighbor not in visited:\n                    possiblePathEndingVertexToCountMap = dfs(neighbor)\n                    for endingVertex in list(possiblePathEndingVertexToCountMap.keys()):\n                        if endingVertex<vals[num]:\n                            del possiblePathEndingVertexToCountMap[endingVertex]\n                        elif endingVertex in counter:\n                            numGoodPaths += possiblePathEndingVertexToCountMap[endingVertex]*counter[endingVertex]\n                    counter += possiblePathEndingVertexToCountMap\n                    \n            return counter\n\n\n        dfs(0)\n\n        return numGoodPaths + len(visited)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "There is a tree (i.e. a connected, undirected graph with no cycles) consisting of n nodes numbered from 0 to n - 1 and exactly n - 1 edges.",
+      "phaseId": 6
+    },
+    {
+      "id": "populate-right-pointers-in-binary-tree",
+      "title": "populate Right Pointers In Binary Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "populate-right-pointers-in-binary-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Node:\n    def __init__(self, val: int = 0, left: 'Node' = None, right: 'Node' = None, next: 'Node' = None):\n        self.val = val\n        self.left = left\n        self.right = right\n        self.next = next\n\ndef populateRightPointersInBinaryTree(root):\n    levelNodesList = [root]\n    while levelNodesList:\n        nextLevelNodesList = []\n        for index in range(len(levelNodesList)-1):\n            levelNodesList[index].right = levelNodesList[index+1]\n            if levelNodesList[index].left:\n                nextLevelNodesList.append(levelNodesList[index].left)\n                nextLevelNodesList.append(levelNodesList[index].right)\n        levelNodesList = nextLevelNodesList\n\n\ndef populateRightPointersInBinaryTreeOptimale(root):\n    levelStart = root\n    while levelStart:\n        node = levelStart\n        while node:\n            node.left.next = node.right\n            if node.next:\n                node.right.next = node.next.left\n            node = node.next \n        levelStart = levelStart.left\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 6
+    },
+    {
+      "id": "sum-of-distances-in-tree",
+      "title": "sum Of Distances In Tree",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "sum-of-distances-in-tree",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# does not include node itself         # includes node itself",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# does not include node itself         # includes node itself",
+          "code": "class Solution:\n    def sumOfDistancesInTree(self, n: int, edges):\n        adjList = [[] for _ in range(n)]\n        for edge in edges:\n            adjList[edge[0]].append(edge[1])\n            adjList[edge[1]].append(edge[0])\n\n        subTreeSum = [0 for _ in range(n)]\n        # does not include node itself\n        numNodesInSubTree = [0 for _ in range(n)]\n\n        def populateSubTreeSumAndNumNodesInSubtree(node, parent):\n            for neigh in adjList[node]:\n                if neigh!=parent:\n                    populateSubTreeSumAndNumNodesInSubtree(neigh, node)\n                    numNodesInSubTree[node] += (numNodesInSubTree[neigh] + 1)\n                    subTreeSum[node] += (subTreeSum[neigh] + numNodesInSubTree[neigh] + 1)\n\n        populateSubTreeSumAndNumNodesInSubtree(0, -1)\n\n        sumOfDistancesArr = [0 for _ in range(n)]\n        def populateSumOfDistances(node, parent, distanceContributedByParentSubTreeAndSiblingsSubTree):\n            sumOfDistancesArr[node] = subTreeSum[node] + distanceContributedByParentSubTreeAndSiblingsSubTree\n            for neigh in adjList[node]:\n                if neigh!=parent:\n                    subTreeSumContributedByNeigh = (subTreeSum[neigh] + numNodesInSubTree[neigh] + 1)\n                    numNodesContributedByNeigh = (numNodesInSubTree[neigh] + 1)\n                    distanceContributedBySibingsOfNeigh = (subTreeSum[node] - subTreeSumContributedByNeigh + numNodesInSubTree[node] - numNodesContributedByNeigh)\n                    distanceContributedByNode = 1\n                    distanceContributedByParentsOfNode = distanceContributedByParentSubTreeAndSiblingsSubTree + (n - numNodesInSubTree[node] - 1)\n                    populateSumOfDistances(neigh, node, distanceContributedBySibingsOfNeigh + distanceContributedByNode + distanceContributedByParentsOfNode)\n        \n        populateSumOfDistances(0, -1, 0)\n        return sumOfDistancesArr \n    \n\nclass Solution:\n    def sumOfDistancesInTree(self, n: int, edges):\n        adjList = [[] for _ in range(n)]\n        for edge in edges:\n            adjList[edge[0]].append(edge[1])\n            adjList[edge[1]].append(edge[0])\n\n        subTreeSum = [0 for _ in range(n)]\n        # includes node itself\n        numNodesInSubTree = [0 for _ in range(n)]\n\n        def populateSubTreeSumAndNumNodesInSubtree(node, parent):\n            for neigh in adjList[node]:\n                if neigh!=parent:\n                    populateSubTreeSumAndNumNodesInSubtree(neigh, node)\n                    numNodesInSubTree[node] += (numNodesInSubTree[neigh])\n                    subTreeSum[node] += (subTreeSum[neigh] + numNodesInSubTree[neigh])\n            numNodesInSubTree[node] += 1\n\n        populateSubTreeSumAndNumNodesInSubtree(0, -1)\n\n        sumOfDistancesArr = [0 for _ in range(n)]\n        sumOfDistancesArr[0] = subTreeSum[0]\n        def populateSumOfDistances(node, parent):\n            for neigh in adjList[node]:\n                if neigh!=parent:\n                    sumOfDistancesArr[neigh] = sumOfDistancesArr[node] - numNodesInSubTree[neigh] + (n - numNodesInSubTree[neigh]) \n                    populateSumOfDistances(neigh, node)\n        \n        populateSumOfDistances(0, -1)\n        return sumOfDistancesArr ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "There is an undirected connected tree with n nodes labeled from 0 to n - 1 and n - 1 edges.",
+      "phaseId": 6
+    },
+    {
+      "id": "zigzag-level-order",
+      "title": "zigzag Level Order",
+      "difficulty": "Medium",
+      "patternId": "trees",
+      "subcategory": "extras",
+      "leetcodeSlug": "zigzag-level-order",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef zigzagLevelOrder(root):\n    if not root:\n        return []\n    levelNodesList = [root]\n    fromLeft = False\n    zigzagLevelOrderList = [[root.val]]\n    while levelNodesList:\n        nextLevelNodesList = []\n        zigzagLevel = []\n        for i in range(len(levelNodesList)-1, -1, -1):\n            node = levelNodesList[i]\n            if fromLeft:\n                if node.left:\n                    nextLevelNodesList.append(node.left)\n                    zigzagLevel.append(node.left.val)\n                if node.right:\n                    nextLevelNodesList.append(node.right)\n                    zigzagLevel.append(node.right.val)\n            else:\n                if node.right:\n                    nextLevelNodesList.append(node.right)\n                    zigzagLevel.append(node.right.val)\n                if node.left:\n                    nextLevelNodesList.append(node.left)\n                    zigzagLevel.append(node.left.val)\n\n\n        fromLeft = not fromLeft\n        levelNodesList = nextLevelNodesList\n        if zigzagLevel:\n            zigzagLevelOrderList.append(zigzagLevel)\n    \n    return zigzagLevelOrderList\n\n\n    \ndef zigzagLevelOrder(root):\n    if not root:\n        return []\n    levelNodesList = [root]\n    fromLeft = False\n    zigzagLevelOrderList = [[root.val]]\n    while levelNodesList:\n        nextLevelNodesList = []\n        zigzagLevel = []\n        for node in levelNodesList:\n            if node.left:\n                nextLevelNodesList.append(node.left)\n                zigzagLevel.append(node.left.val)\n            if node.right:\n                nextLevelNodesList.append(node.right)\n                zigzagLevel.append(node.right.val)\n\n        if not fromLeft:\n            zigzagLevel.reverse()\n\n        fromLeft = not fromLeft\n        levelNodesList = nextLevelNodesList\n        if zigzagLevel:\n            zigzagLevelOrderList.append(zigzagLevel)\n    \n    return zigzagLevelOrderList",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 7
+    },
+    {
+      "id": "binary-tree-maximum-path-sum",
+      "title": "Binary Tree Maximum Path Sum",
+      "leetcodeSlug": "binary-tree-maximum-path-sum",
+      "difficulty": "Hard",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Binary Tree Maximum Path Sum (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Binary+Tree+Maximum+Path+Sum",
+        "lang": "python"
+      },
+      "keyIdeas": "Path sum can bend through any node. At each node, max path *through* that node is node.val + max(0, left_gain) + max(0, right_gain). Track the global max. The helper returns the max *single-branch* gain (node + max of one child), since a parent can only extend one branch.",
+      "hints": [
+        "A path through a node is node.val + (contribution from left) + (contribution from right). You might skip a negative child.",
+        "Your helper should return the max gain a parent can get by extending a path through this node — that's node.val + max(left_gain, right_gain, 0).",
+        "But at each node, you also update a global max with node.val + left_gain + right_gain (the path that bends through this node)."
+      ],
+      "solutions": [
+        {
+          "label": "Recursive DFS with global max",
+          "keyIdea": "Post-order: compute max single-branch gain, update global max with the bent path sum at each node.",
+          "code": "class Solution:\n    def maxPathSum(self, root: Optional[TreeNode]) -> int:\n        max_sum = float('-inf')\n        \n        def max_gain(node):\n            nonlocal max_sum\n            if not node:\n                return 0\n            # Max gain from left and right (ignore negative paths)\n            left_gain = max(max_gain(node.left), 0)\n            right_gain = max(max_gain(node.right), 0)\n            # Max path *through* this node (bends here)\n            path_sum = node.val + left_gain + right_gain\n            max_sum = max(max_sum, path_sum)\n            # Return max single-branch gain for parent\n            return node.val + max(left_gain, right_gain)\n        \n        max_gain(root)\n        return max_sum",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(h) call stack"
+        }
+      ],
+      "description": "A path in a binary tree is a sequence of nodes where each pair of adjacent nodes in the sequence has an edge connecting them. A node can only appear in the sequence at most once. Note that the path does not need to pass through the root.",
+      "phaseId": 7,
+      "important": true,
+      "subcategory": "path-sum"
+    },
+    {
+      "id": "serialize-and-deserialize-binary-tree",
+      "title": "Serialize and Deserialize Binary Tree",
+      "leetcodeSlug": "serialize-and-deserialize-binary-tree",
+      "difficulty": "Hard",
+      "patternId": "trees",
+      "tags": [
+        "tree",
+        "dfs",
+        "bfs",
+        "design"
+      ],
+      "video": {
+        "title": "NeetCode — Serialize and Deserialize Binary Tree (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Serialize+and+Deserialize+Binary+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "Encode the tree as a string you can decode unambiguously. Preorder DFS with a marker for None (e.g. 'N') works well. Serialize: preorder traversal, append values + 'N' for None. Deserialize: split string, consume tokens in preorder, recurse. Use an iterator or index pointer to track position.",
+      "hints": [
+        "You need a format that captures structure. Preorder with None markers does this — you can rebuild unambiguously.",
+        "Serialize: preorder DFS, join values with a delimiter (comma), use 'N' for None.",
+        "Deserialize: split on delimiter, use an iterator, pop the next token as root, recurse for left and right. If token is 'N', return None."
+      ],
+      "solutions": [
+        {
+          "label": "Preorder DFS with None markers",
+          "keyIdea": "Serialize via preorder with 'N' for None; deserialize by consuming tokens in the same order.",
+          "code": "class Codec:\n    def serialize(self, root):\n        \"\"\"Encodes a tree to a single string.\"\"\"\n        result = []\n        def dfs(node):\n            if not node:\n                result.append('N')\n                return\n            result.append(str(node.val))\n            dfs(node.left)\n            dfs(node.right)\n        dfs(root)\n        return ','.join(result)\n    \n    def deserialize(self, data):\n        \"\"\"Decodes your encoded data to tree.\"\"\"\n        tokens = iter(data.split(','))\n        def dfs():\n            val = next(tokens)\n            if val == 'N':\n                return None\n            node = TreeNode(int(val))\n            node.left = dfs()\n            node.right = dfs()\n            return node\n        return dfs()",
+          "timeComplexity": "O(n) for both",
+          "spaceComplexity": "O(n) for the string and call stack"
+        }
+      ],
+      "description": "Serialization is the process of converting a data structure or object into a sequence of bits so that it can be stored in a file or memory buffer, or transmitted across a network connection link to be reconstructed later in the same or another computer environment.",
+      "phaseId": 7,
+      "important": true,
+      "subcategory": "serialization"
+    }
+  ]
+}

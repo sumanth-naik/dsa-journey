@@ -1,0 +1,670 @@
+{
+  "id": "binary-search",
+  "name": "Binary Search",
+  "phaseId": 2,
+  "order": 2,
+  "tagline": "Halve the search space each step — O(log n).",
+  "concept": "## The idea\n\nYou know sorted arrays. **Binary search** lets you find a target — or prove it doesn't exist — by cutting the search space in *half* each step, not one element at a time. That's **O(log n)** instead of O(n), which means 1,000,000 elements takes ~20 comparisons.\n\nThe classic shape: keep two pointers `left` and `right`, compute `mid = (left + right) // 2`, then use a **decision function** to discard either the left half or the right half. Three core uses:\n\n1. **Find an exact value** in a sorted array.\n2. **Find boundaries** — first/last occurrence, insertion point.\n3. **Search an answer space** — when you can't enumerate all answers but you *can* check \"is X feasible?\" in O(f(n)). (Koko's banana speed, minimum capacity — you'll see this.)\n\nThe magic: even when the array isn't literally sorted, if a **monotonic property** holds (e.g., feasibility flips from false→true at some threshold), binary search applies.\n\n## Python you'll pick up here\n\n- Integer division: `mid = (left + right) // 2` (no floating-point midpoint)\n- **Avoid overflow** (in other languages `(L+R)/2` can overflow; Python's ints are unbounded, but you'll see `L + (R-L)//2` as a pattern)\n- `range(len(matrix))` and `range(len(matrix[0]))` for 2-D indexing\n- `math.ceil(x / y)` for rounding up division (banana problems)\n- Dictionary methods: `sorted(timestamps.keys())`, `bisect` module (optional, but you'll see it)",
+  "whenToUse": [
+    "The array (or answer range) is sorted, or has a monotonic property you can exploit",
+    "You need O(log n) lookup instead of O(n) scan",
+    "You're searching for a threshold: 'smallest X where condition(X) is true'",
+    "The problem asks for 'minimum capacity', 'maximum speed under constraint', or 'can you do X in Y units' — that's often binary search on the answer"
+  ],
+  "problems": [
+    {
+      "id": "binary-search",
+      "title": "Binary Search",
+      "leetcodeSlug": "binary-search",
+      "difficulty": "Easy",
+      "patternId": "binary-search",
+      "tags": [
+        "array",
+        "binary-search"
+      ],
+      "video": {
+        "title": "NeetCode — Binary Search (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Binary+Search",
+        "lang": "python"
+      },
+      "keyIdeas": "The textbook case: sorted array, find exact target or return -1. Two pointers at the ends, compare mid with target, discard the half that can't contain it. This is the foundation — every other problem is a variant of this loop.",
+      "hints": [
+        "Start with left = 0, right = len(nums) - 1. While they haven't crossed, compute mid and compare.",
+        "If nums[mid] == target, you found it. If nums[mid] < target, the target must be in the right half; otherwise left half.",
+        "When left > right, the target isn't in the array — return -1."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal",
+          "keyIdea": "Classic binary search: halve the space by comparing mid to target, updating left or right accordingly.",
+          "code": "class Solution:\n    def search(self, nums: list[int], target: int) -> int:\n        left, right = 0, len(nums) - 1\n        while left <= right:\n            mid = (left + right) // 2\n            if nums[mid] == target:\n                return mid\n            elif nums[mid] < target:\n                left = mid + 1   # target is in the right half\n            else:\n                right = mid - 1  # target is in the left half\n        return -1  # not found",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an array of integers nums which is sorted in ascending order, and an integer target, write a function to search target in nums. If target exists, then return its index. Otherwise, return -1.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "basics"
+    },
+    {
+      "id": "search-a-2d-matrix",
+      "title": "Search a 2D Matrix",
+      "leetcodeSlug": "search-a-2d-matrix",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "tags": [
+        "array",
+        "binary-search",
+        "matrix"
+      ],
+      "video": {
+        "title": "NeetCode — Search a 2D Matrix (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Search+a+2D+Matrix",
+        "lang": "python"
+      },
+      "keyIdeas": "Each row is sorted, and the first element of each row is greater than the last of the previous row — so the whole matrix is one big sorted sequence. Treat it as a 1-D array of length m×n: binary search over index `i`, then convert `i` to `(row, col) = (i // cols, i % cols)`.",
+      "hints": [
+        "The matrix is sorted row-wise and the rows chain together. Can you flatten it conceptually into a single sorted array?",
+        "Binary search on an imaginary array of length m * n. For index i, map it to matrix[i // n][i % n].",
+        "Standard binary search on that virtual array — compare matrix[mid // n][mid % n] with target."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Iterate every cell until you find the target or exhaust the matrix.",
+          "code": "class Solution:\n    def searchMatrix(self, matrix: list[list[int]], target: int) -> bool:\n        for row in matrix:\n            for val in row:\n                if val == target:\n                    return True\n        return False",
+          "timeComplexity": "O(m * n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Treat the matrix as a single sorted array by mapping 1-D index i to (i // cols, i % cols).",
+          "code": "class Solution:\n    def searchMatrix(self, matrix: list[list[int]], target: int) -> bool:\n        if not matrix or not matrix[0]:\n            return False\n        rows, cols = len(matrix), len(matrix[0])\n        left, right = 0, rows * cols - 1\n        while left <= right:\n            mid = (left + right) // 2\n            mid_val = matrix[mid // cols][mid % cols]\n            if mid_val == target:\n                return True\n            elif mid_val < target:\n                left = mid + 1\n            else:\n                right = mid - 1\n        return False",
+          "timeComplexity": "O(log(m * n))",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — Staircase search",
+          "keyIdea": "Start from the top-right corner: if current > target, move left; if current < target, move down. Each step eliminates a row or column. Reach for this when the matrix rows are sorted but NOT chained (e.g., Search a 2D Matrix II), where you can't flatten to 1-D. For this problem the flatten approach is better, but staircase generalizes.",
+          "code": "class Solution:\n    def searchMatrix(self, matrix: list[list[int]], target: int) -> bool:\n        if not matrix or not matrix[0]:\n            return False\n        row, col = 0, len(matrix[0]) - 1  # start top-right\n        while row < len(matrix) and col >= 0:\n            if matrix[row][col] == target:\n                return True\n            elif matrix[row][col] > target:\n                col -= 1  # move left\n            else:\n                row += 1  # move down\n        return False",
+          "timeComplexity": "O(m + n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "You are given an m x n integer matrix matrix with the following two properties:",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "basics"
+    },
+    {
+      "id": "koko-eating-bananas",
+      "title": "Koko Eating Bananas",
+      "leetcodeSlug": "koko-eating-bananas",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "tags": [
+        "array",
+        "binary-search"
+      ],
+      "video": {
+        "title": "NeetCode — Koko Eating Bananas (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Koko+Eating+Bananas",
+        "lang": "python"
+      },
+      "keyIdeas": "You're searching for the *minimum* eating speed k such that Koko can finish all piles in ≤ h hours. The answer space is [1..max(piles)], and 'can finish in h hours at speed k' is monotonic: if k works, k+1 works. So binary search on k, checking feasibility each time by summing ⌈pile/k⌉ for all piles.",
+      "hints": [
+        "Brute force: try k = 1, 2, 3, ... until you find the first k that works. But that's O(max(piles) * n).",
+        "The feasibility function is monotonic: if speed k is too slow, anything slower fails; if k works, anything faster works. That's binary search on the answer.",
+        "Binary search from left = 1 to right = max(piles). For each mid-speed, compute hours = sum of ceil(pile / mid) for all piles. If hours <= h, try a smaller speed (right = mid); else left = mid + 1."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Try every speed from 1 to max(piles) until you find the first one that works.",
+          "code": "import math\n\nclass Solution:\n    def minEatingSpeed(self, piles: list[int], h: int) -> int:\n        def canFinish(k):\n            hours = 0\n            for pile in piles:\n                hours += math.ceil(pile / k)\n            return hours <= h\n        \n        for k in range(1, max(piles) + 1):\n            if canFinish(k):\n                return k\n        return max(piles)",
+          "timeComplexity": "O(max(piles) * n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Binary search on the speed k ∈ [1..max(piles)]. Check feasibility by summing hours for each pile at that speed.",
+          "code": "import math\n\nclass Solution:\n    def minEatingSpeed(self, piles: list[int], h: int) -> int:\n        def canFinish(k):\n            hours = 0\n            for pile in piles:\n                hours += math.ceil(pile / k)\n            return hours <= h\n        \n        left, right = 1, max(piles)\n        result = right\n        while left <= right:\n            mid = (left + right) // 2\n            if canFinish(mid):\n                result = mid         # mid works, try slower\n                right = mid - 1\n            else:\n                left = mid + 1       # mid too slow, go faster\n        return result",
+          "timeComplexity": "O(n * log(max(piles)))",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Koko loves to eat bananas. There are n piles of bananas, the ith pile has piles[i] bananas. The guards have gone and will come back in h hours.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "on-answer"
+    },
+    {
+      "id": "find-minimum-in-rotated-sorted-array",
+      "title": "Find Minimum in Rotated Sorted Array",
+      "leetcodeSlug": "find-minimum-in-rotated-sorted-array",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "tags": [
+        "array",
+        "binary-search"
+      ],
+      "video": {
+        "title": "NeetCode — Find Minimum in Rotated Sorted Array (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Find+Minimum+in+Rotated+Sorted+Array",
+        "lang": "python"
+      },
+      "keyIdeas": "A sorted array was rotated at an unknown pivot. The minimum is at the pivot (the only place where nums[i] > nums[i+1]). Compare nums[mid] to nums[right]: if nums[mid] > nums[right], the minimum is in the right half (pivot is to the right); otherwise it's in the left half or is mid itself. Keep the half that contains the inflection point.",
+      "hints": [
+        "In a normal sorted array, nums[0] is the minimum. A rotation creates exactly one break where a larger element precedes a smaller one.",
+        "Compare nums[mid] to nums[right]. If nums[mid] > nums[right], the 'break' (and thus the minimum) is in the right half.",
+        "Otherwise, the minimum is in the left half (including mid). Narrow the search until left == right."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Linear scan to find the minimum element. Reach for this only when you can't exploit the sorted + rotated structure, or for tiny arrays where binary search overhead isn't worth it.",
+          "code": "class Solution:\n    def findMin(self, nums: list[int]) -> int:\n        return min(nums)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Binary search by comparing mid to right: if mid > right, the inflection (minimum) is to the right; else to the left.",
+          "code": "class Solution:\n    def findMin(self, nums: list[int]) -> int:\n        left, right = 0, len(nums) - 1\n        while left < right:\n            mid = (left + right) // 2\n            if nums[mid] > nums[right]:\n                left = mid + 1   # min is in right half\n            else:\n                right = mid      # min is in left half or is mid\n        return nums[left]",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Suppose an array of length n sorted in ascending order is rotated between 1 and n times. For example, the array nums = [0,1,2,4,5,6,7] might become:",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "rotated-array"
+    },
+    {
+      "id": "search-in-rotated-sorted-array",
+      "title": "Search in Rotated Sorted Array",
+      "leetcodeSlug": "search-in-rotated-sorted-array",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "tags": [
+        "array",
+        "binary-search"
+      ],
+      "video": {
+        "title": "NeetCode — Search in Rotated Sorted Array (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Search+in+Rotated+Sorted+Array",
+        "lang": "python"
+      },
+      "keyIdeas": "Same rotated array, but now you're searching for a target. At each mid, *one* half is guaranteed to be properly sorted (no rotation in that half). Check which half is sorted by comparing nums[left] to nums[mid]. If the sorted half contains the target (by bounds check), search there; else search the other half.",
+      "hints": [
+        "At any mid, either the left half [left..mid] is sorted, or the right half [mid..right] is sorted.",
+        "Identify which half is sorted by comparing nums[left] vs nums[mid]. Then check if target lies within that sorted range.",
+        "If target is in the sorted half, narrow to that half; else discard it and search the unsorted half."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal",
+          "keyIdea": "Figure out which half is sorted, check if target is in that sorted half's range, then discard the other half.",
+          "code": "class Solution:\n    def search(self, nums: list[int], target: int) -> int:\n        left, right = 0, len(nums) - 1\n        while left <= right:\n            mid = (left + right) // 2\n            if nums[mid] == target:\n                return mid\n            # Determine which half is sorted\n            if nums[left] <= nums[mid]:  # left half is sorted\n                if nums[left] <= target < nums[mid]:\n                    right = mid - 1   # target in left sorted half\n                else:\n                    left = mid + 1\n            else:  # right half is sorted\n                if nums[mid] < target <= nums[right]:\n                    left = mid + 1    # target in right sorted half\n                else:\n                    right = mid - 1\n        return -1",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "There is an integer array nums sorted in ascending order (with distinct values).",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "rotated-array"
+    },
+    {
+      "id": "time-based-key-value-store",
+      "title": "Time Based Key-Value Store",
+      "leetcodeSlug": "time-based-key-value-store",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "tags": [
+        "hash-table",
+        "string",
+        "binary-search",
+        "design"
+      ],
+      "video": {
+        "title": "NeetCode — Time Based Key-Value Store (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Time+Based+Key-Value+Store",
+        "lang": "python"
+      },
+      "keyIdeas": "Store (value, timestamp) pairs for each key in a list (they arrive in increasing timestamp order). `get(key, timestamp)` asks for the value with the largest timestamp ≤ the given one — that's a 'find rightmost element ≤ X' binary search. Use a dict of lists; binary search the list for the key.",
+      "hints": [
+        "set() just appends (value, timestamp) to a list for that key. Timestamps are strictly increasing, so the list stays sorted.",
+        "get(key, timestamp) needs the latest value with timestamp ≤ the query. That's binary search for the rightmost valid entry.",
+        "Store a dict mapping key → list of (timestamp, value) tuples. Binary search that list to find the largest timestamp that doesn't exceed the query timestamp."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Linear scan backward through the list for each key to find the latest valid timestamp. Reach for this only when the list is tiny or binary search adds unwanted complexity for your use case.",
+          "code": "class TimeMap:\n    def __init__(self):\n        self.store = {}  # key -> list of (timestamp, value)\n\n    def set(self, key: str, value: str, timestamp: int) -> None:\n        if key not in self.store:\n            self.store[key] = []\n        self.store[key].append((timestamp, value))\n\n    def get(self, key: str, timestamp: int) -> str:\n        if key not in self.store:\n            return \"\"\n        values = self.store[key]\n        # Scan backward to find the latest timestamp <= query\n        for i in range(len(values) - 1, -1, -1):\n            if values[i][0] <= timestamp:\n                return values[i][1]\n        return \"\"",
+          "timeComplexity": "O(n) per get, O(1) per set",
+          "spaceComplexity": "O(n) for storing all (timestamp, value) pairs"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Hash map of key → list of (timestamp, value). Binary search the list for the largest timestamp ≤ query.",
+          "code": "class TimeMap:\n    def __init__(self):\n        self.store = {}  # key -> list of (timestamp, value)\n\n    def set(self, key: str, value: str, timestamp: int) -> None:\n        if key not in self.store:\n            self.store[key] = []\n        self.store[key].append((timestamp, value))\n\n    def get(self, key: str, timestamp: int) -> str:\n        if key not in self.store:\n            return \"\"\n        values = self.store[key]\n        # Binary search for the rightmost timestamp <= timestamp\n        left, right = 0, len(values) - 1\n        result = \"\"\n        while left <= right:\n            mid = (left + right) // 2\n            if values[mid][0] <= timestamp:\n                result = values[mid][1]  # candidate answer\n                left = mid + 1           # try to find a later one\n            else:\n                right = mid - 1\n        return result",
+          "timeComplexity": "O(log n) per get, O(1) per set",
+          "spaceComplexity": "O(n) for storing all (timestamp, value) pairs"
+        }
+      ],
+      "description": "Design a time-based key-value data structure that can store multiple values for the same key at different time stamps and retrieve the key&#39;s value at a certain timestamp.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "design"
+    },
+    {
+      "id": "number-of-matching-subsequences",
+      "title": "number Of Matching Subsequences",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "advanced",
+      "leetcodeSlug": "number-of-matching-subsequences",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "ref: # https://leetcode.com/problems/number-of-matching-subsequences/solutions/1289406/python-binary-search-solution-explained/?orderBy=most_votes Key Idea: create charToIndicesMap and use binary search for each char to check isSubsequence Key Idea 1: If we use Trie we will search same subsequences in lower layers multiple times Key Idea 2: Use Hashmap from char to indices and update them while searching Key Idea 3: Storing indices in Process By Bucket technique instead of entire word",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "ref: # https://leetcode.com/problems/number-of-matching-subsequences/solutions/1289406/python-binary-search-solution-explained/?orderBy=most_votes Key Idea: create charToIndicesMap and use binary search for each char to check isSubsequence Key Idea 1: If we use Trie we will search same subsequences in lower layers multiple times Key Idea 2: Use Hashmap from char to indices and update them while searching Key Idea 3: Storing indices in Process By Bucket technique instead of entire word",
+          "code": "# ref: # https://leetcode.com/problems/number-of-matching-subsequences/solutions/1289406/python-binary-search-solution-explained/?orderBy=most_votes\n# Key Idea: create charToIndicesMap and use binary search for each char to check isSubsequence\n\nclass Solution:\n    def numMatchingSubseq(self, s: str, words) -> int:\n        charToIndicesMap = defaultdict(list)\n        for index, char in enumerate(s):\n            charToIndicesMap[char].append(index)\n        \n        def isSubsequence(word):\n            indexInS = 0\n            for char in word:\n                indexInCharIndicesList = bisect.bisect_left(charToIndicesMap[char], indexInS)\n                if indexInCharIndicesList==len(charToIndicesMap[char]): return False\n                indexInS = charToIndicesMap[char][indexInCharIndicesList] + 1\n            return True\n        \n        return sum(isSubsequence(word) for word in words)\n    \n\n\n\n\n# Key Idea 1: If we use Trie we will search same subsequences in lower layers multiple times\n# Key Idea 2: Use Hashmap from char to indices and update them while searching\n\nclass Solution:\n    def numMatchingSubseq(self, s: str, words) -> int:\n        buckets = defaultdict(list)\n        for word in words: \n            buckets[word[0]].append((word, 0))\n\n        for char in s:\n            if char in buckets:\n                wordsWithIndices = buckets[char]\n                del buckets[char]\n                for word, index in wordsWithIndices:\n                    if not index+1==len(word):\n                        buckets[word[index+1]].append((word, index+1))\n\n        return len(words) - sum(map(len, buckets.values()))\n\n\n# Key Idea 3: Storing indices in Process By Bucket technique instead of entire word   \n\nclass Solution:\n    def numMatchingSubseq(self, s: str, words) -> int:\n        buckets = defaultdict(list)\n        for index, word in enumerate(words): \n            buckets[word[0]].append((index, 0))\n\n        for char in s:\n            if char in buckets:\n                indexInWordsListAndCurrIndexInWord = buckets[char]\n                del buckets[char]\n                for indexInWordsList, currIndexInWord in indexInWordsListAndCurrIndexInWord:\n                    if currIndexInWord+1!=len(words[indexInWordsList]):\n                        buckets[words[indexInWordsList][currIndexInWord+1]].append((indexInWordsList, currIndexInWord+1))\n\n        return len(words) - sum(map(len, buckets.values()))",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given a string s and an array of strings words, return the number of words[i] that is a subsequence of s.",
+      "phaseId": 2
+    },
+    {
+      "id": "find-the-longest-valid-obstacle-course-at-each-position",
+      "title": "find The Longest Valid Obstacle Course At Each Position",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "with-dp",
+      "leetcodeSlug": "find-the-longest-valid-obstacle-course-at-each-position",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Question screams Longest Increasing Subsequence",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Question screams Longest Increasing Subsequence",
+          "code": "# Key Idea: Question screams Longest Increasing Subsequence\n\nclass Solution:\n    def longestObstacleCourseAtEachPosition(self, obstacles: List[int]) -> List[int]:\n        longestObstaclesArr = []\n        for height in obstacles:\n            index = bisect.bisect_right(longestObstaclesArr, height)\n            if index==len(longestObstaclesArr): longestObstaclesArr.append(height)\n            else: longestObstaclesArr[index] = height\n            yield index+1",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You want to build some obstacle courses. You are given a 0-indexed integer array obstacles of length n, where obstacles[i] describes the height of the ith obstacle.",
+      "phaseId": 3
+    },
+    {
+      "id": "longest-increasing-subsequence",
+      "title": "longest Increasing Subsequence",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "with-dp",
+      "leetcodeSlug": "longest-increasing-subsequence",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: This is an optimization on top of DP. Think LIS when DP qn needs length of ordered output",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: This is an optimization on top of DP. Think LIS when DP qn needs length of ordered output",
+          "code": "# Key Idea: This is an optimization on top of DP. Think LIS when DP qn needs length of ordered output\n\nimport bisect\nclass Solution:\n    def lengthOfLIS(self, nums) -> int:\n        lisArr = []\n        for num in nums:\n            index = bisect.bisect_left(lisArr, num)\n            if index==len(lisArr): lisArr.append(num)\n            else: lisArr[index] = num\n        return len(lisArr)\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an integer array nums, return the length of the longest strictly increasing subsequence.",
+      "phaseId": 3,
+      "important": true
+    },
+    {
+      "id": "russian-doll-envelopes",
+      "title": "russian Doll Envelopes",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "with-dp",
+      "leetcodeSlug": "russian-doll-envelopes",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: We can pick only one envelope of a given width Key Idea 2: We sort by (x[0], -x[1]) to convert the question to LIS Ex: [1,3],[3,5],[6,8],[6,7],[8,4], we work with [3,5,8,7,4] and look for LIS Sorting height in desc order will ensure we only pick one env of same width Note: 3D variant (Maximum Height by Stacking Cuboids) needs proper DP",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: We can pick only one envelope of a given width Key Idea 2: We sort by (x[0], -x[1]) to convert the question to LIS Ex: [1,3],[3,5],[6,8],[6,7],[8,4], we work with [3,5,8,7,4] and look for LIS Sorting height in desc order will ensure we only pick one env of same width Note: 3D variant (Maximum Height by Stacking Cuboids) needs proper DP",
+          "code": "# Key Idea 1: We can pick only one envelope of a given width\n# Key Idea 2: We sort by (x[0], -x[1]) to convert the question to LIS\n#    Ex: [1,3],[3,5],[6,8],[6,7],[8,4], we work with [3,5,8,7,4] and look for LIS\n#           Sorting height in desc order will ensure we only pick one env of same width\n\n# Note: 3D variant (Maximum Height by Stacking Cuboids) needs proper DP\n\nclass Solution:\n    def maxEnvelopes(self, envelopes: List[List[int]]) -> int:\n        lisArr = []\n        for width, height in sorted(envelopes, key=lambda x: (x[0], -x[1])):\n            index = bisect_left(lisArr, height)\n            if index==len(lisArr): lisArr.append(height)\n            else: lisArr[index] = height\n        return len(lisArr)\n\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given a 2D array of integers envelopes where envelopes[i] = [wi, hi] represents the width and the height of an envelope.",
+      "phaseId": 3
+    },
+    {
+      "id": "k-th-element-of-two-sorted-arrays",
+      "title": "k Th Element Of Two Sorted Arrays",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "two-arrays",
+      "leetcodeSlug": "k-th-element-of-two-sorted-arrays",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Binary search on numElementsFromArr1, accordingly define low and high Key Idea 2: monotonicity is on l1<=r2 and l2<=r1 behaviour Note: low and high calculation is tricky         # lowest number of numbers to take and highest to take         # in lowest.. take everything from second arr... see what we need to take at minimum",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Binary search on numElementsFromArr1, accordingly define low and high Key Idea 2: monotonicity is on l1<=r2 and l2<=r1 behaviour Note: low and high calculation is tricky         # lowest number of numbers to take and highest to take         # in lowest.. take everything from second arr... see what we need to take at minimum",
+          "code": "# Key Idea 1: Binary search on numElementsFromArr1, accordingly define low and high\n# Key Idea 2: monotonicity is on l1<=r2 and l2<=r1 behaviour\n\n# Note: low and high calculation is tricky\n\nclass Solution:\n    def kthElement(self, arr1, arr2, n, m, k):\n        if len(arr1)>len(arr2): return self.kthElement(arr2, arr1, m, n, k)\n\n        # lowest number of numbers to take and highest to take\n        # in lowest.. take everything from second arr... see what we need to take at minimum\n        # in highest.. take everything from first arr\n        low, high = max(0, k-m), min(n,k)\n        while low<=high:\n            numElementsFromArr1 = (low+high)//2\n            numElementsFromArr2 = k - numElementsFromArr1\n            \n            l1 = arr1[numElementsFromArr1-1] if numElementsFromArr1-1>=0 else -1e9\n            l2 = arr2[numElementsFromArr2-1] if numElementsFromArr2-1>=0 else -1e9\n            r1 = arr1[numElementsFromArr1] if numElementsFromArr1<n else 1e9\n            r2 = arr2[numElementsFromArr2] if numElementsFromArr2<m else 1e9\n\n            if l1<=r2 and l2<=r1: return max(l1, l2)\n            elif l1>r2: high = numElementsFromArr1-1\n            else: low = numElementsFromArr1+1\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "maximum-value-at-a-given-index-in-a-unbounded-array",
+      "title": "maximum Value At A Given Index In A Unbounded Array",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "on-answer",
+      "leetcodeSlug": "maximum-value-at-a-given-index-in-a-unbounded-array",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Use Binary Search on answer Key Idea 2: Have a function which can sum from number A to number B Key Idea 3: subtract n from maxSum to make minNeeded as 0 instead of 1 for easier implementation. (This, ans will be low+1) Note: defining A, B is tricky. Take an example         # b(b+1)/2 - (a-1)(a-1+1)/2",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Use Binary Search on answer Key Idea 2: Have a function which can sum from number A to number B Key Idea 3: subtract n from maxSum to make minNeeded as 0 instead of 1 for easier implementation. (This, ans will be low+1) Note: defining A, B is tricky. Take an example         # b(b+1)/2 - (a-1)(a-1+1)/2",
+          "code": "# Key Idea 1: Use Binary Search on answer\n# Key Idea 2: Have a function which can sum from number A to number B\n# Key Idea 3: subtract n from maxSum to make minNeeded as 0 instead of 1 for easier implementation. (This, ans will be low+1)\n\n# Note: defining A, B is tricky. Take an example\nclass Solution:\n    def maxValue(self, n: int, index: int, maxSum: int) -> int:\n        \n        # b(b+1)/2 - (a-1)(a-1+1)/2\n        def sumFromAToB(a, b):\n            return ((b-a+1)*(b+a))//2\n\n        # 0 1 2 3 4 5 6 7 8 9 -> indices\n        # 3 4 5 6 7 8 7 6 5 4 -> array\n        def mountainSum(target):\n            # (index) is the number of elements to left\n            # (n-1 - index) is the number of elements to right\n            return sumFromAToB(max(0, target - index), target) + \\\n                   sumFromAToB(max(0, target - (n-1 - index)), target) - \\\n                   target\n            \n        maxSum -= n # as good as making minNeeded as 0 instead of 1  for arr[i]\n        low, high = 0, maxSum\n        while low<high:\n            mid = (low+high+1)//2\n            if mountainSum(mid)<=maxSum:\n                low = mid\n            else:\n                high = mid - 1\n        return low + 1",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "split-array-largest-sum",
+      "title": "split Array Largest Sum",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "on-answer",
+      "leetcodeSlug": "split-array-largest-sum",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Continuous Partitions -> greedy verify -> Binary Search on Answer",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Continuous Partitions -> greedy verify -> Binary Search on Answer",
+          "code": "# Key Idea: Continuous Partitions -> greedy verify -> Binary Search on Answer\n\nclass Solution:\n    def splitArray(self, nums, k: int) -> int:\n        n = len(nums)\n        def isPartitionPossible(maxSum):\n            runningSum, index, partitionsLeft = 0, 0, k\n            while index<n:\n                if partitionsLeft==0: break\n                if runningSum+nums[index]>maxSum:\n                    runningSum = 0\n                    partitionsLeft-=1\n                runningSum+=nums[index]\n                index+=1\n            return partitionsLeft!=0\n        \n        low, high = max(nums), sum(nums)\n        while low<high:\n            mid = (low+high)//2\n            if isPartitionPossible(mid): high = mid\n            else: low = mid+1\n        return low",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an integer array nums and an integer k, split nums into k non-empty subarrays such that the largest sum of any subarray is minimized.",
+      "phaseId": 4
+    },
+    {
+      "id": "minimum-in-rotated-sorted-array-with-duplicates",
+      "title": "Minimum In Rotated Sorted Array With Duplicates",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "rotated-sorted",
+      "leetcodeSlug": "minimum-in-rotated-sorted-array-with-duplicates",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Compare nums[mid] and nums[high] Key Idea 2: If Equal, decrement high",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Compare nums[mid] and nums[high] Key Idea 2: If Equal, decrement high",
+          "code": "# Key Idea 1: Compare nums[mid] and nums[high]\n# Key Idea 2: If Equal, decrement high\n\nclass Solution:\n    def findMin(self, nums: List[int]) -> int:\n        low, high = 0, len(nums) - 1\n        while low<high:\n            mid = (low+high)//2\n            if nums[mid]<nums[high]:\n                high = mid\n            elif nums[mid]>nums[high]:\n                low = mid + 1\n            else:\n                high -= 1\n        return nums[low]",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "search-a2-d-matrix2",
+      "title": "Search A2 D Matrix2",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "rotated-sorted",
+      "leetcodeSlug": "search-a2-d-matrix2",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Start from bottom left as it is kind of mid (top left and bottom right are like low and high) Key Idea 2: target>num[i][j] => eliminate col target<num[i][j] => eliminate row",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Start from bottom left as it is kind of mid (top left and bottom right are like low and high) Key Idea 2: target>num[i][j] => eliminate col target<num[i][j] => eliminate row",
+          "code": "# Key Idea 1: Start from bottom left as it is kind of mid (top left and bottom right are like low and high)\n# Key Idea 2: target>num[i][j] => eliminate col\n#             target<num[i][j] => eliminate row\n\nclass Solution:\n    def searchMatrix(self, matrix: List[List[int]], target: int) -> bool:\n        m, n = len(matrix), len(matrix[0])\n        i, j = m-1, 0\n        while i>=0 and j<n:\n            if matrix[i][j]==target: return True\n            if target>matrix[i][j]: j += 1\n            else: i -= 1\n        return False",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "search-in-rotated-sorted-array-with-duplicates",
+      "title": "Search In Rotated Sorted Array With Duplicates",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "rotated-sorted",
+      "leetcodeSlug": "search-in-rotated-sorted-array-with-duplicates",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: check if num is at low, mid or high Key Idea 2: check if low to mid is sorted; or mid to high is sorted Key Idea 3: if any part is sorted, apply binary search to eliminate Key Idea 4: If no part is sorted, move left and right             # if left part is sorted",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: check if num is at low, mid or high Key Idea 2: check if low to mid is sorted; or mid to high is sorted Key Idea 3: if any part is sorted, apply binary search to eliminate Key Idea 4: If no part is sorted, move left and right             # if left part is sorted",
+          "code": "# Key Idea 1: check if num is at low, mid or high\n# Key Idea 2: check if low to mid is sorted; or mid to high is sorted\n# Key Idea 3: if any part is sorted, apply binary search to eliminate\n# Key Idea 4: If no part is sorted, move left and right\n\nclass Solution:\n    def search(self, nums, target: int) -> bool:\n        n = len(nums)\n        low, high = 0, n-1\n\n        while low<=high:\n            mid = (low+high)//2\n            if target in [nums[low], nums[mid], nums[high]]: return True\n\n            # if left part is sorted \n            if nums[low]<nums[mid]:\n                # if strictly in between low and mid\n                if nums[low]<=target<nums[mid]: high = mid-1\n                else: low = mid+1\n\n            # if right part is sorted\n            elif nums[mid]<nums[high]:\n                # if strictly in between mid and high\n                if nums[mid]<target<=nums[high]: low = mid+1\n                else: high = mid-1\n\n            # no sorting condition satisfied and num is not at low, mid or high, so move both\n            else:\n                low += 1\n                high -=1\n        return False",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "find-peak-element",
+      "title": "find Peak Element",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "rotated-sorted",
+      "leetcodeSlug": "find-peak-element",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Compare nums[mid] and nums[mid+1] Code is same for if there is only one Peak",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Compare nums[mid] and nums[mid+1] Code is same for if there is only one Peak",
+          "code": "# Key Idea: Compare nums[mid] and nums[mid+1]\n# Code is same for if there is only one Peak\n\nclass Solution:\n    def findPeakElement(self, nums) -> int:\n        low, high = 0, len(nums)-1\n        while low<high:\n            mid = (low+high)//2\n            if nums[mid]<nums[mid+1]: \n                low = mid + 1\n            else: \n                high = mid\n        return low",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "A peak element is an element that is strictly greater than its neighbors.",
+      "phaseId": 4
+    },
+    {
+      "id": "single-element-in-a-sorted-array",
+      "title": "single Element In A Sorted Array",
+      "difficulty": "Medium",
+      "patternId": "binary-search",
+      "subcategory": "rotated-sorted",
+      "leetcodeSlug": "single-element-in-a-sorted-array",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Check if number is equal to its left or right Key Idea 2: Eliminate even length part Note: return statement is not return nums[low]. Its inside the loop",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Check if number is equal to its left or right Key Idea 2: Eliminate even length part Note: return statement is not return nums[low]. Its inside the loop",
+          "code": "# Key Idea 1: Check if number is equal to its left or right\n# Key Idea 2: Eliminate even length part\n\n# Note: return statement is not return nums[low]. Its inside the loop\n\nclass Solution:\n    def singleNonDuplicate(self, nums):\n        low, high = 0, len(nums)-1\n        while low<=high:\n            mid = (low+high)//2\n            if mid-1>=0 and nums[mid-1]==nums[mid]:\n                if (mid-1-low)&1:\n                    high = mid - 2\n                else:\n                    low = mid + 1\n            elif mid+1<len(nums) and nums[mid+1]==nums[mid]:\n                if (mid-low)&1:\n                    high = mid - 1\n                else:\n                    low = mid + 2\n            else:\n                return nums[mid]",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given a sorted array consisting of only integers where every element appears exactly twice, except for one element which appears exactly once.",
+      "phaseId": 4
+    },
+    {
+      "id": "median-of-two-sorted-arrays",
+      "title": "Median of Two Sorted Arrays",
+      "leetcodeSlug": "median-of-two-sorted-arrays",
+      "difficulty": "Hard",
+      "patternId": "binary-search",
+      "tags": [
+        "array",
+        "binary-search",
+        "divide-and-conquer"
+      ],
+      "video": {
+        "title": "NeetCode — Median of Two Sorted Arrays (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Median+of+Two+Sorted+Arrays",
+        "lang": "python"
+      },
+      "keyIdeas": "Binary search on the *partition* of the smaller array. You want to split both arrays such that the left halves combined have exactly ⌊(m+n+1)/2⌋ elements, and max(left) ≤ min(right). Binary search the partition index in the smaller array, derive the partition in the larger array, check the cross-boundary condition. When valid, the median is computed from the four boundary elements.",
+      "hints": [
+        "Merging both arrays and taking the middle is O(m + n) time. Can you find the median without merging?",
+        "The median splits the combined array into two halves of equal size. Binary search on how many elements to take from the smaller array for the left half.",
+        "For partition i in nums1 and j in nums2 (where i+j = half), check that nums1[i-1] ≤ nums2[j] and nums2[j-1] ≤ nums1[i]. If that holds, the median is derived from those four boundary elements."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Merge both sorted arrays, then return the middle element(s).",
+          "code": "class Solution:\n    def findMedianSortedArrays(self, nums1: list[int], nums2: list[int]) -> float:\n        merged = sorted(nums1 + nums2)\n        n = len(merged)\n        if n % 2 == 1:\n            return float(merged[n // 2])\n        else:\n            return (merged[n // 2 - 1] + merged[n // 2]) / 2.0",
+          "timeComplexity": "O((m + n) log(m + n))",
+          "spaceComplexity": "O(m + n)"
+        },
+        {
+          "label": "Better — Two-pointer merge",
+          "keyIdea": "Merge the two sorted arrays with two pointers until you reach the middle position(s), without sorting the entire merged array. Reach for this over the brute-force sort when you want O(m+n) time without the log factor, or when you'd rather avoid the Python sort() black box. The partition binary search is still better at O(log(min(m, n))).",
+          "code": "class Solution:\n    def findMedianSortedArrays(self, nums1: list[int], nums2: list[int]) -> float:\n        m, n = len(nums1), len(nums2)\n        total = m + n\n        half = total // 2\n        \n        i, j = 0, 0\n        prev, curr = 0, 0\n        \n        # Merge until we've seen half + 1 elements\n        for _ in range(half + 1):\n            prev = curr\n            if i < m and (j >= n or nums1[i] <= nums2[j]):\n                curr = nums1[i]\n                i += 1\n            else:\n                curr = nums2[j]\n                j += 1\n        \n        if total % 2 == 1:\n            return float(curr)\n        else:\n            return (prev + curr) / 2.0",
+          "timeComplexity": "O(m + n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Binary search on the partition of the smaller array to split both arrays into valid left/right halves, then compute median from boundary elements.",
+          "code": "class Solution:\n    def findMedianSortedArrays(self, nums1: list[int], nums2: list[int]) -> float:\n        # Ensure nums1 is the smaller array\n        if len(nums1) > len(nums2):\n            nums1, nums2 = nums2, nums1\n        m, n = len(nums1), len(nums2)\n        left, right = 0, m\n        half = (m + n + 1) // 2\n        \n        while left <= right:\n            i = (left + right) // 2  # partition in nums1\n            j = half - i             # partition in nums2\n            \n            # Boundary elements\n            nums1_left = nums1[i - 1] if i > 0 else float('-inf')\n            nums1_right = nums1[i] if i < m else float('inf')\n            nums2_left = nums2[j - 1] if j > 0 else float('-inf')\n            nums2_right = nums2[j] if j < n else float('inf')\n            \n            # Check if partition is correct\n            if nums1_left <= nums2_right and nums2_left <= nums1_right:\n                # Found the correct partition\n                if (m + n) % 2 == 1:\n                    return float(max(nums1_left, nums2_left))\n                else:\n                    return (max(nums1_left, nums2_left) + min(nums1_right, nums2_right)) / 2.0\n            elif nums1_left > nums2_right:\n                right = i - 1  # too many from nums1 on the left\n            else:\n                left = i + 1   # too few from nums1 on the left\n        return 0.0",
+          "timeComplexity": "O(log(min(m, n)))",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given two sorted arrays nums1 and nums2 of size m and n respectively, return the median of the two sorted arrays.",
+      "phaseId": 5,
+      "important": true,
+      "subcategory": "two-arrays"
+    }
+  ]
+}

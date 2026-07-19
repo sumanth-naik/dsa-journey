@@ -1,0 +1,619 @@
+{
+  "id": "hashing",
+  "name": "Hashing (Maps & Sets)",
+  "phaseId": 1,
+  "order": 2,
+  "concept": "## The idea\n\nA **hash map** (Python `dict`) and **hash set** (Python `set`) give you average **O(1)** lookup, insert, and membership tests. The core move in this pattern: *trade memory for time* — remember what you've seen so you don't have to re-scan.\n\nThe classic transformation: a brute-force O(n²) 'for each element, look through all the others' becomes O(n) 'for each element, check a dict in O(1)'.\n\n## Python you'll pick up here\n\n- `seen = set()`, `seen.add(x)`, `if x in seen:`\n- `d = {}` or `d = {key: value}`; `d[key] = value`; `if key in d:`\n- `from collections import Counter` → `Counter(s)` counts characters/elements in one line\n- `from collections import defaultdict` → `d = defaultdict(int)` auto-initializes missing keys to 0\n- `d.get(key, default)` reads with a fallback\n\nThese four idioms (`set`, `dict`, `Counter`, `defaultdict`) cover a huge fraction of interview code.",
+  "whenToUse": [
+    "You catch yourself writing a nested loop just to check 'have I seen this?'",
+    "You need counts / frequencies of elements or characters",
+    "You need to detect duplicates, or find a complement (target - x)",
+    "You need to group items by some key"
+  ],
+  "problems": [
+    {
+      "id": "contains-duplicate",
+      "title": "Contains Duplicate",
+      "leetcodeSlug": "contains-duplicate",
+      "difficulty": "Easy",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "hash-set"
+      ],
+      "video": {
+        "title": "NeetCode — Contains Duplicate (Python)",
+        "url": "https://www.youtube.com/watch?v=3OamzN90kPg",
+        "lang": "python"
+      },
+      "keyIdeas": "Walk the array, keeping a `set` of everything seen. If you ever meet a number already in the set, there's a duplicate. This is the 'remember what you've seen' idea in its purest form.",
+      "hints": [
+        "Sorting would work in O(n log n). Can you do better with extra memory?",
+        "Keep a set of numbers you've already encountered.",
+        "Before adding each number, check if it's already in the set — if so, return True."
+      ],
+      "solutions": [
+        {
+          "label": "Hash set",
+          "keyIdea": "First repeat you encounter means a duplicate exists.",
+          "code": "class Solution:\n    def containsDuplicate(self, nums: list[int]) -> bool:\n        seen = set()\n        for n in nums:\n            if n in seen:\n                return True\n            seen.add(n)\n        return False",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "One-liner (learn the idiom)",
+          "keyIdea": "A set drops duplicates, so if the set is smaller than the list, there was a repeat.",
+          "code": "class Solution:\n    def containsDuplicate(self, nums: list[int]) -> bool:\n        return len(set(nums)) < len(nums)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Alternative — sort",
+          "keyIdea": "Sort and check adjacent pairs. Reach for this when you can't afford O(n) extra space — sort is O(n log n) time but only O(1) space if you mutate in-place (Python's sort does). Use hashing when speed matters more than space.",
+          "code": "class Solution:\n    def containsDuplicate(self, nums: list[int]) -> bool:\n        nums.sort()\n        for i in range(1, len(nums)):\n            if nums[i] == nums[i - 1]:\n                return True\n        return False",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an integer array nums, return true if any value appears at least twice in the array, and return false if every element is distinct.",
+      "phaseId": 1,
+      "subcategory": "basics"
+    },
+    {
+      "id": "valid-anagram",
+      "title": "Valid Anagram",
+      "leetcodeSlug": "valid-anagram",
+      "difficulty": "Easy",
+      "patternId": "hashing",
+      "tags": [
+        "string",
+        "hash-map",
+        "counting"
+      ],
+      "video": {
+        "title": "NeetCode — Valid Anagram (Python)",
+        "url": "https://www.youtube.com/watch?v=9UtInBqnCgA",
+        "lang": "python"
+      },
+      "keyIdeas": "Two strings are anagrams iff they have the **same character counts**. Count letters in each with a hash map and compare. `collections.Counter` does this in one line — a great Python idiom to internalize.",
+      "hints": [
+        "Anagrams have identical letter frequencies. How would you represent 'letter frequencies'?",
+        "Count each character of both strings into two dicts, then compare the dicts.",
+        "`collections.Counter(s) == Counter(t)` is the whole solution once you see it."
+      ],
+      "solutions": [
+        {
+          "label": "Counter (idiomatic Python)",
+          "keyIdea": "Equal character-frequency maps ⇔ anagram.",
+          "code": "from collections import Counter\n\nclass Solution:\n    def isAnagram(self, s: str, t: str) -> bool:\n        return Counter(s) == Counter(t)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1) — at most 26 (or alphabet-size) keys"
+        },
+        {
+          "label": "Manual dict (see what Counter does)",
+          "keyIdea": "Build the count map by hand: add for s, subtract for t; all-zero means anagram.",
+          "code": "class Solution:\n    def isAnagram(self, s: str, t: str) -> bool:\n        if len(s) != len(t):\n            return False\n        count = {}\n        for c in s:\n            count[c] = count.get(c, 0) + 1\n        for c in t:\n            if c not in count:\n                return False\n            count[c] -= 1\n            if count[c] == 0:\n                del count[c]\n        return len(count) == 0",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — sort",
+          "keyIdea": "Anagrams have identical sorted forms. This avoids extra space (O(1) if sorting in-place) but costs O(n log n) time. Reach for sorting when memory is tight; use Counter when speed matters.",
+          "code": "class Solution:\n    def isAnagram(self, s: str, t: str) -> bool:\n        return sorted(s) == sorted(t)",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given two strings s and t, return true if t is an anagram of s, and false otherwise.",
+      "phaseId": 1,
+      "subcategory": "basics"
+    },
+    {
+      "id": "two-sum",
+      "title": "Two Sum",
+      "leetcodeSlug": "two-sum",
+      "difficulty": "Easy",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "hash-map"
+      ],
+      "video": {
+        "title": "NeetCode — Two Sum (Python)",
+        "url": "https://www.youtube.com/watch?v=KLlXCFG5TnA",
+        "lang": "python"
+      },
+      "keyIdeas": "For each number `x`, the partner you need is `target - x`. Keep a dict of `value -> index` as you go; if the needed complement is already in the dict, you're done. One pass, O(n) — the canonical example of hashing beating a nested loop.",
+      "hints": [
+        "Brute force tries every pair in O(n²). What if, for each number, you could instantly ask 'have I already seen its complement?'",
+        "As you scan, store each value's index in a dict.",
+        "For value x, the complement is target - x. If that complement is already a key in your dict, return the two indices."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Check every pair (i, j).",
+          "code": "class Solution:\n    def twoSum(self, nums: list[int], target: int) -> list[int]:\n        for i in range(len(nums)):\n            for j in range(i + 1, len(nums)):\n                if nums[i] + nums[j] == target:\n                    return [i, j]\n        return []",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — hash map, one pass",
+          "keyIdea": "Remember each value's index; look up the complement in O(1).",
+          "code": "class Solution:\n    def twoSum(self, nums: list[int], target: int) -> list[int]:\n        seen = {}                       # value -> index\n        for i, x in enumerate(nums):\n            need = target - x\n            if need in seen:\n                return [seen[need], i]\n            seen[x] = i\n        return []",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "lookup"
+    },
+    {
+      "id": "group-anagrams",
+      "title": "Group Anagrams",
+      "leetcodeSlug": "group-anagrams",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "string",
+        "hash-map",
+        "grouping"
+      ],
+      "video": {
+        "title": "NeetCode — Group Anagrams (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Group+Anagrams",
+        "lang": "python"
+      },
+      "keyIdeas": "Anagrams share the same sorted signature (or character-count tuple). Build a hash map `signature -> [words]`, then return the values. The insight: two strings are anagrams iff `sorted(s) == sorted(t)`.",
+      "hints": [
+        "Two anagrams will have identical sorted forms ('eat' → 'aet', 'tea' → 'aet').",
+        "Group by sorted string as a key in a dict.",
+        "Use `collections.defaultdict(list)` so you can append directly without checking if the key exists."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — sort as key",
+          "keyIdea": "Sorted string is the canonical signature; group by it in O(n k log k) where k is max word length.",
+          "code": "from collections import defaultdict\n\nclass Solution:\n    def groupAnagrams(self, strs: list[str]) -> list[list[str]]:\n        groups = defaultdict(list)  # signature -> [words]\n        for s in strs:\n            key = ''.join(sorted(s))  # sorted string is the anagram signature\n            groups[key].append(s)\n        return list(groups.values())",
+          "timeComplexity": "O(n k log k)",
+          "spaceComplexity": "O(n k)"
+        },
+        {
+          "label": "Optimal — count tuple as key",
+          "keyIdea": "Count-tuple avoids the sort; slightly faster constant but same complexity.",
+          "code": "from collections import defaultdict\n\nclass Solution:\n    def groupAnagrams(self, strs: list[str]) -> list[list[str]]:\n        groups = defaultdict(list)\n        for s in strs:\n            # count tuple: (count_a, count_b, ..., count_z)\n            count = [0] * 26\n            for c in s:\n                count[ord(c) - ord('a')] += 1\n            groups[tuple(count)].append(s)\n        return list(groups.values())",
+          "timeComplexity": "O(n k)",
+          "spaceComplexity": "O(n k)"
+        }
+      ],
+      "description": "Given an array of strings strs, group the anagrams together. You can return the answer in any order.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "grouping"
+    },
+    {
+      "id": "top-k-frequent-elements",
+      "title": "Top K Frequent Elements",
+      "leetcodeSlug": "top-k-frequent-elements",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "hash-map",
+        "counting",
+        "bucket-sort"
+      ],
+      "video": {
+        "title": "NeetCode — Top K Frequent Elements (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Top+K+Frequent+Elements",
+        "lang": "python"
+      },
+      "keyIdeas": "Count frequencies with a hash map. Then use **bucket sort**: create buckets `freq[i] = [elements with count i]` and collect the top k from the highest-frequency buckets downward. This beats a heap (O(n log n)) with O(n).",
+      "hints": [
+        "First, count each element's frequency with Counter.",
+        "A heap would give O(n log k) — but can you do O(n)?",
+        "Bucket sort: make an array of length n+1 where index i holds all elements with frequency i. Walk from the end."
+      ],
+      "solutions": [
+        {
+          "label": "Better — sort by frequency",
+          "keyIdea": "Count frequencies, then sort by count descending. Simple and correct in O(n log n). Use this when n is small or when you want readable code; reach for heap when k << n, or bucket sort for guaranteed O(n).",
+          "code": "from collections import Counter\n\nclass Solution:\n    def topKFrequent(self, nums: list[int], k: int) -> list[int]:\n        count = Counter(nums)\n        # sort by frequency descending\n        sorted_items = sorted(count.items(), key=lambda x: x[1], reverse=True)\n        return [num for num, freq in sorted_items[:k]]",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Better — heap",
+          "keyIdea": "Count frequencies, then use a heap to extract k largest. O(n log k) with a size-k min-heap. Reach for this when k is small relative to n (e.g., k=10, n=1M) — beats sorting; use bucket sort when you need strict O(n).",
+          "code": "from collections import Counter\nimport heapq\n\nclass Solution:\n    def topKFrequent(self, nums: list[int], k: int) -> list[int]:\n        count = Counter(nums)\n        # Python's heapq is a min-heap; negate to get k largest\n        return heapq.nlargest(k, count.keys(), key=count.get)",
+          "timeComplexity": "O(n log k)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Optimal — bucket sort",
+          "keyIdea": "Bucket by frequency (max n), collect from high to low until you have k elements. O(n) time. Reach for this when you need the best asymptotic guarantee — no log factor — but the simpler heap or sort is often fine in practice.",
+          "code": "from collections import Counter\n\nclass Solution:\n    def topKFrequent(self, nums: list[int], k: int) -> list[int]:\n        count = Counter(nums)\n        # freq[i] = list of numbers that appear i times\n        freq = [[] for _ in range(len(nums) + 1)]\n        for num, cnt in count.items():\n            freq[cnt].append(num)\n        \n        result = []\n        for i in range(len(freq) - 1, 0, -1):  # walk from highest frequency down\n            for num in freq[i]:\n                result.append(num)\n                if len(result) == k:\n                    return result\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given an integer array nums and an integer k, return the k most frequent elements. You may return the answer in any order.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "frequency"
+    },
+    {
+      "id": "product-of-array-except-self",
+      "title": "Product of Array Except Self",
+      "leetcodeSlug": "product-of-array-except-self",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "prefix",
+        "suffix"
+      ],
+      "video": {
+        "title": "NeetCode — Product of Array Except Self (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Product+of+Array+Except+Self",
+        "lang": "python"
+      },
+      "keyIdeas": "For each index i, the answer is (product of everything to its left) × (product of everything to its right). Precompute prefix and suffix products; multiply them. The O(1)-space trick: build the answer array as the prefix pass, then multiply in-place during the suffix pass.",
+      "hints": [
+        "You can't use division (and there might be zeros). Think about what information you'd need at each index.",
+        "At index i, you need: (product left of i) × (product right of i).",
+        "Two passes: one left-to-right accumulating prefix, one right-to-left accumulating suffix. Can you merge them into the output array to save space?"
+      ],
+      "solutions": [
+        {
+          "label": "Prefix + suffix arrays",
+          "keyIdea": "Store prefix product in one array, suffix in another, then multiply at each index.",
+          "code": "class Solution:\n    def productExceptSelf(self, nums: list[int]) -> list[int]:\n        n = len(nums)\n        prefix = [1] * n\n        suffix = [1] * n\n        \n        # prefix[i] = product of nums[0..i-1]\n        for i in range(1, n):\n            prefix[i] = prefix[i - 1] * nums[i - 1]\n        \n        # suffix[i] = product of nums[i+1..n-1]\n        for i in range(n - 2, -1, -1):\n            suffix[i] = suffix[i + 1] * nums[i + 1]\n        \n        return [prefix[i] * suffix[i] for i in range(n)]",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Optimal — O(1) space",
+          "keyIdea": "Use the output array itself to hold prefix, then multiply suffix in-place on the second pass.",
+          "code": "class Solution:\n    def productExceptSelf(self, nums: list[int]) -> list[int]:\n        n = len(nums)\n        result = [1] * n\n        \n        # first pass: result[i] = prefix product (everything left of i)\n        prefix = 1\n        for i in range(n):\n            result[i] = prefix\n            prefix *= nums[i]\n        \n        # second pass: multiply by suffix product (everything right of i)\n        suffix = 1\n        for i in range(n - 1, -1, -1):\n            result[i] *= suffix\n            suffix *= nums[i]\n        \n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an integer array nums, return an array answer such that answer[i] is equal to the product of all the elements of nums except nums[i].",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "prefix-suffix"
+    },
+    {
+      "id": "valid-sudoku",
+      "title": "Valid Sudoku",
+      "leetcodeSlug": "valid-sudoku",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "hash-set",
+        "matrix"
+      ],
+      "video": {
+        "title": "NeetCode — Valid Sudoku (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Valid+Sudoku",
+        "lang": "python"
+      },
+      "keyIdeas": "Track three sets per digit: which rows, columns, and 3×3 boxes have seen it. The trick: map (row, col) to box index with `(r // 3, c // 3)`. One pass, check membership in O(1) each time — classic hashing.",
+      "hints": [
+        "You need to check: no duplicate in any row, any column, or any 3×3 sub-box.",
+        "Keep a set for each row, each column, and each box. As you scan, check 'is this digit already in the row/col/box set?'",
+        "Box index: (r // 3, c // 3) maps cell (r, c) to one of 9 boxes."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — three sets",
+          "keyIdea": "Use defaultdict(set) for rows, cols, boxes. Single pass, O(1) membership checks.",
+          "code": "from collections import defaultdict\n\nclass Solution:\n    def isValidSudoku(self, board: list[list[str]]) -> bool:\n        rows = defaultdict(set)     # rows[r] = set of digits in row r\n        cols = defaultdict(set)     # cols[c] = set of digits in col c\n        boxes = defaultdict(set)    # boxes[(r//3, c//3)] = set of digits in that box\n        \n        for r in range(9):\n            for c in range(9):\n                if board[r][c] == '.':\n                    continue\n                digit = board[r][c]\n                box = (r // 3, c // 3)\n                \n                if digit in rows[r] or digit in cols[c] or digit in boxes[box]:\n                    return False\n                \n                rows[r].add(digit)\n                cols[c].add(digit)\n                boxes[box].add(digit)\n        \n        return True",
+          "timeComplexity": "O(1)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Determine if a 9 x 9 Sudoku board is valid. Only the filled cells need to be validated according to the following rules:",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "validation"
+    },
+    {
+      "id": "encode-and-decode-strings",
+      "title": "Encode and Decode Strings",
+      "leetcodeSlug": "encode-and-decode-strings",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "tags": [
+        "string",
+        "design"
+      ],
+      "video": {
+        "title": "NeetCode — Encode and Decode Strings (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Encode+and+Decode+Strings",
+        "lang": "python"
+      },
+      "keyIdeas": "You need a delimiter that won't collide with string content. The robust scheme: prefix each string with its length and a delimiter: `\"4#word5#hello\"`. Decode by reading length, skipping the `#`, then slicing exactly that many characters.",
+      "hints": [
+        "A simple delimiter like ',' fails if the strings themselves contain commas.",
+        "Store the length of each string in the encoding, so you know how many characters to read.",
+        "Format: `len(s) + '#' + s` for each string. Decode: parse the length, skip '#', slice that many characters."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — length-prefix encoding",
+          "keyIdea": "Encode as `len#str` for each string; decode by parsing length, then slicing.",
+          "code": "class Codec:\n    def encode(self, strs: list[str]) -> str:\n        \"\"\"Encodes a list of strings to a single string.\"\"\"\n        return ''.join(f\"{len(s)}#{s}\" for s in strs)\n    \n    def decode(self, s: str) -> list[str]:\n        \"\"\"Decodes a single string to a list of strings.\"\"\"\n        result = []\n        i = 0\n        while i < len(s):\n            # find the delimiter '#'\n            j = i\n            while s[j] != '#':\n                j += 1\n            length = int(s[i:j])   # parse the length\n            # extract the string of that length\n            result.append(s[j + 1 : j + 1 + length])\n            i = j + 1 + length     # move past this string\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "phaseId": 3,
+      "subcategory": "serialization"
+    },
+    {
+      "id": "longest-consecutive-sequence",
+      "title": "Longest Consecutive Sequence",
+      "leetcodeSlug": "longest-consecutive-sequence",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "tags": [
+        "array",
+        "hash-set",
+        "sequence"
+      ],
+      "video": {
+        "title": "NeetCode — Longest Consecutive Sequence (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Longest+Consecutive+Sequence",
+        "lang": "python"
+      },
+      "keyIdeas": "Put everything in a set for O(1) lookups. For each number that could **start** a sequence (i.e., `n - 1` is not in the set), count how long the run `n, n+1, n+2, ...` goes. Only starting new sequences keeps it O(n) — each number is visited at most twice.",
+      "hints": [
+        "Sorting would give O(n log n). Can you do O(n)?",
+        "Use a set for O(1) membership. For each number, check if it's the start of a sequence.",
+        "A number is the start of a sequence iff `num - 1` is NOT in the set. From there, count upward `num, num+1, ...` until you hit a gap."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — sort",
+          "keyIdea": "Sort and scan for consecutive runs. O(n log n).",
+          "code": "class Solution:\n    def longestConsecutive(self, nums: list[int]) -> int:\n        if not nums:\n            return 0\n        nums = sorted(set(nums))  # remove duplicates and sort\n        longest = 1\n        current = 1\n        for i in range(1, len(nums)):\n            if nums[i] == nums[i - 1] + 1:\n                current += 1\n            else:\n                longest = max(longest, current)\n                current = 1\n        return max(longest, current)",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Optimal — hash set, start-of-sequence",
+          "keyIdea": "Only start counting from numbers that begin a sequence (n-1 not in set). Each number visited ≤ twice → O(n). Reach for this when you need linear time and have O(n) space; use sort when you can't afford extra memory or when the data is nearly sorted.",
+          "code": "class Solution:\n    def longestConsecutive(self, nums: list[int]) -> int:\n        num_set = set(nums)\n        longest = 0\n        \n        for num in num_set:\n            # only start a sequence if num is the beginning (num-1 not present)\n            if num - 1 not in num_set:\n                current_num = num\n                current_streak = 1\n                \n                while current_num + 1 in num_set:\n                    current_num += 1\n                    current_streak += 1\n                \n                longest = max(longest, current_streak)\n        \n        return longest",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Alternative — union-find",
+          "keyIdea": "Build a union-find structure connecting consecutive numbers. For each number, union it with num-1 and num+1 if they exist. The largest component is the answer. Reach for this when you're already using union-find elsewhere (e.g., connected components) or when you want to practice the pattern; the hash-set approach is simpler for this problem.",
+          "code": "class Solution:\n    def longestConsecutive(self, nums: list[int]) -> int:\n        if not nums:\n            return 0\n        \n        parent = {}  # parent[x] = parent of x\n        size = {}    # size[root] = size of component\n        \n        def find(x):\n            if parent[x] != x:\n                parent[x] = find(parent[x])  # path compression\n            return parent[x]\n        \n        def union(x, y):\n            root_x, root_y = find(x), find(y)\n            if root_x == root_y:\n                return\n            # union by size\n            if size[root_x] < size[root_y]:\n                root_x, root_y = root_y, root_x\n            parent[root_y] = root_x\n            size[root_x] += size[root_y]\n        \n        # initialize each number as its own component\n        for num in nums:\n            if num not in parent:\n                parent[num] = num\n                size[num] = 1\n        \n        # union consecutive numbers\n        for num in nums:\n            if num + 1 in parent:\n                union(num, num + 1)\n        \n        return max(size.values())",
+          "timeComplexity": "O(n α(n)) — α is inverse Ackermann, effectively O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given an unsorted array of integers nums, return the length of the longest consecutive elements sequence.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "sequence"
+    },
+    {
+      "id": "majority-element",
+      "title": "majority Element",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "counting",
+      "leetcodeSlug": "majority-element",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: If there is a majority elem, at some index it should break even https://gregable.com/2013/10/majority-vote-algorithm-find-majority.html",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: If there is a majority elem, at some index it should break even https://gregable.com/2013/10/majority-vote-algorithm-find-majority.html",
+          "code": "# Key Idea: If there is a majority elem, at some index it should break even\n# https://gregable.com/2013/10/majority-vote-algorithm-find-majority.html\nclass Solution:\n    def majorityElement(self, nums):\n        major, count = nums[0], 1\n        for i in range(1, len(nums)):\n            if count == 0:\n                count += 1\n                major = nums[i]\n            elif major == nums[i]:\n                count += 1\n            else:\n                count -= 1\n        return major\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an array nums of size n, return the majority element.",
+      "phaseId": 3
+    },
+    {
+      "id": "majority-element2-boyer-moore",
+      "title": "majority Element2 Boyer Moore",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "counting",
+      "leetcodeSlug": "majority-element2-boyer-moore",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: maintain two majority elements instead of one.",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: maintain two majority elements instead of one.",
+          "code": "# Key Idea: maintain two majority elements instead of one. \n\nclass Solution:\n    def majorityElement(self, nums: List[int]) -> List[int]:\n        maxElem1 = maxElem1Count = maxElem2 = maxElem2Count = 0\n        \n        for num in nums:\n            if maxElem1==num:\n                maxElem1Count += 1\n            elif maxElem2 == num:\n                maxElem2Count += 1\n            elif maxElem1Count==0:\n                maxElem1, maxElem1Count = num, 1\n            elif maxElem2Count==0:\n                maxElem2, maxElem2Count = num, 1\n            else:\n                maxElem1Count -= 1\n                maxElem2Count -= 1\n\n        return [num for num in (maxElem1, maxElem2)  if nums.count(num) > len(nums) // 3]",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "maximum-equal-frequency",
+      "title": "maximum Equal Frequency",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "basics",
+      "leetcodeSlug": "maximum-equal-frequency",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "from collections import defaultdict\nfrom typing import List\nclass Solution:\n    def maxEqualFreq(self, nums: List[int]) -> int:\n        numToCountMap = {}\n        countToNumsMap = defaultdict(set)\n        maxFreq = 1\n        for index, num in enumerate(nums):\n            if num in numToCountMap:\n                countToNumsMap[numToCountMap[num]].remove(num)\n                numToCountMap[num] += 1\n            else:\n                numToCountMap[num] = 1\n            countToNumsMap[numToCountMap[num]].add(num)\n\n            if len(countToNumsMap[numToCountMap[num]-1])==0:\n                del countToNumsMap[numToCountMap[num]-1]\n\n            if len(countToNumsMap)==2:\n                if 1 in countToNumsMap and len(countToNumsMap[1])==1:\n                    maxFreq = max(maxFreq, index+1)\n                else:\n                    keys = sorted(countToNumsMap.keys())\n                    if keys[1]-keys[0]==1 and len(countToNumsMap[keys[1]])==1:\n                        maxFreq = max(maxFreq, index + 1)\n            if len(countToNumsMap)==1:\n                if 1 in countToNumsMap or len(countToNumsMap[numToCountMap[num]])==1:\n                    maxFreq = max(maxFreq, index + 1)\n\n        return maxFreq\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an array nums of positive integers, return the longest possible length of an array prefix of nums, such that it is possible to remove exactly one element from this prefix so that every number that has appeared in it will have the same number of occurrences.",
+      "phaseId": 3
+    },
+    {
+      "id": "find-the-index-of-first-match",
+      "title": "find The Index Of First Match",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "rolling-hash",
+      "leetcodeSlug": "find-the-index-of-first-match",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "#update",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "#update",
+          "code": "\na = \"abcd\"\nb = \"cdababcd\"\n\n\n\ndef rabinKarp(haystack,needle):\n    n, m = len(haystack), len(needle)\n    hash_needle = 0\n    hash_haystack_i = 0\n    d, q = 26, 101\n    for i in range(m):\n        hash_needle = (d*hash_needle + ord(needle[i]))%q\n        hash_haystack_i = (d*hash_haystack_i + ord(haystack[i]))%q\n\n    powMod = pow(d,m)%q\n    \n    for i in range(0, n-m+1):\n        if hash_haystack_i==hash_needle:\n            if haystack[i:i+m]==needle:\n                return i\n        #update\n        if i+m<n:\n            hash_haystack_i = (d*hash_haystack_i -ord(haystack[i])*(powMod) +ord(haystack[i+m]))%q\n    return -1\n\n\nprint(rabinKarp(b,a))\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "k-divisible-elements-subarrays",
+      "title": "k Divisible Elements Subarrays",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "rolling-hash",
+      "leetcodeSlug": "k-divisible-elements-subarrays",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# check and step on entering             # book keep on leaving Rabin karp - Rolling Hash                     # there can be multiple arrays pointing to same hash, so need a hashmap of hashes, not a set",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# check and step on entering             # book keep on leaving Rabin karp - Rolling Hash                     # there can be multiple arrays pointing to same hash, so need a hashmap of hashes, not a set",
+          "code": "from typing import List\n\nclass Trie:\n    def __init__(self) -> None:\n        self.children = defaultdict(Trie)\n\n    def insertWithCount(self, nums):\n        node, count = self, 0\n        for num in nums:\n            if num not in node.children: count+=1\n            node = node.children[num]\n        return count\n\n\nclass Solution:\n    def countDistinct(self, nums: List[int], k: int, p: int) -> int:   \n        n, right, trie, distinctCount = len(nums), -1, Trie(), 0\n        for left in range(n):\n            # check and step on entering\n            while right+1<n and not(nums[right+1]%p==0 and k==0):\n                if nums[right+1]%p==0: \n                    k-=1\n                right += 1\n            distinctCount += trie.insertWithCount(nums[left:right+1])\n            # book keep on leaving\n            if nums[left]%p==0: \n                k+=1\n        return distinctCount\n    \n\n# Rabin karp - Rolling Hash\nclass Solution:\n    def countDistinct(self, nums: List[int], k: int, p: int) -> int:   \n        n, count, hashesMap = len(nums), 0, defaultdict(list)\n        for left in range(n):\n            hash, d, q = 0, 26, 1e9+7\n            right, numDivs = left-1, k\n            while right+1<n and not(nums[right+1]%p==0 and numDivs==0):\n                if nums[right+1]%p==0: \n                    numDivs -= 1\n                right += 1\n                hash = (hash*d + nums[right])%q\n                hashCollision = False\n                if hash in hashesMap:\n                    # there can be multiple arrays pointing to same hash, so need a hashmap of hashes, not a set\n                    for leftPrev, rightPrev in hashesMap[hash]:\n                        if nums[leftPrev:rightPrev+1]==nums[left:right+1]: \n                            hashCollision = True\n                            break\n                if not hashCollision: count += 1\n                hashesMap[hash].append((left, right))\n        return count\n                ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an integer array nums and two integers k and p, return the number of distinct subarrays, which have at most k elements that are divisible by p.",
+      "phaseId": 4
+    },
+    {
+      "id": "repeated-string-match",
+      "title": "repeated String Match",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "rolling-hash",
+      "leetcodeSlug": "repeated-string-match",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\ndef powModFunc(d,m,q):\n    if m==0:\n        return 1\n    if m&1:\n        return (powModFunc(d*d, m//2, q) * d)%q\n    else:\n        return (powModFunc(d*d, m//2, q))%q\n\n\ndef rabinKarp(haystack, needle):\n    n, m  = len(haystack), len(needle)\n    hash_haystack_i = 0\n    hash_needle = 0\n    d, q = 26, 101\n    powMod = powModFunc(d,m,q)\n\n    for i in range(m):\n        hash_haystack_i = (d*hash_haystack_i + ord(haystack[i]))%q\n        hash_needle = (d*hash_needle + ord(needle[i]))%q\n    \n\n    for i in range(0, n-m+1):\n        if hash_haystack_i==hash_needle:\n            if haystack[i:i+m]==needle:\n                return True\n        if i+m<n:\n            hash_haystack_i = (d*hash_haystack_i - ord(haystack[i])*powMod + ord(haystack[i+m]))%q\nimport math\n\ndef repeatedStringMatch(a, b):\n    lenA = len(a)\n    lenB = len(b)\n    minMult = math.ceil(lenB/lenA)\n    if rabinKarp(a*minMult, b):\n        return minMult\n    if rabinKarp(a*(minMult+1), b):\n        return minMult+1\n    return -1\n\na = \"abcd\"\nb = \"cdabcdab\"\nprint(repeatedStringMatch(a,b))",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given two strings a and b, return the minimum number of times you should repeat string a so that string b is a substring of it. If it is impossible for b​​​​​​ to be a substring of a after repeating it, return -1.",
+      "phaseId": 4
+    },
+    {
+      "id": "shortest-palindrome",
+      "title": "shortest Palindrome",
+      "difficulty": "Medium",
+      "patternId": "hashing",
+      "subcategory": "rolling-hash",
+      "leetcodeSlug": "shortest-palindrome",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\ns = \"aabaabcd\"\ndef shortestPalindrome(s):\n    rollingHashesSet = set()\n    rollingHash = 0\n    n = len(s)\n    d, q = 26, 101\n    for i in range(0, n):\n        rollingHash = (rollingHash*d+ord(s[i]))%q\n        rollingHashesSet.add(rollingHash)\n    print(rollingHashesSet)\n\n    powerModMap = [1 for _ in range(n)]\n    for i in range(1,n):\n        powerModMap[i] = (powerModMap[i-1]*d)%q\n    print(powerModMap)\n\n    reverseRollingHash = 0\n    maxLenPalindrome = 0\n    revString = s[::-1]\n    for i in range(n-1,-1,-1):\n        reverseRollingHash = (reverseRollingHash + powerModMap[n-1-i]*ord(revString[i]))%q\n        if reverseRollingHash in rollingHashesSet:\n            if s[:n-i]==revString[i:]:\n                maxLenPalindrome = max(maxLenPalindrome, n-i)\n    return (revString[:n-maxLenPalindrome]+s)\n    \nprint(shortestPalindrome(s))\n\ndef shortestPalindromeBest(s):\n    n = len(s)\n    d, q = 26, 101\n    powMod = 1\n    hashS = 0\n    hashReverseS = 0\n    reverseS = s[::-1]\n    maxIndex = 0\n    for i in range(n):\n        hashS = (d*hashS + ord(s[i]))%q\n        hashReverseS = (hashReverseS + ord(s[i])*powMod)%q\n        if hashS==hashReverseS:\n            if s[:i+1] == reverseS[n-i-1:]:\n                maxIndex = max(maxIndex, i)\n        powMod = (powMod*d)%q\n    return reverseS[:n-maxIndex-1]+s\nprint(shortestPalindromeBest(s))\n\n\n\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given a string s. You can convert s to a palindrome by adding characters in front of it.",
+      "phaseId": 4
+    }
+  ]
+}

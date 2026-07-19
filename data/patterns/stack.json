@@ -1,0 +1,581 @@
+{
+  "id": "stack",
+  "name": "Stack",
+  "phaseId": 2,
+  "order": 1,
+  "tagline": "LIFO — last in, first out. Great for matching and spans.",
+  "concept": "## The idea\n\nA **stack** is a last-in-first-out (LIFO) data structure. You already know the theory — `push` adds to the top, `pop` removes from the top — but the real power is recognizing **when** a stack is the right tool.\n\nStacks shine when you need to:\n\n1. **Match or validate nesting** — parentheses, tags, function calls. Each opening symbol waits for its closer, and closers must match in reverse order (LIFO).\n2. **Track pending work** — items on the stack represent unfinished business. When you encounter something that \"closes\" or \"resolves\" the top item, pop and process.\n3. **Find the next greater/smaller element or spans** — monotonic stacks let you answer \"what's the next bigger thing to my right?\" in one linear pass instead of nested loops.\n\nThe pattern: as you scan left-to-right, the stack remembers what's still \"open\" or \"unresolved.\" Each new element either closes/resolves something on top, or goes on the stack to be resolved later.\n\n## Python you'll pick up here\n\n- Python lists *are* stacks: `stack.append(x)` to push, `stack.pop()` to pop, `stack[-1]` to peek at the top\n- No separate stack class needed — `[]` is both list and stack\n- `enumerate(arr)` when you need `(index, value)` pairs\n- Using a stack to store tuples/pairs: `stack.append((value, min_so_far))`\n- Building result arrays in reverse or with placeholders when the stack gives you answers out of order",
+  "whenToUse": [
+    "You need to match/validate nested or paired structures (parentheses, tags, brackets)",
+    "You're tracking 'pending' or 'unresolved' items that close/resolve in reverse order",
+    "You want the next greater/smaller element, or spans where something is dominant",
+    "The problem mentions 'valid', 'balanced', 'most recent unmatched', or feels recursive but needs iteration"
+  ],
+  "problems": [
+    {
+      "id": "valid-parentheses",
+      "title": "Valid Parentheses",
+      "leetcodeSlug": "valid-parentheses",
+      "difficulty": "Easy",
+      "patternId": "stack",
+      "tags": [
+        "string",
+        "stack"
+      ],
+      "video": {
+        "title": "NeetCode — Valid Parentheses (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Valid+Parentheses",
+        "lang": "python"
+      },
+      "keyIdeas": "Push each opening bracket onto the stack. When you see a closing bracket, pop the stack and check it's the matching opener. If the stack is empty when you try to pop, or non-empty at the end, or a mismatch happens, it's invalid. This is the canonical stack problem — matching nested pairs in reverse order.",
+      "hints": [
+        "Every closing bracket must match the most recent unmatched opening bracket — that's exactly what a stack tracks.",
+        "Use a dictionary to map each closing bracket to its opener: `{')': '(', ']': '[', '}': '{'}`. When you see a closer, pop and compare.",
+        "Edge cases: trying to pop from an empty stack (return False immediately), or stack not empty at the end (unmatched openers)."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal",
+          "keyIdea": "Stack holds unmatched openers; each closer must match the top. One pass, O(n) time.",
+          "code": "class Solution:\n    def isValid(self, s: str) -> bool:\n        stack = []\n        closeToOpen = {')': '(', ']': '[', '}': '{'}\n        \n        for c in s:\n            if c in closeToOpen:  # it's a closing bracket\n                if not stack or stack[-1] != closeToOpen[c]:\n                    return False\n                stack.pop()\n            else:  # it's an opening bracket\n                stack.append(c)\n        \n        return not stack  # valid only if all openers were closed",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given a string s containing just the characters &#39;(&#39;, &#39;)&#39;, &#39;{&#39;, &#39;}&#39;, &#39;[&#39; and &#39;]&#39;, determine if the input string is valid.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "parentheses"
+    },
+    {
+      "id": "min-stack",
+      "title": "Min Stack",
+      "leetcodeSlug": "min-stack",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "tags": [
+        "stack",
+        "design"
+      ],
+      "video": {
+        "title": "NeetCode — Min Stack (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Min+Stack",
+        "lang": "python"
+      },
+      "keyIdeas": "A regular stack plus a parallel 'min stack' that tracks the minimum at each level. When you push, also push the new min (either the new value or the current min, whichever is smaller). When you pop, pop both stacks. `getMin()` just peeks the top of the min stack. All operations stay O(1).",
+      "hints": [
+        "You can't just store one global min — when you pop the min, you need to know what the min was *before* that element was pushed.",
+        "Keep a second stack that, at each level, stores the minimum value in the main stack up to that point.",
+        "When pushing val, push val onto the main stack, and push min(val, current_min) onto the min stack."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — two stacks",
+          "keyIdea": "Maintain a parallel min stack; each level remembers the min at that point in time.",
+          "code": "class MinStack:\n    def __init__(self):\n        self.stack = []\n        self.min_stack = []  # min_stack[i] = min of stack[0..i]\n\n    def push(self, val: int) -> None:\n        self.stack.append(val)\n        # new min is either val or the previous min, whichever is smaller\n        new_min = val if not self.min_stack else min(val, self.min_stack[-1])\n        self.min_stack.append(new_min)\n\n    def pop(self) -> None:\n        self.stack.pop()\n        self.min_stack.pop()\n\n    def top(self) -> int:\n        return self.stack[-1]\n\n    def getMin(self) -> int:\n        return self.min_stack[-1]",
+          "timeComplexity": "O(1) per operation",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "design"
+    },
+    {
+      "id": "evaluate-reverse-polish-notation",
+      "title": "Evaluate Reverse Polish Notation",
+      "leetcodeSlug": "evaluate-reverse-polish-notation",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "tags": [
+        "array",
+        "stack",
+        "math"
+      ],
+      "video": {
+        "title": "NeetCode — Evaluate Reverse Polish Notation (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Evaluate+Reverse+Polish+Notation",
+        "lang": "python"
+      },
+      "keyIdeas": "RPN (postfix notation) means operands come before the operator: `3 4 +` means `3 + 4`. Push numbers onto the stack; when you hit an operator, pop two operands, apply the op, push the result back. At the end, the stack has one element — the answer. The stack naturally handles nested operations because inner results get pushed back and become operands for outer ops.",
+      "hints": [
+        "RPN is designed for stack evaluation: numbers wait on the stack until their operator arrives.",
+        "When you see an operator, pop twice: the first pop is the right operand, the second is the left (order matters for - and /).",
+        "Python division: `int(a / b)` truncates toward zero, which matches LeetCode's expectation for negative results."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal",
+          "keyIdea": "Stack holds operands; each operator consumes two and pushes the result.",
+          "code": "class Solution:\n    def evalRPN(self, tokens: list[str]) -> int:\n        stack = []\n        ops = {'+', '-', '*', '/'}\n        \n        for t in tokens:\n            if t in ops:\n                b = stack.pop()  # right operand\n                a = stack.pop()  # left operand\n                if t == '+':\n                    stack.append(a + b)\n                elif t == '-':\n                    stack.append(a - b)\n                elif t == '*':\n                    stack.append(a * b)\n                else:  # '/'\n                    stack.append(int(a / b))  # truncate toward zero\n            else:\n                stack.append(int(t))\n        \n        return stack[0]",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "You are given an array of strings tokens that represents an arithmetic expression in a Reverse Polish Notation.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "expression-eval"
+    },
+    {
+      "id": "generate-parentheses",
+      "title": "Generate Parentheses",
+      "leetcodeSlug": "generate-parentheses",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "tags": [
+        "string",
+        "backtracking",
+        "stack"
+      ],
+      "video": {
+        "title": "NeetCode — Generate Parentheses (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Generate+Parentheses",
+        "lang": "python"
+      },
+      "keyIdeas": "This is backtracking, but it's in the stack chapter because the valid-generation rule mirrors stack logic: you can add `(` if `open < n`, and `)` if `close < open`. The second condition ensures you never close something that isn't open — exactly the stack invariant from Valid Parentheses. Build each combination recursively, tracking open and close counts.",
+      "hints": [
+        "Think recursively: at each step, you can add '(' or ')' — but only if it keeps the string valid so far.",
+        "You can add '(' as long as you haven't used all n of them. You can add ')' only if it wouldn't close more than you've opened.",
+        "Base case: when the string has length 2n, it's a complete valid combination — add it to the result."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — backtracking",
+          "keyIdea": "Recursively add '(' or ')' only when it maintains the stack-valid invariant: close < open.",
+          "code": "class Solution:\n    def generateParenthesis(self, n: int) -> list[str]:\n        res = []\n        \n        def backtrack(s, open_count, close_count):\n            if len(s) == 2 * n:  # complete combination\n                res.append(s)\n                return\n            \n            if open_count < n:  # can still add '('\n                backtrack(s + '(', open_count + 1, close_count)\n            if close_count < open_count:  # can add ')' without breaking validity\n                backtrack(s + ')', open_count, close_count + 1)\n        \n        backtrack('', 0, 0)\n        return res",
+          "timeComplexity": "O(4^n / sqrt(n)) — the nth Catalan number",
+          "spaceComplexity": "O(n) recursion depth"
+        },
+        {
+          "label": "Alternative — BFS",
+          "keyIdea": "Build strings level-by-level using a queue, maintaining (string, open_count, close_count) state. Reach for this when you want iterative construction or need to process generation in breadth-first order (e.g., to find all strings of a certain length first). Backtracking is more natural for this problem, but BFS avoids recursion stack overhead.",
+          "code": "class Solution:\n    def generateParenthesis(self, n: int) -> list[str]:\n        from collections import deque\n        res = []\n        queue = deque([('', 0, 0)])  # (current_string, open_count, close_count)\n        \n        while queue:\n            s, open_count, close_count = queue.popleft()\n            \n            if len(s) == 2 * n:  # complete valid combination\n                res.append(s)\n                continue\n            \n            if open_count < n:  # can add '('\n                queue.append((s + '(', open_count + 1, close_count))\n            if close_count < open_count:  # can add ')'\n                queue.append((s + ')', open_count, close_count + 1))\n        \n        return res",
+          "timeComplexity": "O(4^n / sqrt(n)) — the nth Catalan number",
+          "spaceComplexity": "O(4^n / sqrt(n)) for the queue"
+        }
+      ],
+      "description": "Given n pairs of parentheses, write a function to generate all combinations of well-formed parentheses.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "parentheses"
+    },
+    {
+      "id": "daily-temperatures",
+      "title": "Daily Temperatures",
+      "leetcodeSlug": "daily-temperatures",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "tags": [
+        "array",
+        "stack",
+        "monotonic-stack"
+      ],
+      "video": {
+        "title": "NeetCode — Daily Temperatures (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Daily+Temperatures",
+        "lang": "python"
+      },
+      "keyIdeas": "This introduces the **monotonic stack** — a stack that stays sorted. Here, store indices of days with descending temperatures. When you see a warmer day, it resolves all the waiting (cooler) days on the stack: pop each and record the distance. If it's not warmer, push the current index to wait for *its* warmer day. One pass, O(n), because each index is pushed and popped at most once.",
+      "hints": [
+        "Brute force: for each day, scan forward until you find a warmer day. That's O(n²).",
+        "A stack can remember 'unresolved' days (ones that haven't found their warmer day yet). What should you store: the temperature or the index?",
+        "Store indices. As you scan, if today's temp is warmer than the temp at stack[-1], pop that index, compute the wait (current index - popped index), and repeat until the stack top is >= today or empty."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "For each day, scan forward until a warmer day is found.",
+          "code": "class Solution:\n    def dailyTemperatures(self, temperatures: list[int]) -> list[int]:\n        n = len(temperatures)\n        res = [0] * n\n        for i in range(n):\n            for j in range(i + 1, n):\n                if temperatures[j] > temperatures[i]:\n                    res[i] = j - i\n                    break\n        return res",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(1) extra (excluding output)"
+        },
+        {
+          "label": "Optimal — monotonic stack",
+          "keyIdea": "Stack holds indices of unresolved (cooler) days in descending temp order. A warmer day resolves them all.",
+          "code": "class Solution:\n    def dailyTemperatures(self, temperatures: list[int]) -> list[int]:\n        n = len(temperatures)\n        res = [0] * n\n        stack = []  # stores indices\n        \n        for i in range(n):\n            # while current temp is warmer than the temp at stack top\n            while stack and temperatures[i] > temperatures[stack[-1]]:\n                prev_i = stack.pop()\n                res[prev_i] = i - prev_i\n            stack.append(i)\n        \n        return res",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given an array of integers temperatures represents the daily temperatures, return an array answer such that answer[i] is the number of days you have to wait after the ith day to get a warmer temperature. If there is no future day for which this is possible, keep answer[i] == 0 instead.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "next-greater"
+    },
+    {
+      "id": "car-fleet",
+      "title": "Car Fleet",
+      "leetcodeSlug": "car-fleet",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "tags": [
+        "array",
+        "stack",
+        "sorting"
+      ],
+      "video": {
+        "title": "NeetCode — Car Fleet (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Car+Fleet",
+        "lang": "python"
+      },
+      "keyIdeas": "A fleet forms when a faster car catches a slower one and must slow down. Sort cars by starting position (rightmost first), compute time to target for each. Scan from right to left: if a car's time <= the previous car's time (the stack top), it catches up and joins that fleet (don't push). Otherwise it's a new fleet (push). The stack size at the end is the number of fleets. The stack is effectively tracking 'lead cars' of fleets.",
+      "hints": [
+        "Cars that start ahead can never be caught by cars behind if they're going the same speed or faster, but a car behind can catch up if it's faster.",
+        "Compute time-to-target for each car: (target - position) / speed. Sort by position descending (closest to target first).",
+        "Scan sorted cars: if current car's time is <= top of stack (the fleet ahead), it joins that fleet (don't push). Otherwise, it's a new fleet (push). Count the stacks at the end."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — sort + monotonic stack",
+          "keyIdea": "Sort by position; stack tracks fleet lead times. A car joins the fleet ahead if its time <= lead's time.",
+          "code": "class Solution:\n    def carFleet(self, target: int, position: list[int], speed: list[int]) -> int:\n        # pair each car's (position, time_to_target), sort by position descending\n        pairs = [(p, (target - p) / s) for p, s in zip(position, speed)]\n        pairs.sort(reverse=True)  # start from the car closest to target\n        \n        stack = []  # stores times-to-target of fleet leaders\n        for pos, time in pairs:\n            # if this car's time > top of stack, it's a new fleet (can't catch the one ahead)\n            if not stack or time > stack[-1]:\n                stack.append(time)\n            # else: time <= stack[-1] means it catches the fleet ahead; no new fleet\n        \n        return len(stack)",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "There are n cars at given miles away from the starting mile 0, traveling to reach the mile target.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "simulation"
+    },
+    {
+      "id": "132-pattern",
+      "title": "132 Pattern",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "pattern-matching",
+      "leetcodeSlug": "132-pattern",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "from sortedcontainers import SortedList\nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        sortedList, minima = SortedList(nums), nums[0]\n        for mid in nums:\n            sortedList.remove(mid)\n            minima = min(minima, mid)\n            if mid!=minima:\n                index = bisect_left(sortedList, minima+1)\n                if index!=len(sortedList) and sortedList[index]<mid: return True\n        return False\n\n    \nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        stack, secondLargest = [], -1e9\n        for num in nums[::-1]:\n            if stack and secondLargest>num: return True\n            while stack and stack[-1]<num: secondLargest = stack.pop()\n            stack.append(num)\n        return False\n\nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        n = len(nums)\n        \n        minFromLeft = [nums[0]]\n        for i in range(1, n):\n            minFromLeft.append(min(minFromLeft[i-1], nums[i]))\n        \n        stack = [] \n        \n        for j in range(n-1, -1, -1):\n            if nums[j] > minFromLeft[j]:\n                while stack and stack[-1] <= minFromLeft[j]:\n                    stack.pop()\n                if stack and stack[-1] < nums[j]:\n                    return True\n                stack.append(nums[j])\n        \n        return False\n\n\nclass BIT:\n    def __init__(self, n):\n        self.bitSize = n+1\n        self.bit = defaultdict(int)\n\n    def insert(self, index, val):\n        index += 1\n        while index<self.bitSize:\n            self.bit[index] += val\n            index += (index & -index)\n    \n    def getCountTill(self, index):\n        total = 0\n        index += 1\n        while index>0:\n            total += self.bit[index]\n            index -= (index & -index)\n        return total\n\n    def rangeSum(self, left, right):\n        return self.getCountTill(right)-self.getCountTill(left-1)\n\n\nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        minNum, maxNum = min(nums), max(nums)\n        bit = BIT(maxNum-minNum+1)\n        for num in nums:\n            bit.insert(num-minNum, 1)\n\n        minToLeft = nums[0]-minNum\n        for num in nums:\n            bit.insert(num-minNum, -1)\n            minToLeft = min(minToLeft, num-minNum)\n            if minToLeft<num-minNum and bit.rangeSum(minToLeft+1, num-minNum-1)>0: return True\n        return False\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an array of n integers nums, a 132 pattern is a subsequence of three integers nums[i], nums[j] and nums[k] such that i < j < k and nums[i] < nums[k] < nums[j].",
+      "phaseId": 2
+    },
+    {
+      "id": "trap-rain-water",
+      "title": "Trap Rain Water",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "monotonic",
+      "leetcodeSlug": "trap-rain-water",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Doesnt work properly in case of duplicate heights as heapsort is not stable O(nlogn) since heap pop takes logn n             #iterate left                 #iterate only is the buildings are smaller than the current tall building             #iterate right",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Doesnt work properly in case of duplicate heights as heapsort is not stable O(nlogn) since heap pop takes logn n             #iterate left                 #iterate only is the buildings are smaller than the current tall building             #iterate right",
+          "code": "import copy\nimport heapq\nimport numpy as np\n\nclass TrappingWaterProblemSolver():\n    def __init__(self, buildingHeights):\n        self.buildingHeights = buildingHeights\n        self.waterLevelsArr = [None for x in self.buildingHeights]\n\n    def printWaterLevelsSum(self):\n        sumOfWaterLevels = sum(filter(None,self.waterLevelsArr))\n        print(sumOfWaterLevels)\n        \n    def printWaterLevelsArr(self):\n        print(self.waterLevelsArr)\n\n    def printBuildings(self):\n        maxHeight = max(self.buildingHeights)\n        for level in range(maxHeight+1, 0, -1):\n            for arrElem in self.buildingHeights:\n                if(arrElem>=level):\n                    print(\"||\", end=\"\")\n                elif(arrElem+1 == level):\n                    print(\"__\", end=\"\")\n                else:\n                    print(\"  \",end=\"\")\n            print(\"\")\n    \n    \n    def printBuildingsAndWater(self):\n        waterLevelsArrCopy = copy.deepcopy(self.waterLevelsArr)\n        maxHeight = max(self.buildingHeights)\n        for level in range(maxHeight+1, 0, -1):\n            for i in range(0,len(self.buildingHeights)):\n                arrElem = self.buildingHeights[i]\n                if(arrElem>=level):\n                    print(\"||\", end=\"\")\n                elif(waterLevelsArrCopy[i] and waterLevelsArrCopy[i]>0 and level==waterLevelsArrCopy[i]+arrElem):\n                    print(\"--\", end=\"\")\n                    waterLevelsArrCopy[i] = waterLevelsArrCopy[i] - 1\n                elif(arrElem+1 == level):\n                    print(\"__\", end=\"\")\n                else:\n                    print(\"  \",end=\"\")\n            print(\"\")\n        if(sum(filter(None,waterLevelsArrCopy))!=0):\n           print(\"something is wrong\")\n\n\n#Doesnt work properly in case of duplicate heights as heapsort is not stable\n# O(nlogn) since heap pop takes logn n\nclass TrappingWaterProblemSolverWithHeap(TrappingWaterProblemSolver):\n    \n    def __init__(self, buildingHeights):\n        super().__init__(buildingHeights)\n        \n    \n    def assignWaterLevels(self, currentTallBuildingHeight, indexOfCurrentTallBuilding, indexOfPreviousTallBuilding):\n        if(indexOfCurrentTallBuilding>indexOfPreviousTallBuilding):\n            #iterate left\n            for buildingIndex in range(indexOfCurrentTallBuilding-1,indexOfPreviousTallBuilding,-1):\n                #iterate only is the buildings are smaller than the current tall building\n                if(self.buildingHeights[buildingIndex]<self.buildingHeights[indexOfCurrentTallBuilding]):\n                    self.waterLevelsArr[buildingIndex] = currentTallBuildingHeight - self.buildingHeights[buildingIndex]\n                else:\n                    return\n        else:\n            #iterate right\n            for buildingIndex in range(indexOfCurrentTallBuilding+1,indexOfPreviousTallBuilding,1):\n                #iterate only is the buildings are smaller than the current tall building\n                if(self.buildingHeights[buildingIndex]<self.buildingHeights[indexOfCurrentTallBuilding]):\n                    self.waterLevelsArr[buildingIndex] = currentTallBuildingHeight - self.buildingHeights[buildingIndex]\n                else:\n                    return\n    \n    def solve(self):\n        \n        arrOfBuildingHeightsAndTheirIndexTuple = list(enumerate(self.buildingHeights))\n        #negative height as heapq only implements min heap\n        arrOfBuildingHeightsAndTheirIndexTuple = [((-tup[1],tup[0])) for tup in arrOfBuildingHeightsAndTheirIndexTuple]\n        heapq.heapify(arrOfBuildingHeightsAndTheirIndexTuple)\n        \n        #print(arrOfBuildingHeightsAndTheirIndexTuple)\n        prevTallBuildingIndex = arrOfBuildingHeightsAndTheirIndexTuple[0][1]\n        if(arrOfBuildingHeightsAndTheirIndexTuple[0][0]!=arrOfBuildingHeightsAndTheirIndexTuple[1][0]):\n            prevTallBuildingTuple = heapq.heappop(arrOfBuildingHeightsAndTheirIndexTuple)\n            prevTallBuildingIndex = prevTallBuildingTuple[1]\n        while(len(arrOfBuildingHeightsAndTheirIndexTuple)>0):\n            stackOfSameHeightBuildings = []\n            \n            currentTallBuildingTuple = heapq.heappop(arrOfBuildingHeightsAndTheirIndexTuple)\n            stackOfSameHeightBuildings.append(currentTallBuildingTuple)\n            \n            minIndexOfCurrentHeightBuildings = 10000000\n            while(len(arrOfBuildingHeightsAndTheirIndexTuple)>0 and arrOfBuildingHeightsAndTheirIndexTuple[0][0]==currentTallBuildingTuple[0]):\n                currentTallBuildingTuple = heapq.heappop(arrOfBuildingHeightsAndTheirIndexTuple)\n                stackOfSameHeightBuildings.append(currentTallBuildingTuple)\n                minIndexOfCurrentHeightBuildings = min(minIndexOfCurrentHeightBuildings,currentTallBuildingTuple[0])\n            \n            if(prevTallBuildingIndex<minIndexOfCurrentHeightBuildings):\n                stackOfSameHeightBuildings.reverse()\n            \n            while(len(stackOfSameHeightBuildings)>0):\n                currentTallBuildingTuple = stackOfSameHeightBuildings.pop()\n                currentTallBuildingIndex = currentTallBuildingTuple[1]\n                currentTallBuildingHeight = -currentTallBuildingTuple[0]\n                \n                '''\n                print(\"------------------\")\n                print(waterLevelsArr)\n                print(buildingHeights)\n                print(currentTallBuildingHeight)\n                print(currentTallBuildingIndex)\n                print(prevTallBuildingIndex)\n                print(\"------------------\")\n                '''\n                \n                if(self.waterLevelsArr[currentTallBuildingIndex]==None):\n                    self.assignWaterLevels(currentTallBuildingHeight, currentTallBuildingIndex, prevTallBuildingIndex)\n                    if(prevTallBuildingIndex-currentTallBuildingIndex):\n                        prevTallBuildingIndex = currentTallBuildingIndex\n    \n   \n\n\nclass TrappingWaterProblemSolverWithLeftMaxRightMaxTechnique(TrappingWaterProblemSolver):\n    \n    def __init__(self, buildingHeights):\n        super().__init__(buildingHeights)\n        self.indexOfMaxHeightBuildingOnLeft = [None] * len(buildingHeights)\n        self.indexOfMaxHeightBuildingOnRight = [None] * len(buildingHeights)\n\n\n        \n    def fillIndexOfMaxHeightBuildingOnLeft(self):\n        maxHeight = -1\n        for i in range(0,len(self.buildingHeights)):\n            if(self.buildingHeights[i]>=maxHeight):\n                self.indexOfMaxHeightBuildingOnLeft[i] = i\n                maxHeight = self.buildingHeights[i]\n            else:\n                self.indexOfMaxHeightBuildingOnLeft[i] = self.indexOfMaxHeightBuildingOnLeft[i-1]\n    \n    def fillIndexOfMaxHeightBuildingOnRight(self):\n        maxHeight = -1\n        for i in range(len(self.buildingHeights)-1, -1, -1):\n            if(self.buildingHeights[i]>=maxHeight):\n                self.indexOfMaxHeightBuildingOnRight[i] = i\n                maxHeight = self.buildingHeights[i]\n            else:\n                self.indexOfMaxHeightBuildingOnRight[i] = self.indexOfMaxHeightBuildingOnRight[i+1]\n  \n    def solve(self):\n        \n        self.fillIndexOfMaxHeightBuildingOnLeft()\n        self.fillIndexOfMaxHeightBuildingOnRight()\n        \n        for buildingIndex in range(0,len(self.buildingHeights)):\n            if(self.indexOfMaxHeightBuildingOnRight[buildingIndex]!=buildingIndex and self.indexOfMaxHeightBuildingOnLeft[buildingIndex]!=buildingIndex):\n                self.waterLevelsArr[buildingIndex] = min(self.buildingHeights[self.indexOfMaxHeightBuildingOnLeft[buildingIndex]],self.buildingHeights[self.indexOfMaxHeightBuildingOnRight[buildingIndex]]) - self.buildingHeights[buildingIndex]\n   \n    \n# Verfied on LeetCode\n\nclass TrappingWaterProblemSolverWithTwoPointerFromLeftAndRightTechnique(TrappingWaterProblemSolver):\n    \n    def __init__(self, buildingHeights):\n        super().__init__(buildingHeights)\n        \n    def solve(self):\n        leftPointerIndex = 0\n        rightPointerIndex = len(self.buildingHeights)-1\n        \n        rightMax = -1\n        leftMax = -1\n        \n        \n        while(leftPointerIndex<rightPointerIndex):\n            if(self.buildingHeights[leftPointerIndex] > self.buildingHeights[rightPointerIndex]):\n                #move right pointer\n                rightMax = max(rightMax, self.buildingHeights[rightPointerIndex])\n                self.waterLevelsArr[rightPointerIndex] = rightMax - self.buildingHeights[rightPointerIndex]\n                rightPointerIndex = rightPointerIndex - 1\n                \n            else:\n                #move left pointer\n                leftMax = max(leftMax, self.buildingHeights[leftPointerIndex])\n                self.waterLevelsArr[leftPointerIndex] = leftMax - self.buildingHeights[leftPointerIndex]\n                leftPointerIndex = leftPointerIndex + 1\n    \n    \n        \ndef trapRainWaterProblem():\n    buildingHeights = np.random.randint(0,15,20)\n    \n    heapSolver = TrappingWaterProblemSolverWithHeap(buildingHeights)\n    heapSolver.solve()\n    heapSolver.printBuildings()\n    heapSolver.printWaterLevelsArr()\n    heapSolver.printWaterLevelsSum()\n    heapSolver.printBuildingsAndWater()\n    \n        \n    leftMaxRightMaxSolver = TrappingWaterProblemSolverWithLeftMaxRightMaxTechnique(buildingHeights)\n    leftMaxRightMaxSolver.solve()\n    leftMaxRightMaxSolver.printWaterLevelsArr()\n    leftMaxRightMaxSolver.printWaterLevelsSum()\n    leftMaxRightMaxSolver.printBuildingsAndWater()\n    \n    \n    twoPointerSolver = TrappingWaterProblemSolverWithTwoPointerFromLeftAndRightTechnique(buildingHeights)\n    twoPointerSolver.solve()\n    twoPointerSolver.printWaterLevelsArr()\n    twoPointerSolver.printWaterLevelsSum()\n    #twoPointerSolver.printBuildingsAndWater()\n    \n    \n    \ntrapRainWaterProblem() ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "daily-temperatures-o-r-next-higher-temperature",
+      "title": "daily Temperatures O R Next Higher Temperature",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "monotonic",
+      "leetcodeSlug": "daily-temperatures-o-r-next-higher-temperature",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def dailyTemperatures(temperature):\n        \n    stack = [(0,0)]\n    n = len(temperatures)\n    nextHigherTempArr = [0 for _ in range(n)]\n\n    for i in range(n-1, -1, -1):\n        \n        while len(stack)>1 and temperatures[i] >= stack[len(stack)-1][0]:\n            stack.pop()\n        \n        nextHigherTempArr[i] = max(0, stack[len(stack)-1][1] - i)\n        \n        stack.append((temperatures[i], i))\n        \n    return nextHigherTempArr\n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \ntemperatures = [230,160,90]\nprint(dailyTemperatures(temperatures))",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "maximal-rectangle",
+      "title": "maximal Rectangle",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "histogram",
+      "leetcodeSlug": "maximal-rectangle",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Use Largest Rectangle in Histogram Idea Key Idea 2: Use prefixSum approach to compute all histogram arrays",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Use Largest Rectangle in Histogram Idea Key Idea 2: Use prefixSum approach to compute all histogram arrays",
+          "code": "# Key Idea 1: Use Largest Rectangle in Histogram Idea\n# Key Idea 2: Use prefixSum approach to compute all histogram arrays\n\nclass Solution:\n    def maximalRectangle(self, matrix: List[List[str]]) -> int:\n        \n        def solveHistogram(arr):\n            arr = [0] + arr + [0]\n            stack, maxArea = [], 0\n            for index, height in enumerate(arr):\n                while stack and stack[-1][1]>height:\n                    _, midHeight = stack.pop()\n                    maxArea = max(maxArea, (index - stack[-1][0] - 1)*(midHeight))\n                stack.append((index, height))\n            return maxArea\n\n        m, n = len(matrix), len(matrix[0])\n        histMat = [[int(matrix[i][j]) for j in range(n)] for i in range(m)]\n        for j in range(n):\n            for i in range(1, m):\n                if histMat[i][j]: \n                    histMat[i][j] += histMat[i-1][j]\n        return max(map(solveHistogram, histMat))",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given a rows x cols binary matrix filled with 0&#39;s and 1&#39;s, find the largest rectangle containing only 1&#39;s and return its area.",
+      "phaseId": 3
+    },
+    {
+      "id": "minimum-number-of-incrementson-subarraysto-form-a-target-array",
+      "title": "minimum Number Of Incrementson Subarraysto Form A Target Array",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "advanced",
+      "leetcodeSlug": "minimum-number-of-incrementson-subarraysto-form-a-target-array",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def minNumberOperations(self, target):\n        stack, numOperations = [0], 0\n        for num in target:\n            if num>stack[-1]:\n                numOperations += (num-stack[-1])\n            while num<stack[-1]:\n                stack.pop()\n            stack.append(num)\n\n        return numOperations\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "next-greater-element",
+      "title": "next Greater Element",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "next-greater",
+      "leetcodeSlug": "next-greater-element",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "nums = [1,2,3,4,3]\n\n\ndef nextGreaterElement(nums):\n    stack = [-1]\n    for i in range(len(nums)-1,-1,-1):\n        while len(stack)>1 and stack[-1]<=nums[i]:\n            stack.pop()\n        stack.append(nums[i])\n    output = [0 for i in range(len(nums))]\n    for i in range(len(nums)-1,-1,-1):\n        while len(stack)>1 and stack[-1]<=nums[i]:\n            stack.pop()\n        output[i] = stack[-1]\n        stack.append(nums[i])\n    return output\nprint(nextGreaterElement(nums))",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "remove-duplicate-letters",
+      "title": "remove Duplicate Letters",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "greedy-stack",
+      "leetcodeSlug": "remove-duplicate-letters",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def removeDuplicateLetters(self, s: str) -> str:\n        charToIndicesMap = defaultdict(list)\n        for index, char in enumerate(s):\n            charToIndicesMap[char].append(index)\n        \n        output, searchStartIndex, sortedChars = [], 0, sorted(charToIndicesMap.keys())\n        for outputIndex in range(len(charToIndicesMap)):\n            for char in sortedChars:\n                possibleStartIndex = bisect.bisect_left(charToIndicesMap[char], searchStartIndex)\n                if possibleStartIndex!=len(charToIndicesMap[char]) \\\n                    and (all(char==otherChar or (bisect.bisect_left(charToIndicesMap[otherChar], charToIndicesMap[char][possibleStartIndex])!=len(charToIndicesMap[otherChar])) for otherChar in sortedChars)):\n                        output.append(char)\n                        sortedChars.remove(char)\n                        searchStartIndex = charToIndicesMap[char][possibleStartIndex]+1\n                        break\n        return ''.join(output)\n\nfrom sortedcontainers import SortedSet\nclass Solution:\n    def removeDuplicateLetters(self, s: str) -> str:\n        charToIndicesMap = defaultdict(list)\n        for index, char in enumerate(s):\n            charToIndicesMap[char].append(index)\n        \n        output, searchStartIndex, sortedChars = [], 0, SortedSet(charToIndicesMap.keys())\n        for outputIndex in range(len(charToIndicesMap)):\n            for char in sortedChars:\n                possibleStartIndex = bisect.bisect_left(charToIndicesMap[char], searchStartIndex)\n                if possibleStartIndex!=len(charToIndicesMap[char]) \\\n                    and (all(charToIndicesMap[otherChar][-1]>=charToIndicesMap[char][possibleStartIndex] for otherChar in sortedChars)):\n                        output.append(char)\n                        sortedChars.remove(char)\n                        searchStartIndex = charToIndicesMap[char][possibleStartIndex]+1\n                        break\n        return ''.join(output)\n\n\nclass Solution:\n    def removeDuplicateLetters(self, s: str) -> str:\n        charToLastIndexMap = defaultdict(int)\n        for index, char in enumerate(s):\n            charToLastIndexMap[char] = index\n\n        stack, visited = [], set()\n        for index, char in enumerate(s):\n            if char not in visited:\n                while stack and stack[-1]>char and charToLastIndexMap[stack[-1]]>index: # if it can be added later, add later\n                    visited.remove(stack.pop())\n                stack.append(char)\n                visited.add(char)\n        return ''.join(stack)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given a string s, remove duplicate letters so that every letter appears once and only once. You must make sure your result is the smallest in lexicographical order among all possible results.",
+      "phaseId": 4
+    },
+    {
+      "id": "sliding-window-maximum",
+      "title": "sliding Window Maximum",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "deque",
+      "leetcodeSlug": "sliding-window-maximum",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "nums = [1,3,-1,-3,5,3,6,7]\nk = 3\n\n\ndef slidingWindowMaximum(nums, k):\n    leftMaxArray = []\n    leftMax = -10e10\n    n = len(nums)\n    for i in range(0, n):\n        if i%k==0:\n            leftMax = -10e10\n        leftMax = max(leftMax, nums[i])\n        leftMaxArray.append(leftMax)\n\n    rightMaxArray = []\n    rightMax = -10e10\n    for i in range(n-1, -1, -1):\n        rightMax = max(rightMax, nums[i])\n        rightMaxArray.append(rightMax)\n        if i%k==0:\n            rightMax = -10e10\n    return [max(rightMaxArray[i],leftMaxArray[i+k-1]) for i in range(n-k+1)]\n\nprint(slidingWindowMaximum(nums, k))\n    ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given an array of integers nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position.",
+      "phaseId": 4
+    },
+    {
+      "id": "stock-spanner",
+      "title": "stock Spanner",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "next-greater",
+      "leetcodeSlug": "stock-spanner",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class StockSpanner:\n\n    def __init__(self):\n        self.stack = [(0,-1)]\n        self.nextIndex = 0\n\n    def next(self, price: int) -> int:\n        \n        while len(self.stack)>1 and price>=self.stack[len(self.stack)-1][0]:\n            self.stack.pop()\n        \n        span = self.nextIndex - self.stack[len(self.stack)-1][1]\n        self.stack.append((price,self.nextIndex))\n        self.nextIndex += 1\n        return span\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "longest-valid-parantheses",
+      "title": "longest Valid Parantheses",
+      "difficulty": "Medium",
+      "patternId": "stack",
+      "subcategory": "parentheses",
+      "leetcodeSlug": "longest-valid-parantheses",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Max Length ending at index will depend on max length ending before the current match (())() => dp[5] depends on dp[3] Key Idea 2: Use stacks to keep track of unused '(' to match with ')' [in our example index 4] Key Idea 3: Stack top's index will be just right of prev ')' [in our example index 3]",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: Max Length ending at index will depend on max length ending before the current match (())() => dp[5] depends on dp[3] Key Idea 2: Use stacks to keep track of unused '(' to match with ')' [in our example index 4] Key Idea 3: Stack top's index will be just right of prev ')' [in our example index 3]",
+          "code": "# Key Idea 1: Max Length ending at index will depend on max length ending before the current match\n#            (())() => dp[5] depends on dp[3]\n# Key Idea 2: Use stacks to keep track of unused '(' to match with ')' [in our example index 4]\n# Key Idea 3: Stack top's index will be just right of prev ')' [in our example index 3]\n\nclass Solution:\n    def longestValidParentheses(self, s: str) -> int:\n        dp, stack = [0] * (len(s)+1), []\n        for index, char in enumerate(s):\n            if char=='(':\n                stack.append(index)\n            else:\n                if stack:\n                    prevIndex = stack.pop()\n                    dp[index+1] = dp[prevIndex] + (index - prevIndex + 1)\n        return max(dp)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "largest-rectangle-in-histogram",
+      "title": "Largest Rectangle in Histogram",
+      "leetcodeSlug": "largest-rectangle-in-histogram",
+      "difficulty": "Hard",
+      "patternId": "stack",
+      "tags": [
+        "array",
+        "stack",
+        "monotonic-stack"
+      ],
+      "video": {
+        "title": "NeetCode — Largest Rectangle in Histogram (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Largest+Rectangle+in+Histogram",
+        "lang": "python"
+      },
+      "keyIdeas": "Use a monotonic increasing stack (stores indices of bars in increasing height order). When you hit a shorter bar, it closes all taller bars on the stack — for each popped bar, the width of its rectangle extends from the new stack top (exclusive) to the current index (exclusive), and height is the popped bar's height. This efficiently finds the largest rectangle each bar can be part of in one pass. The stack allows you to know the 'boundaries' (left and right limits) for each bar's rectangle without nested loops.",
+      "hints": [
+        "Brute force: for each bar, expand left and right as far as the height allows, compute area. That's O(n²).",
+        "A bar's max rectangle is limited by the first shorter bar on each side. A stack can track bars in increasing height order.",
+        "Store (index, height) pairs. When current height < stack top, pop and compute area: height = popped bar's height, width = current index - (new stack top index) - 1. Keep popping until the stack is increasing again, then push current bar."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "For each bar, expand outward while height permits, compute that rectangle's area.",
+          "code": "class Solution:\n    def largestRectangleArea(self, heights: list[int]) -> int:\n        max_area = 0\n        n = len(heights)\n        for i in range(n):\n            min_h = heights[i]\n            for j in range(i, n):\n                min_h = min(min_h, heights[j])\n                max_area = max(max_area, min_h * (j - i + 1))\n        return max_area",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — monotonic increasing stack",
+          "keyIdea": "Stack holds bars in increasing height order. A shorter bar closes all taller bars, computing their max rectangles.",
+          "code": "class Solution:\n    def largestRectangleArea(self, heights: list[int]) -> int:\n        stack = []  # stores (index, height) pairs\n        max_area = 0\n        \n        for i, h in enumerate(heights):\n            start = i\n            # pop all bars taller than current (they're closed by this shorter bar)\n            while stack and stack[-1][1] > h:\n                idx, height = stack.pop()\n                max_area = max(max_area, height * (i - idx))\n                start = idx  # current bar can extend back to this popped bar's start\n            stack.append((start, h))\n        \n        # process remaining bars in stack (they extend to the end)\n        for idx, height in stack:\n            max_area = max(max_area, height * (len(heights) - idx))\n        \n        return max_area",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given an array of integers heights representing the histogram&#39;s bar height where the width of each bar is 1, return the area of the largest rectangle in the histogram.",
+      "phaseId": 4,
+      "important": true,
+      "subcategory": "histogram"
+    }
+  ]
+}

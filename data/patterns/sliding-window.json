@@ -1,0 +1,506 @@
+{
+  "id": "sliding-window",
+  "name": "Sliding Window",
+  "phaseId": 1,
+  "order": 3,
+  "concept": "## The idea\n\nA **sliding window** is two pointers (`left`, `right`) that bound a *contiguous* range. You **grow** the window by moving `right`, and when some condition is violated, you **shrink** it by moving `left`. Each element enters once and leaves once → **O(n)**.\n\nIt replaces the brute-force 'check every subarray/substring' (O(n²) or worse) whenever the thing you're tracking can be updated incrementally as the window moves.\n\nTwo flavors:\n- **Variable-size window** — grow/shrink to maintain a constraint (e.g. 'no repeated characters', 'sum ≥ target'). This is the common interview flavor.\n- **Fixed-size window** — window of exactly `k`; slide it one step at a time.\n\n## Python you'll pick up here\n\n- `set` / `dict` to track window contents (ties directly into Hashing)\n- `while` loop to shrink: `while <window invalid>: ... left += 1`\n- `float('inf')` as a starting 'infinitely large' answer for minimization\n\nSliding window = Two Pointers + Hashing combined, so you've already built the pieces.",
+  "whenToUse": [
+    "The problem asks about a contiguous subarray or substring",
+    "You want the longest/shortest/〈best〉 window satisfying some property",
+    "A brute force would re-examine overlapping ranges repeatedly",
+    "You can update the answer incrementally as elements enter/leave the window"
+  ],
+  "problems": [
+    {
+      "id": "longest-substring-without-repeating",
+      "title": "Longest Substring Without Repeating Characters",
+      "leetcodeSlug": "longest-substring-without-repeating-characters",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "tags": [
+        "string",
+        "sliding-window",
+        "hash-set"
+      ],
+      "video": {
+        "title": "NeetCode — Longest Substring Without Repeating (Python)",
+        "url": "https://www.youtube.com/watch?v=wiGpQwVHdE0",
+        "lang": "python"
+      },
+      "keyIdeas": "Grow the window by moving `right`. Keep a `set` of characters currently inside. When you hit a character already in the window, **shrink from the left** until the duplicate is gone. Track the largest window size seen. Every character is added and removed at most once → O(n).",
+      "hints": [
+        "Think of the answer as a window with no repeats. What do you do when adding a character would create a repeat?",
+        "Keep a set of characters in the current window. If the new character is already there, remove from the left until it's not.",
+        "After each step, update your best length with (right - left + 1)."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Check every possible substring to see if it has all unique characters. For each starting position i, expand to j and track the longest valid substring. Motivates why we need a window approach.",
+          "code": "class Solution:\n    def lengthOfLongestSubstring(self, s: str) -> int:\n        n = len(s)\n        max_len = 0\n        # Try every starting position\n        for i in range(n):\n            # Try every ending position from i\n            for j in range(i, n):\n                # Check if substring s[i:j+1] has all unique chars\n                substring = s[i:j+1]\n                if len(substring) == len(set(substring)):\n                    max_len = max(max_len, j - i + 1)\n                else:\n                    # Found a duplicate, no point extending further\n                    break\n        return max_len",
+          "timeComplexity": "O(n²)",
+          "spaceComplexity": "O(min(n, alphabet))"
+        },
+        {
+          "label": "Sliding window with a set (Sumanth's solution)",
+          "keyIdea": "When the new char is a repeat, advance left past the earlier occurrence before adding it.",
+          "code": "def lengthOfLongestSubstring(s: str) -> int:\n    charSet = set()\n    i,j  = 0,0\n    n = len(s)\n    if n==0: return 0\n    maxLen = 1\n    while(j<n):\n        if s[j] in charSet:\n            while s[i]!=s[j]:\n                charSet.remove(s[i])\n                i += 1\n            i+= 1\n        charSet.add(s[j])\n        maxLen = max(maxLen,j-i+1)\n        j += 1\n    return maxLen",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(min(n, alphabet))"
+        },
+        {
+          "label": "Optimal — window with last-seen index map",
+          "keyIdea": "Remember each character's last index; on a repeat, jump `left` directly past it instead of shrinking one step at a time. Slightly faster constant factor than the set approach, but same O(n). Use when you want to avoid the inner while loop.",
+          "code": "class Solution:\n    def lengthOfLongestSubstring(self, s: str) -> int:\n        last = {}          # char -> last index seen\n        left = 0\n        best = 0\n        for right, c in enumerate(s):\n            if c in last and last[c] >= left:\n                left = last[c] + 1\n            last[c] = right\n            best = max(best, right - left + 1)\n        return best",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(min(n, alphabet))"
+        }
+      ],
+      "description": "Given a string s, find the length of the longest substring without duplicate characters.",
+      "phaseId": 1,
+      "subcategory": "variable-size"
+    },
+    {
+      "id": "minimum-size-subarray-sum",
+      "title": "Minimum Size Subarray Sum",
+      "leetcodeSlug": "minimum-size-subarray-sum",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "tags": [
+        "array",
+        "sliding-window",
+        "prefix-sum"
+      ],
+      "video": {
+        "title": "NeetCode — Minimum Size Subarray Sum (Python)",
+        "url": "https://www.youtube.com/watch?v=aYqYMIqZx5s",
+        "lang": "python"
+      },
+      "keyIdeas": "Grow the window (add `nums[right]` to a running sum). **Whenever the sum is ≥ target, try to shrink** from the left to find the smallest valid window, updating the best length. Works because all numbers are positive, so shrinking only ever decreases the sum. O(n).",
+      "hints": [
+        "Keep a running sum of the current window instead of recomputing it.",
+        "Once the running sum reaches target, the window is valid — but maybe too big. Can you shrink from the left while it stays valid?",
+        "Track the minimum window length over all valid windows; return 0 if you never reach target."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Check every subarray by computing its sum from scratch. For each starting position i, try all ending positions j ≥ i. Track the smallest valid subarray. Motivates why incremental sum tracking is critical.",
+          "code": "class Solution:\n    def minSubArrayLen(self, target: int, nums: List[int]) -> int:\n        n = len(nums)\n        min_len = float('inf')\n        # Try every starting position\n        for i in range(n):\n            current_sum = 0\n            # Try every ending position from i\n            for j in range(i, n):\n                current_sum += nums[j]\n                if current_sum >= target:\n                    min_len = min(min_len, j - i + 1)\n                    break  # No point extending further from i\n        return 0 if min_len == float('inf') else min_len",
+          "timeComplexity": "O(n²)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Grow-then-shrink window (Sumanth's solution)",
+          "keyIdea": "Expand right; while the sum qualifies, contract left and record the smallest length.",
+          "code": "class Solution:\n    def minSubArrayLen(self, target: int, nums: List[int]) -> int:\n        left = right = 0\n        currentSum, smallestSubArrayLength = 0, 1e9\n        while right<len(nums):\n            currentSum += nums[right]\n            while currentSum>=target:\n                smallestSubArrayLength = min(smallestSubArrayLength, right-left+1)\n                currentSum -= nums[left]\n                left += 1\n            right += 1\n        return 0 if smallestSubArrayLength==1e9 else smallestSubArrayLength",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an array of positive integers nums and a positive integer target, return the minimal length of a subarray whose sum is greater than or equal to target. If there is no such subarray, return 0 instead.",
+      "phaseId": 1,
+      "subcategory": "basics"
+    },
+    {
+      "id": "best-time-to-buy-and-sell-stock",
+      "title": "Best Time to Buy and Sell Stock",
+      "leetcodeSlug": "best-time-to-buy-and-sell-stock",
+      "difficulty": "Easy",
+      "patternId": "sliding-window",
+      "tags": [
+        "array",
+        "sliding-window",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Best Time to Buy and Sell Stock (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Best+Time+to+Buy+and+Sell+Stock",
+        "lang": "python"
+      },
+      "keyIdeas": "Track the minimum price seen so far as you scan left-to-right. At each day, compute the profit if you sold today (today's price - min so far) and update the best profit. This is a degenerate sliding window — the 'buy day' is implicitly `left`, 'sell day' is `right`. O(n) time, O(1) space.",
+      "hints": [
+        "You can only sell after you buy. What's the best you can do if you sold on day i?",
+        "Keep track of the lowest price you've seen before today. The profit on day i is price[i] - min_so_far.",
+        "Scan once, updating the minimum and the best profit as you go."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Check every pair (buy day i, sell day j where j > i) and track the max profit.",
+          "code": "class Solution:\n    def maxProfit(self, prices: List[int]) -> int:\n        n = len(prices)\n        max_profit = 0\n        for i in range(n):\n            for j in range(i + 1, n):\n                profit = prices[j] - prices[i]\n                max_profit = max(max_profit, profit)\n        return max_profit",
+          "timeComplexity": "O(n²)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal",
+          "keyIdea": "Track the minimum price seen so far; at each step, compute profit if we sold today.",
+          "code": "class Solution:\n    def maxProfit(self, prices: List[int]) -> int:\n        min_price = float('inf')\n        max_profit = 0\n        for price in prices:\n            # If we bought at min_price and sold today\n            profit = price - min_price\n            max_profit = max(max_profit, profit)\n            # Update the cheapest buy opportunity so far\n            min_price = min(min_price, price)\n        return max_profit",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "You are given an array prices where prices[i] is the price of a given stock on the ith day.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "single-pass"
+    },
+    {
+      "id": "longest-repeating-character-replacement",
+      "title": "Longest Repeating Character Replacement",
+      "leetcodeSlug": "longest-repeating-character-replacement",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "tags": [
+        "string",
+        "sliding-window",
+        "hash-map"
+      ],
+      "video": {
+        "title": "NeetCode — Longest Repeating Character Replacement (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Longest+Repeating+Character+Replacement",
+        "lang": "python"
+      },
+      "keyIdeas": "Grow the window. Track character counts in a dict. The **most frequent character** in the window is what you'd keep; the rest you'd replace. If `(window size - max frequency) > k`, you've exceeded k replacements — shrink from the left. The answer is the largest valid window size. O(n) time.",
+      "hints": [
+        "In any valid window, you pick the most common character and replace all others. How many replacements does that take?",
+        "If the window has length L and the most frequent char appears M times, you need (L - M) replacements. This must be ≤ k.",
+        "Use a dict to count characters in the window. Grow right; when (window_size - max_count) > k, shrink left."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Check every substring. For each, count characters and see if (length - max_frequency) ≤ k. Straightforward but O(n²). Shows why the window approach is essential.",
+          "code": "class Solution:\n    def characterReplacement(self, s: str, k: int) -> int:\n        n = len(s)\n        max_len = 0\n        # Try every starting position\n        for i in range(n):\n            count = {}  # char -> frequency in current substring\n            max_freq = 0\n            # Try every ending position from i\n            for j in range(i, n):\n                count[s[j]] = count.get(s[j], 0) + 1\n                max_freq = max(max_freq, count[s[j]])\n                window_len = j - i + 1\n                # Check if this substring is valid\n                if window_len - max_freq <= k:\n                    max_len = max(max_len, window_len)\n        return max_len",
+          "timeComplexity": "O(n²)",
+          "spaceComplexity": "O(26) = O(1)"
+        },
+        {
+          "label": "Optimal — sliding window with max frequency",
+          "keyIdea": "Expand the window; track character counts. When (window size - max frequency) > k, shrink left. The key insight: we keep the most common char and replace all others. Each element enters and exits once, giving O(n).",
+          "code": "class Solution:\n    def characterReplacement(self, s: str, k: int) -> int:\n        count = {}  # char -> frequency in current window\n        left = 0\n        max_len = 0\n        max_freq = 0  # highest frequency of any single char in the window\n        \n        for right in range(len(s)):\n            count[s[right]] = count.get(s[right], 0) + 1\n            max_freq = max(max_freq, count[s[right]])\n            \n            # Number of chars we'd need to replace = window_size - max_freq\n            window_size = right - left + 1\n            if window_size - max_freq > k:\n                # Window invalid, shrink from left\n                count[s[left]] -= 1\n                left += 1\n            \n            max_len = max(max_len, right - left + 1)\n        \n        return max_len",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(26) = O(1)"
+        }
+      ],
+      "description": "You are given a string s and an integer k. You can choose any character of the string and change it to any other uppercase English character. You can perform this operation at most k times.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "variable-size"
+    },
+    {
+      "id": "permutation-in-string",
+      "title": "Permutation in String",
+      "leetcodeSlug": "permutation-in-string",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "tags": [
+        "string",
+        "sliding-window",
+        "hash-map"
+      ],
+      "video": {
+        "title": "NeetCode — Permutation in String (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Permutation+in+String",
+        "lang": "python"
+      },
+      "keyIdeas": "A permutation means the same character counts. Use a **fixed-size window** of length `len(s1)` sliding over `s2`. Track character counts in the window; when they match `s1`'s counts, you found it. Use two dicts and compare, or count matches. O(n) with 26-letter alphabet.",
+      "hints": [
+        "Two strings are permutations if they have the same character counts.",
+        "Slide a window of size len(s1) across s2. For each window position, check if the character counts match s1.",
+        "You can use two Counter dicts and compare them, or track the number of 'matching character counts' and check if it reaches 26."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "For every substring of s2 with length len(s1), check if it's a permutation of s1 by comparing sorted versions or character counts. O(n·m log m) where n = len(s2), m = len(s1).",
+          "code": "class Solution:\n    def checkInclusion(self, s1: str, s2: str) -> bool:\n        if len(s1) > len(s2):\n            return False\n        \n        s1_sorted = sorted(s1)\n        # Try every window of size len(s1) in s2\n        for i in range(len(s2) - len(s1) + 1):\n            window = s2[i : i + len(s1)]\n            if sorted(window) == s1_sorted:\n                return True\n        return False",
+          "timeComplexity": "O(n·m log m)",
+          "spaceComplexity": "O(m)"
+        },
+        {
+          "label": "Better — fixed window with count match",
+          "keyIdea": "Maintain a window of size len(s1). Track character counts; when counts match s1, return True. Slide the window one step at a time. O(n) because we update counts incrementally instead of recomputing.",
+          "code": "class Solution:\n    def checkInclusion(self, s1: str, s2: str) -> bool:\n        if len(s1) > len(s2):\n            return False\n        \n        # Count chars in s1 and the first window of s2\n        s1_count = {}\n        window_count = {}\n        for i in range(len(s1)):\n            s1_count[s1[i]] = s1_count.get(s1[i], 0) + 1\n            window_count[s2[i]] = window_count.get(s2[i], 0) + 1\n        \n        # Helper to compare counts\n        def matches():\n            for c in s1_count:\n                if window_count.get(c, 0) != s1_count[c]:\n                    return False\n            return True\n        \n        if matches():\n            return True\n        \n        # Slide the window\n        for right in range(len(s1), len(s2)):\n            # Add new char on the right\n            window_count[s2[right]] = window_count.get(s2[right], 0) + 1\n            # Remove old char on the left\n            left = right - len(s1)\n            window_count[s2[left]] -= 1\n            if window_count[s2[left]] == 0:\n                del window_count[s2[left]]\n            \n            if matches():\n                return True\n        \n        return False",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — match counter",
+          "keyIdea": "Track how many of the 26 letters have the correct count in the window. When matches == 26, return True. Avoids the O(26) dict comparison on every slide by maintaining a match count. Best constant factor.",
+          "code": "class Solution:\n    def checkInclusion(self, s1: str, s2: str) -> bool:\n        if len(s1) > len(s2):\n            return False\n        \n        s1_count = [0] * 26\n        s2_count = [0] * 26\n        \n        for i in range(len(s1)):\n            s1_count[ord(s1[i]) - ord('a')] += 1\n            s2_count[ord(s2[i]) - ord('a')] += 1\n        \n        matches = 0\n        for i in range(26):\n            if s1_count[i] == s2_count[i]:\n                matches += 1\n        \n        left = 0\n        for right in range(len(s1), len(s2)):\n            if matches == 26:\n                return True\n            \n            # Add s2[right]\n            idx = ord(s2[right]) - ord('a')\n            s2_count[idx] += 1\n            if s2_count[idx] == s1_count[idx]:\n                matches += 1\n            elif s2_count[idx] == s1_count[idx] + 1:\n                matches -= 1\n            \n            # Remove s2[left]\n            idx = ord(s2[left]) - ord('a')\n            s2_count[idx] -= 1\n            if s2_count[idx] == s1_count[idx]:\n                matches += 1\n            elif s2_count[idx] == s1_count[idx] - 1:\n                matches -= 1\n            \n            left += 1\n        \n        return matches == 26",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given two strings s1 and s2, return true if s2 contains a permutation of s1, or false otherwise.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "fixed-size"
+    },
+    {
+      "id": "arithmetic-slices",
+      "title": "arithmetic Slices",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "subcategory": "basics",
+      "leetcodeSlug": "arithmetic-slices",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "nums = [1,2,3,5,6,7,8]\n\n\ndef arithmeticSlices(nums):\n    runningDifference = 0\n    i,j, totalSlices = 0, 0, 0\n\n    while j+1<len(nums):\n        j += 1\n        lastDifference = nums[j] - nums[j-1]\n        if not lastDifference==runningDifference:\n            i = j-1\n            runningDifference = lastDifference\n        elif j-i>=2:\n            totalSlices += (j-i-1)\n    return totalSlices\nprint(arithmeticSlices(nums))\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "An integer array is called arithmetic if it consists of at least three elements and if the difference between any two consecutive elements is the same.",
+      "phaseId": 2
+    },
+    {
+      "id": "count-subarrays-with-score-lessthan-k",
+      "title": "count Subarrays With Score Lessthan K",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "subcategory": "basics",
+      "leetcodeSlug": "count-subarrays-with-score-lessthan-k",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "#increment i if score is more tham or equal to k         #increment j if you can",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "#increment i if score is more tham or equal to k         #increment j if you can",
+          "code": "def getNumSubArrays(i, j, prevJ):\n    if(prevJ<i):\n        return ((j-i+1)*(j-i+2))/2\n    else:\n        return ((j-i+1)*(j-i+2))/2 - getNumSubArrays(i, prevJ, -1)\n\n\ndef countSubArrysWithScoreLessThanK(arr, k):\n    numSubArrays = 0\n    i = 0\n    j = 0\n    n = len(arr)\n    prevJ = -1\n    sumFromIToJ = arr[0]\n    while(j<n):\n        #increment i if score is more tham or equal to k\n        print(\"istart: \",i, j, prevJ, sumFromIToJ)\n        while(sumFromIToJ*(j-i+1)>=k):\n            sumFromIToJ = sumFromIToJ - arr[i]\n            i = i+1\n            if(i>j and i<n):\n                j = i\n                sumFromIToJ = sumFromIToJ + arr[j]\n            if(i==n):\n                break\n\n        print(\"inc i: \",i, j, prevJ, sumFromIToJ)\n        #increment j if you can\n        while(j+1<n and (sumFromIToJ+arr[j+1])*(j-i+2)<k):\n            j = j+1\n            sumFromIToJ = sumFromIToJ + arr[j]\n            \n        print(\"inc j: \",i, j, prevJ, sumFromIToJ)\n        numSubArrays = numSubArrays + getNumSubArrays(i, j, prevJ)\n        \n        prevJ = j\n        i += 1\n        j += 1\n        if j<n:\n            sumFromIToJ = sumFromIToJ-arr[i-1] + arr[j]\n        print(\"inc i,j: \",i, j, prevJ, sumFromIToJ)\n        print()\n\n    return numSubArrays\n\nnums = [1,2,1]\nk = 6\nprint(countSubArrysWithScoreLessThanK(nums, k))\n        \n\n        \n'''\ndef countSubarrays(self, nums: List[int], k: int) -> int:\n    sum, res, j = 0, 0, 0\n    for i, n in enumerate(nums):\n        sum += n\n        while sum * (i - j + 1) >= k:\n            sum -= nums[j]\n            j += 1\n        res += i - j + 1\n    return res\n    \n    \n    adds all the subarrays that ends at i starting at j or later, both inclusive that are valid\n    \n    \n        \nhttps://leetcode.com/problems/count-subarrays-with-score-less-than-k/discuss/2138778/Sliding-Window\n        \n        '''\n                \n                \n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 2
+    },
+    {
+      "id": "max-consecutive-ones3",
+      "title": "max Consecutive Ones3",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "subcategory": "basics",
+      "leetcodeSlug": "max-consecutive-ones3",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# window is always the size of max window seen so far with atmost k zeroes                 # if there are more than k zeroes, we slide the window right by one (by removing the left most number in window)                  # update numZeroesInWindow is applicable... only after we see that in future is there is case where                 # numZeroesInWindow<=k, we are going to increase the size of the window                 # The difference between this and normal sliding window where we pop all elements on left from current window till we see a 0 is that",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# window is always the size of max window seen so far with atmost k zeroes                 # if there are more than k zeroes, we slide the window right by one (by removing the left most number in window)                  # update numZeroesInWindow is applicable... only after we see that in future is there is case where                 # numZeroesInWindow<=k, we are going to increase the size of the window                 # The difference between this and normal sliding window where we pop all elements on left from current window till we see a 0 is that",
+          "code": "class Solution:\n    def longestOnes(self, nums, k: int) -> int:\n        # window is always the size of max window seen so far with atmost k zeroes\n        numZeroesInWindow, sizeOfMaxWindowSeenSoFar = 0, 0\n\n        for index in range(len(nums)):\n            if nums[index]==0: \n                numZeroesInWindow += 1\n            if numZeroesInWindow>k:\n                # if there are more than k zeroes, we slide the window right by one (by removing the left most number in window) \n                # update numZeroesInWindow is applicable... only after we see that in future is there is case where\n                # numZeroesInWindow<=k, we are going to increase the size of the window\n                # The difference between this and normal sliding window where we pop all elements on left from current window till we see a 0 is that\n                # we dont decrease the window size by popping all till left most 0, but we drag along that max window sized window and update \n                # number of zeroes in the window just in case there is a bigger window that we can see in future \n                #    right-left+1 = range = sizeOfWindowWeWant + 1\n                # => left = right-sizeOfWindowWeWant\n                if nums[index-sizeOfMaxWindowSeenSoFar]==0: numZeroesInWindow -= 1\n            else:\n                sizeOfMaxWindowSeenSoFar += 1\n        return sizeOfMaxWindowSeenSoFar",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "maximize-the-confusion-of-an-exam",
+      "title": "maximize The Confusion Of An Exam",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "subcategory": "basics",
+      "leetcodeSlug": "maximize-the-confusion-of-an-exam",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# only False to True             # only move left till both are wrong",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# only False to True             # only move left till both are wrong",
+          "code": "class Solution:\n    def maxConsecutiveAnswers(self, answerKey: str, k: int) -> int:\n        # only False to True\n        countOfFalsesChangesToTrue, maxConsecutiveTruesSeen = 0, 0\n        right = left = 0\n        while right<len(answerKey):\n            if answerKey[right]==\"F\": countOfFalsesChangesToTrue += 1\n            while countOfFalsesChangesToTrue>k:\n                if answerKey[left]==\"F\": countOfFalsesChangesToTrue -= 1\n                left += 1\n            right += 1\n            maxConsecutiveTruesSeen = max(maxConsecutiveTruesSeen, right-left)\n        return maxConsecutiveTruesSeen\n    \n\n\nclass Solution:\n    def maxConsecutiveAnswers(self, answerKey: str, k: int) -> int:\n\n        countOfFalsesChangesToTrue = countOfTruesChangesToTrue = maxConsecutiveSeen = 0\n        right = leftOfTrues = leftOfFalses = 0\n\n        while right<len(answerKey):\n            if answerKey[right]==\"F\": countOfFalsesChangesToTrue += 1\n            while countOfFalsesChangesToTrue>k:\n                if answerKey[leftOfTrues]==\"F\": countOfFalsesChangesToTrue -= 1\n                leftOfTrues += 1\n            \n            if answerKey[right]==\"T\": countOfTruesChangesToTrue += 1\n            while countOfTruesChangesToTrue>k:\n                if answerKey[leftOfFalses]==\"T\": countOfTruesChangesToTrue -= 1\n                leftOfFalses += 1\n\n            right += 1\n            maxConsecutiveSeen = max(maxConsecutiveSeen, right-min(leftOfTrues, leftOfFalses))\n\n        return maxConsecutiveSeen\n    \n\n    \nclass Solution:\n    def maxConsecutiveAnswers(self, answerKey: str, k: int) -> int:\n\n        countOfFalsesChangesToTrue = countOfTruesChangesToTrue = maxConsecutiveSeen = 0\n        right = left = 0\n\n        while right<len(answerKey):\n            \n            if answerKey[right]==\"F\": countOfFalsesChangesToTrue += 1\n            else: countOfTruesChangesToTrue += 1\n\n            # only move left till both are wrong\n            while countOfFalsesChangesToTrue>k and countOfTruesChangesToTrue>k:\n                if answerKey[left]==\"F\": countOfFalsesChangesToTrue -= 1\n                else: countOfTruesChangesToTrue -= 1\n                left += 1\n\n            right += 1\n            maxConsecutiveSeen = max(maxConsecutiveSeen, right-left)\n\n        return maxConsecutiveSeen",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "A teacher is writing a test with n true/false questions, with &#39;T&#39; denoting true and &#39;F&#39; denoting false. He wants to confuse the students by maximizing the number of consecutive questions with the same answer (multiple trues or multiple falses in a row).",
+      "phaseId": 3
+    },
+    {
+      "id": "maximum-number-of-vowels-in-a-substring-of-given-length",
+      "title": "maximum Number Of Vowels In A Substring Of Given Length",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "subcategory": "practice",
+      "leetcodeSlug": "maximum-number-of-vowels-in-a-substring-of-given-length",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def maxVowels(self, s: str, k: int) -> int:\n        vowels = \"aeiou\"\n        maxCount = count = sum(char in vowels for char in s[:k])\n        left, right = 0, k\n        while right<len(s):\n            count += ((s[right] in vowels) - (s[left] in vowels))\n            left+=1\n            right+=1\n            maxCount = max(maxCount, count)\n        return maxCount\n    \nclass Solution:\n    def maxVowels(self, s: str, k: int) -> int:\n        vowels = {\"a\",\"e\",\"i\",\"o\",\"u\"}\n        maxCount = count = sum(char in vowels for char in s[:k])\n        for right in range(k, len(s)):\n            count += ((s[right] in vowels) - (s[right-k] in vowels))\n            maxCount = max(maxCount, count)\n        return maxCount",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given a string s and an integer k, return the maximum number of vowel letters in any substring of s with length k.",
+      "phaseId": 3
+    },
+    {
+      "id": "substring-with-concatenation-of-all-words",
+      "title": "substring With Concatenation Of All Words",
+      "difficulty": "Medium",
+      "patternId": "sliding-window",
+      "subcategory": "practice",
+      "leetcodeSlug": "substring-with-concatenation-of-all-words",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "30 min 8 min             # keep freqOfWindowWords and countNeeded consistent by removing excess using the second while loop 7 min                 # in case rightWord is not a valid word, we remove everything",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "30 min 8 min             # keep freqOfWindowWords and countNeeded consistent by removing excess using the second while loop 7 min                 # in case rightWord is not a valid word, we remove everything",
+          "code": "class Solution:\n    def findSubstring(self, s: str, words: List[str]) -> List[int]:\n        lenOfS, lenOfWords, lenOfEachWord = len(s), len(words), len(words[0])\n        wordsSet = set(words)\n        wordsInSArr = []\n        for index in range(lenOfS-lenOfEachWord+1):\n            wordFromIndex = s[index:index+lenOfEachWord]\n            wordsInSArr.append(wordFromIndex if wordFromIndex in wordsSet else None)\n        \n        counterOfWords = Counter(words)\n        indicesWithValidPermutationsArr = []\n        for slidingWindowIndex in range(lenOfS-lenOfWords*lenOfEachWord+1):\n            currMap = defaultdict(int)\n            for loopIndexForEachWord in range(slidingWindowIndex, slidingWindowIndex+lenOfWords*lenOfEachWord+1, lenOfEachWord):\n                if loopIndexForEachWord==slidingWindowIndex+lenOfWords*lenOfEachWord: \n                    indicesWithValidPermutationsArr.append(slidingWindowIndex)\n                else:\n                    if not wordsInSArr[loopIndexForEachWord]: break\n                    currMap[wordsInSArr[loopIndexForEachWord]] += 1\n                    if currMap[wordsInSArr[loopIndexForEachWord]]>counterOfWords[wordsInSArr[loopIndexForEachWord]]: break\n        return indicesWithValidPermutationsArr\n\n# 30 min\nclass Solution:\n    def findSubstring(self, s: str, words: List[str]) -> List[int]:\n\n        lenOfS, lenOfWord, countOfWords = len(s), len(words[0]), len(words)\n        counterOfWords, ansIndices = Counter(words), []\n        for index in range(lenOfWord):\n            wordsNeededMap = deepcopy(counterOfWords)\n            countNeeded = countOfWords\n            slidingWindowTailIndex = index\n\n            for windowIndex in range(index, lenOfS, lenOfWord):\n                \n                currWord = s[windowIndex:windowIndex+lenOfWord]\n                if currWord in wordsNeededMap:\n                    wordsNeededMap[currWord] -= 1\n                    if wordsNeededMap[currWord]>=0: countNeeded -= 1\n\n                    if windowIndex-slidingWindowTailIndex>=lenOfWord*countOfWords: \n                        prevWord = s[slidingWindowTailIndex:slidingWindowTailIndex+lenOfWord]\n                        if prevWord in wordsNeededMap:\n                            wordsNeededMap[prevWord] += 1\n                            countNeeded += 1\n                        slidingWindowTailIndex += lenOfWord\n                    if countNeeded==0: ansIndices.append(windowIndex-lenOfWord*(countOfWords-1))\n                else:\n                    wordsNeededMap = deepcopy(counterOfWords)\n                    countNeeded = countOfWords\n                    slidingWindowTailIndex = windowIndex + lenOfWord\n\n        return ansIndices\n    \n\n# 8 min\nclass Solution:\n    def findSubstring(self, s: str, words: List[str]) -> List[int]:\n\n        lenOfS, lenOfWord, countOfWords = len(s), len(words[0]), len(words)\n        counterOfWords, ansIndices = Counter(words), []\n        for index in range(lenOfWord):\n            left = right = index\n            # keep freqOfWindowWords and countNeeded consistent by removing excess using the second while loop\n            freqOfWindowWords, countNeeded = defaultdict(int), countOfWords\n            while right+lenOfWord<=lenOfS:\n                rightWord = s[right:right+lenOfWord]\n                if rightWord not in counterOfWords:\n                    freqOfWindowWords, countNeeded = defaultdict(int), countOfWords\n                    left = right = right+lenOfWord\n                else:\n                    freqOfWindowWords[rightWord] += 1\n                    countNeeded -= 1\n                    while freqOfWindowWords[rightWord]>counterOfWords[rightWord]:\n                        leftWord = s[left:left+lenOfWord]\n                        freqOfWindowWords[leftWord] -= 1\n                        countNeeded += 1\n                        left += lenOfWord\n                    if countNeeded==0: ansIndices.append(left)\n                    right += lenOfWord\n        return ansIndices\n\n\n\n# 7 min\nclass Solution:\n    def findSubstring(self, s: str, words: List[str]) -> List[int]:\n\n        lenOfS, lenOfWord, countOfWords = len(s), len(words[0]), len(words)\n        counterOfWords, ansIndices = Counter(words), []\n\n        for left in range(lenOfWord):\n            windowWordsFreqMap = defaultdict(int)\n            for right in range(left, lenOfS-lenOfWord+1, lenOfWord):\n                rightWord = s[right:right+lenOfWord]\n                windowWordsFreqMap[rightWord] += 1\n                # in case rightWord is not a valid word, we remove everything\n                while windowWordsFreqMap[rightWord]>counterOfWords[rightWord]:\n                    windowWordsFreqMap[s[left:left+lenOfWord]] -= 1\n                    left += lenOfWord\n                if left+lenOfWord*countOfWords==right+lenOfWord:\n                    ansIndices.append(left)\n\n        return ansIndices\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given a string s and an array of strings words. All the strings of words are of the same length.",
+      "phaseId": 3
+    },
+    {
+      "id": "minimum-window-substring",
+      "title": "Minimum Window Substring",
+      "leetcodeSlug": "minimum-window-substring",
+      "difficulty": "Hard",
+      "patternId": "sliding-window",
+      "tags": [
+        "string",
+        "sliding-window",
+        "hash-map"
+      ],
+      "video": {
+        "title": "NeetCode — Minimum Window Substring (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Minimum+Window+Substring",
+        "lang": "python"
+      },
+      "keyIdeas": "Expand `right` to include characters from `t`. Once the window **contains all characters of `t`** (tracked with counts), try shrinking from `left` to find the smallest valid window. Track the best (smallest) valid window seen. Use two dicts: one for `t`'s requirements, one for the current window. O(n + m) time.",
+      "hints": [
+        "Use a dict to count required characters from t. Grow the window until it satisfies all requirements.",
+        "Once the window is valid (contains all chars of t with correct counts), try shrinking from the left to minimize it.",
+        "Track how many required characters are satisfied. When that count equals the number of unique chars in t, the window is valid."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Try every substring of s. For each, check if it contains all characters of t with correct counts. Track the smallest valid substring. O(n²·m) where n = len(s), m = len(t).",
+          "code": "class Solution:\n    def minWindow(self, s: str, t: str) -> str:\n        if not t or not s:\n            return \"\"\n        \n        # Count what we need from t\n        need = {}\n        for c in t:\n            need[c] = need.get(c, 0) + 1\n        \n        def is_valid(substring):\n            # Check if substring contains all chars of t\n            counts = {}\n            for c in substring:\n                counts[c] = counts.get(c, 0) + 1\n            for c in need:\n                if counts.get(c, 0) < need[c]:\n                    return False\n            return True\n        \n        min_len = float('inf')\n        result = \"\"\n        # Try every starting position\n        for i in range(len(s)):\n            # Try every ending position from i\n            for j in range(i, len(s)):\n                substring = s[i:j+1]\n                if is_valid(substring):\n                    if len(substring) < min_len:\n                        min_len = len(substring)\n                        result = substring\n                    break  # No need to extend further from i\n        \n        return result",
+          "timeComplexity": "O(n²·m)",
+          "spaceComplexity": "O(n + m)"
+        },
+        {
+          "label": "Optimal — sliding window with need/have tracking",
+          "keyIdea": "Expand to cover all of t, then shrink to minimize. Track 'have' vs 'need' for each character. Use a 'formed' counter to know when the window is valid in O(1). Each element enters and exits once, giving O(n + m).",
+          "code": "class Solution:\n    def minWindow(self, s: str, t: str) -> str:\n        if not t or not s:\n            return \"\"\n        \n        # Count chars needed from t\n        need = {}\n        for c in t:\n            need[c] = need.get(c, 0) + 1\n        \n        required = len(need)  # number of unique chars in t\n        formed = 0  # how many unique chars in window have the correct count\n        \n        window_counts = {}\n        left = 0\n        min_len = float('inf')\n        min_left = 0\n        \n        for right in range(len(s)):\n            c = s[right]\n            window_counts[c] = window_counts.get(c, 0) + 1\n            \n            # Check if this char's count now matches the need\n            if c in need and window_counts[c] == need[c]:\n                formed += 1\n            \n            # Try to shrink the window while it's valid\n            while formed == required and left <= right:\n                # Update the result if this window is smaller\n                if right - left + 1 < min_len:\n                    min_len = right - left + 1\n                    min_left = left\n                \n                # Remove from the left\n                c = s[left]\n                window_counts[c] -= 1\n                if c in need and window_counts[c] < need[c]:\n                    formed -= 1\n                left += 1\n        \n        return \"\" if min_len == float('inf') else s[min_left : min_left + min_len]",
+          "timeComplexity": "O(n + m)",
+          "spaceComplexity": "O(n + m)"
+        }
+      ],
+      "description": "Given two strings s and t of lengths m and n respectively, return the minimum window substring of s such that every character in t (including duplicates) is included in the window. If there is no such substring, return the empty string \"\".",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "variable-size"
+    },
+    {
+      "id": "sliding-window-maximum",
+      "title": "Sliding Window Maximum",
+      "leetcodeSlug": "sliding-window-maximum",
+      "difficulty": "Hard",
+      "patternId": "sliding-window",
+      "tags": [
+        "array",
+        "sliding-window",
+        "deque",
+        "monotonic-queue"
+      ],
+      "video": {
+        "title": "NeetCode — Sliding Window Maximum (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Sliding+Window+Maximum",
+        "lang": "python"
+      },
+      "keyIdeas": "Use a **deque** (double-ended queue) to track indices of elements in **decreasing order of value**. When adding a new element, remove smaller elements from the back (they can never be the max). Remove indices outside the window from the front. The front of the deque is always the current max. O(n) — each element is added and removed once.",
+      "hints": [
+        "A naive approach would recompute the max for each window position (O(n·k)). Can you maintain the max incrementally?",
+        "Use a deque to store indices. Keep it sorted by value (largest at the front). When the window slides, remove indices that fall out of range.",
+        "Before adding a new element, pop all smaller elements from the back of the deque — they'll never be the answer while this element is in the window."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "For each window position, compute the max of the k elements in O(k).",
+          "code": "class Solution:\n    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:\n        result = []\n        for i in range(len(nums) - k + 1):\n            window_max = max(nums[i : i + k])\n            result.append(window_max)\n        return result",
+          "timeComplexity": "O(n·k)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — monotonic deque",
+          "keyIdea": "Maintain a deque of indices in decreasing order of value. The front is the current max.",
+          "code": "class Solution:\n    def maxSlidingWindow(self, nums: List[int], k: int) -> List[int]:\n        from collections import deque\n        dq = deque()  # stores indices\n        result = []\n        \n        for i in range(len(nums)):\n            # Remove indices outside the current window\n            while dq and dq[0] < i - k + 1:\n                dq.popleft()\n            \n            # Remove indices of smaller elements (they can't be max)\n            while dq and nums[dq[-1]] < nums[i]:\n                dq.pop()\n            \n            dq.append(i)\n            \n            # The window is valid starting at index k-1\n            if i >= k - 1:\n                result.append(nums[dq[0]])\n        \n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(k)"
+        }
+      ],
+      "description": "You are given an array of integers nums, there is a sliding window of size k which is moving from the very left of the array to the very right. You can only see the k numbers in the window. Each time the sliding window moves right by one position.",
+      "phaseId": 4,
+      "subcategory": "monotonic"
+    }
+  ]
+}

@@ -1,0 +1,655 @@
+{
+  "id": "greedy",
+  "name": "Greedy",
+  "phaseId": 7,
+  "order": 1,
+  "tagline": "Locally-optimal choices that are provably globally optimal.",
+  "concept": "## The idea\n\nYou already know dynamic programming solves optimization by checking **all possible** ways to break a problem into subproblems, storing results to avoid recomputation.\n\n**Greedy** is simpler and faster: make the **locally best choice** at each step, never reconsider, and trust that this leads to a globally optimal answer. The catch: you must **prove** the greedy choice is safe — usually by showing that swapping any later choice with the greedy one can't improve the outcome (the \"exchange argument\"), or by showing the problem has \"optimal substructure\" where a local optimum chains into a global one.\n\nWhen greedy works, it's beautiful: O(n) or O(n log n) (after sorting), no DP table, no recursion. When it doesn't, you need DP or backtracking. Recognizing the difference comes from practice — the problems below teach the signature cues.\n\n## Python you'll pick up here\n\n- Sorting: `arr.sort()`, `sorted(arr, key=lambda x: ...)` with custom keys\n- `max(0, x)` to clamp negative values\n- Dictionary with default: `d.get(k, 0)`, `collections.Counter`, `collections.defaultdict`\n- List comprehensions: `[x for x in arr if condition]`\n- `min()`/`max()` with generators\n- Tuple unpacking in loops: `for start, end in intervals:`",
+  "whenToUse": [
+    "The problem asks for a maximum/minimum and you can sort or scan left-to-right",
+    "Making the locally optimal choice at each step provably can't hurt the final answer",
+    "You can prove an exchange argument: swapping the greedy choice with any other never improves the result",
+    "The problem has optimal substructure: a local optimum plus the rest gives a global optimum"
+  ],
+  "problems": [
+    {
+      "id": "maximum-subarray",
+      "title": "Maximum Subarray",
+      "leetcodeSlug": "maximum-subarray",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "array",
+        "divide-and-conquer",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Maximum Subarray (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Maximum+Subarray",
+        "lang": "python"
+      },
+      "keyIdeas": "Kadane's algorithm is the canonical greedy intro: keep a running sum; if it drops below zero, discard it and start fresh. Why greedy? A negative prefix can never help a future sum — ditching it is always safe. This is also your first 1-D DP, but the greedy view is cleaner.",
+      "hints": [
+        "Brute force checks every subarray — O(n²). Can you do better by scanning once?",
+        "Keep a running sum. What should you do when that sum becomes negative?",
+        "If current sum < 0, reset to 0. At each index, either extend the previous sum or start fresh from nums[i]. Track the max seen so far."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Check every possible subarray explicitly.",
+          "code": "class Solution:\n    def maxSubArray(self, nums: list[int]) -> int:\n        best = float('-inf')\n        n = len(nums)\n        for i in range(n):\n            current = 0\n            for j in range(i, n):\n                current += nums[j]\n                best = max(best, current)\n        return best",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — Kadane's algorithm",
+          "keyIdea": "Discard any prefix that goes negative; a negative prefix can never help a future sum.",
+          "code": "class Solution:\n    def maxSubArray(self, nums: list[int]) -> int:\n        max_sum = nums[0]\n        current_sum = 0\n        for num in nums:\n            current_sum = max(current_sum + num, num)  # extend or start fresh\n            max_sum = max(max_sum, current_sum)\n        return max_sum",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — divide and conquer",
+          "keyIdea": "Recursively split the array in half; the max subarray either lies entirely in the left half, entirely in the right half, or crosses the midpoint. For the crossing case, find the best suffix of the left and best prefix of the right. Reach for this when interviewer explicitly asks for a divide-and-conquer solution or O(n log n) approach; Kadane's is simpler and faster in practice.",
+          "code": "class Solution:\n    def maxSubArray(self, nums: list[int]) -> int:\n        def helper(left: int, right: int) -> int:\n            if left == right:\n                return nums[left]\n            \n            mid = (left + right) // 2\n            \n            # Best in left half\n            left_max = helper(left, mid)\n            # Best in right half\n            right_max = helper(mid + 1, right)\n            \n            # Best crossing mid: sum from mid going left + sum from mid+1 going right\n            left_sum = float('-inf')\n            current = 0\n            for i in range(mid, left - 1, -1):\n                current += nums[i]\n                left_sum = max(left_sum, current)\n            \n            right_sum = float('-inf')\n            current = 0\n            for i in range(mid + 1, right + 1):\n                current += nums[i]\n                right_sum = max(right_sum, current)\n            \n            cross_max = left_sum + right_sum\n            \n            return max(left_max, right_max, cross_max)\n        \n        return helper(0, len(nums) - 1)",
+          "timeComplexity": "O(n log n)",
+          "spaceComplexity": "O(log n) — recursion stack"
+        }
+      ],
+      "description": "Given an integer array nums, find the subarray with the largest sum, and return its sum.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "kadane"
+    },
+    {
+      "id": "jump-game",
+      "title": "Jump Game",
+      "leetcodeSlug": "jump-game",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "array",
+        "dynamic-programming",
+        "greedy"
+      ],
+      "video": {
+        "title": "NeetCode — Jump Game (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Jump+Game",
+        "lang": "python"
+      },
+      "keyIdeas": "Track the farthest index you can reach as you scan left-to-right. At each index, update the farthest reachable. If you ever can't reach position `i` (i > farthest so far), return False. Reaching the last index means True. Greedy because you never need to backtrack — the farthest-reachable so far is all that matters.",
+      "hints": [
+        "You don't need to track the exact jumps — just whether the end is reachable.",
+        "Track the farthest index you've proven reachable so far. For each index you can reach, update that max.",
+        "If you ever get to an index beyond the current max reachable, you're stuck. Otherwise, keep extending the frontier."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — greedy track max reach",
+          "keyIdea": "Scan left to right, updating the farthest index we can reach. If we ever can't reach position i, we're stuck. Greedy is safe here because we only need reachability, not the path — the max reach so far encodes all possible futures.",
+          "code": "class Solution:\n    def canJump(self, nums: list[int]) -> bool:\n        max_reach = 0\n        for i in range(len(nums)):\n            if i > max_reach:\n                return False  # can't reach this index\n            max_reach = max(max_reach, i + nums[i])\n        return True",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — DP (top-down)",
+          "keyIdea": "For each index, recursively check if any jump from it can reach the end, memoizing results. This is O(n²) in worst case because each index can try up to n jumps. Use greedy instead unless the problem asks for the actual jump sequence or has additional constraints that break the greedy property.",
+          "code": "class Solution:\n    def canJump(self, nums: list[int]) -> bool:\n        n = len(nums)\n        memo = {}\n        \n        def can_reach_end(i: int) -> bool:\n            if i >= n - 1:\n                return True\n            if i in memo:\n                return memo[i]\n            \n            # Try all possible jumps from position i\n            furthest = min(i + nums[i], n - 1)\n            for next_pos in range(i + 1, furthest + 1):\n                if can_reach_end(next_pos):\n                    memo[i] = True\n                    return True\n            \n            memo[i] = False\n            return False\n        \n        return can_reach_end(0)",
+          "timeComplexity": "O(n^2) — each index may try up to n jumps",
+          "spaceComplexity": "O(n) — memoization and recursion stack"
+        }
+      ],
+      "description": "You are given an integer array nums. You are initially positioned at the array&#39;s first index, and each element in the array represents your maximum jump length at that position.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "array-jumps"
+    },
+    {
+      "id": "jump-game-ii",
+      "title": "Jump Game II",
+      "leetcodeSlug": "jump-game-ii",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "array",
+        "dynamic-programming",
+        "greedy"
+      ],
+      "video": {
+        "title": "NeetCode — Jump Game II (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Jump+Game+II",
+        "lang": "python"
+      },
+      "keyIdeas": "BFS-style greedy: think of each jump as a level. Track the farthest you can reach in the current level; when you exhaust it, increment jump count and set the next level's boundary. You're always taking the fewest jumps because you sweep left-to-right in one pass, extending reach greedily.",
+      "hints": [
+        "You want the *minimum* number of jumps. Can you think in terms of levels, like BFS?",
+        "Track two boundaries: the end of the current jump's range, and the farthest you can reach within it.",
+        "When you hit the end of the current range, increment jumps and extend the range to the farthest discovered."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — BFS-style greedy",
+          "keyIdea": "Treat each jump as a BFS level; extend reach greedily within each level, then move to the next. Greedy works because taking the jump that reaches farthest never hurts — you can prove any earlier jump could be replaced by the farthest-reaching one without increasing the total jump count.",
+          "code": "class Solution:\n    def jump(self, nums: list[int]) -> int:\n        jumps = 0\n        current_end = 0\n        farthest = 0\n        for i in range(len(nums) - 1):  # don't need to jump from the last index\n            farthest = max(farthest, i + nums[i])\n            if i == current_end:\n                jumps += 1\n                current_end = farthest\n        return jumps",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — DP (bottom-up)",
+          "keyIdea": "Build a table where dp[i] = minimum jumps to reach position i. For each position, update all reachable positions. This is O(n²) because each position may update up to n others. Reach for greedy instead; use DP when the problem has dependencies that break greedy (e.g., weighted jumps, obstacles that change over time).",
+          "code": "class Solution:\n    def jump(self, nums: list[int]) -> int:\n        n = len(nums)\n        if n == 1:\n            return 0\n        \n        dp = [float('inf')] * n\n        dp[0] = 0\n        \n        for i in range(n):\n            # From position i, update all reachable positions\n            for j in range(1, nums[i] + 1):\n                if i + j < n:\n                    dp[i + j] = min(dp[i + j], dp[i] + 1)\n        \n        return dp[n - 1]",
+          "timeComplexity": "O(n^2) — each index may update up to n positions",
+          "spaceComplexity": "O(n) — DP table"
+        }
+      ],
+      "description": "You are given a 0-indexed array of integers nums of length n. You are initially positioned at index 0.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "array-jumps"
+    },
+    {
+      "id": "gas-station",
+      "title": "Gas Station",
+      "leetcodeSlug": "gas-station",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "array",
+        "greedy"
+      ],
+      "video": {
+        "title": "NeetCode — Gas Station (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Gas+Station",
+        "lang": "python"
+      },
+      "keyIdeas": "If total gas < total cost, no solution exists. Otherwise, scan once: track cumulative balance. When it goes negative, the problem is you started too early — so reset and try starting from the next station. The first start index that keeps balance ≥ 0 all the way to the end is the answer. Greedy because you can prove: if you can't complete from index i, you also can't complete from any j in [i+1, failing_point] — so skip straight past.",
+      "hints": [
+        "First check if sum(gas) < sum(cost) — if so, no solution.",
+        "Scan once, tracking tank balance. When does the tank go negative?",
+        "If tank drops below zero at station j starting from i, you can prove you also can't complete starting from any station between i and j — so reset start to j+1."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Try starting from each station and simulate the full loop. First station that completes the circuit wins.",
+          "code": "class Solution:\n    def canCompleteCircuit(self, gas: list[int], cost: list[int]) -> int:\n        n = len(gas)\n        \n        for start in range(n):\n            tank = 0\n            can_complete = True\n            \n            # Try to complete the circuit starting from 'start'\n            for i in range(n):\n                station = (start + i) % n\n                tank += gas[station] - cost[station]\n                if tank < 0:\n                    can_complete = False\n                    break\n            \n            if can_complete:\n                return start\n        \n        return -1",
+          "timeComplexity": "O(n^2) — try n starting points, each simulates n steps",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — single-pass greedy",
+          "keyIdea": "If total gas < total cost, no solution. Otherwise, scan once: if tank goes negative at station j starting from i, you can prove you can't start from any station in [i, j] either — so jump start to j+1. The greedy insight (exchange argument): if you fail at j starting from i, starting anywhere between i and j will fail even earlier because those positions have even less 'banked' gas. First candidate that never goes negative is the answer.",
+          "code": "class Solution:\n    def canCompleteCircuit(self, gas: list[int], cost: list[int]) -> int:\n        if sum(gas) < sum(cost):\n            return -1\n        start = 0\n        tank = 0\n        for i in range(len(gas)):\n            tank += gas[i] - cost[i]\n            if tank < 0:\n                start = i + 1  # reset start\n                tank = 0\n        return start",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "There are n gas stations along a circular route, where the amount of gas at the ith station is gas[i].",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "circular-array"
+    },
+    {
+      "id": "hand-of-straights",
+      "title": "Hand of Straights",
+      "leetcodeSlug": "hand-of-straights",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "array",
+        "hash-table",
+        "greedy",
+        "sorting"
+      ],
+      "video": {
+        "title": "NeetCode — Hand of Straights (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Hand+of+Straights",
+        "lang": "python"
+      },
+      "keyIdeas": "Greedy on sorted order: always try to form a group starting with the smallest remaining card. If you can't find the next `groupSize-1` consecutive cards, return False. Count each card, decrement as you use them. Why greedy? The smallest card *must* start some group — you can't defer it.",
+      "hints": [
+        "If len(hand) isn't divisible by groupSize, return False immediately.",
+        "Sort the hand and count each card. Then try to form groups starting from the smallest card.",
+        "For each card, if its count > 0, try to decrement the counts of the next groupSize consecutive cards. If any is missing, return False."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — greedy with counter",
+          "keyIdea": "The smallest card must start a group — it can't be deferred. Sort and count, then greedily form groups starting from the min card, decrementing counts. Exchange argument: if the smallest card doesn't start a group, it must appear later in some group, but then an even smaller card would have to come before it (contradiction). So greedy is safe.",
+          "code": "from collections import Counter\n\nclass Solution:\n    def isNStraightHand(self, hand: list[int], groupSize: int) -> bool:\n        if len(hand) % groupSize != 0:\n            return False\n        count = Counter(hand)\n        for card in sorted(count):  # process in ascending order\n            if count[card] > 0:\n                num_groups = count[card]\n                for i in range(groupSize):\n                    if count[card + i] < num_groups:\n                        return False\n                    count[card + i] -= num_groups\n        return True",
+          "timeComplexity": "O(n log n) — sorting dominates",
+          "spaceComplexity": "O(n) — counter"
+        },
+        {
+          "label": "Alternative — greedy with min-heap",
+          "keyIdea": "Use a min-heap to always process the smallest card. Track ongoing groups in a second heap/queue. For each card, either extend an existing group (if it's consecutive) or start a new group. When a group is complete, remove it. Reach for this when cards arrive as a stream; the Counter approach is simpler for batch input.",
+          "code": "from collections import Counter\nimport heapq\n\nclass Solution:\n    def isNStraightHand(self, hand: list[int], groupSize: int) -> bool:\n        if len(hand) % groupSize != 0:\n            return False\n        \n        count = Counter(hand)\n        min_heap = list(count.keys())\n        heapq.heapify(min_heap)\n        \n        while min_heap:\n            # Start a new group with the smallest card\n            first = min_heap[0]\n            for i in range(groupSize):\n                card = first + i\n                if count[card] == 0:\n                    return False  # missing card for this group\n                count[card] -= 1\n                if count[card] == 0:\n                    # This card is exhausted; remove from heap\n                    if card != min_heap[0]:\n                        return False  # we can only remove the min\n                    heapq.heappop(min_heap)\n        \n        return True",
+          "timeComplexity": "O(n log n) — heap operations",
+          "spaceComplexity": "O(n) — heap and counter"
+        }
+      ],
+      "description": "Alice has some number of cards and she wants to rearrange the cards into groups so that each group is of size groupSize, and consists of groupSize consecutive cards.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "grouping"
+    },
+    {
+      "id": "merge-triplets-to-form-target-triplet",
+      "title": "Merge Triplets to Form Target Triplet",
+      "leetcodeSlug": "merge-triplets-to-form-target-triplet",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "array",
+        "greedy"
+      ],
+      "video": {
+        "title": "NeetCode — Merge Triplets to Form Target Triplet (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Merge+Triplets+to+Form+Target+Triplet",
+        "lang": "python"
+      },
+      "keyIdeas": "Greedy filter: any triplet with *any* element exceeding the target's corresponding element is useless (max-merge can't shrink it). Keep only triplets that don't exceed the target in any coordinate. Then check if the remaining triplets cover all three target values. One pass, O(n).",
+      "hints": [
+        "Merging takes the max in each coordinate. Can a triplet with any value > target ever help?",
+        "Filter out triplets that exceed the target in any position. They're poison.",
+        "Among the remaining 'good' triplets, track whether you've seen each target coordinate at least once."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — greedy filter and coverage",
+          "keyIdea": "Greedy insight: any triplet exceeding the target in any coordinate is poison (max-merge can never shrink it back). Filter those out, then check if the remaining 'good' triplets collectively cover all three target values. Greedy is safe because merge order doesn't matter — max is associative and commutative.",
+          "code": "class Solution:\n    def mergeTriplets(self, triplets: list[list[int]], target: list[int]) -> bool:\n        found = [False, False, False]\n        for t in triplets:\n            if t[0] <= target[0] and t[1] <= target[1] and t[2] <= target[2]:\n                # this triplet is 'safe' to merge\n                if t[0] == target[0]:\n                    found[0] = True\n                if t[1] == target[1]:\n                    found[1] = True\n                if t[2] == target[2]:\n                    found[2] = True\n        return all(found)",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "A triplet is an array of three integers. You are given a 2D integer array triplets, where triplets[i] = [ai, bi, ci] describes the ith triplet. You are also given an integer array target = [x, y, z] that describes the triplet you want to obtain.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "triplets"
+    },
+    {
+      "id": "partition-labels",
+      "title": "Partition Labels",
+      "leetcodeSlug": "partition-labels",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "hash-table",
+        "two-pointers",
+        "string",
+        "greedy"
+      ],
+      "video": {
+        "title": "NeetCode — Partition Labels (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Partition+Labels",
+        "lang": "python"
+      },
+      "keyIdeas": "Precompute each character's last occurrence. Scan left-to-right, tracking the farthest last-occurrence in the current partition. When you reach that boundary, cut. Greedy because cutting as soon as possible maximizes the number of partitions — delaying the cut can't help.",
+      "hints": [
+        "A partition is valid when every character in it doesn't appear outside. How can you tell where a character's range ends?",
+        "Build a map of each character's last index. As you scan, track the farthest last-index in the current partition.",
+        "When your scan index reaches the current partition's farthest-last, you can cut — no character in this partition appears beyond."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — greedy partition",
+          "keyIdea": "Track the farthest last occurrence in the current partition; cut when you reach it.",
+          "code": "class Solution:\n    def partitionLabels(self, s: str) -> list[int]:\n        last = {c: i for i, c in enumerate(s)}  # last occurrence of each char\n        result = []\n        start = 0\n        end = 0\n        for i, c in enumerate(s):\n            end = max(end, last[c])  # extend partition boundary\n            if i == end:  # reached the boundary\n                result.append(end - start + 1)\n                start = i + 1\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1) — at most 26 chars"
+        }
+      ],
+      "description": "You are given a string s. We want to partition the string into as many parts as possible so that each letter appears in at most one part. For example, the string \"ababcc\" can be partitioned into [\"abab\", \"cc\"], but partitions such as [\"aba\", \"bcc\"] or [\"ab\", \"ab\", \"cc\"] are invalid.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "intervals"
+    },
+    {
+      "id": "valid-parenthesis-string",
+      "title": "Valid Parenthesis String",
+      "leetcodeSlug": "valid-parenthesis-string",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "tags": [
+        "string",
+        "dynamic-programming",
+        "stack",
+        "greedy"
+      ],
+      "video": {
+        "title": "NeetCode — Valid Parenthesis String (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Valid+Parenthesis+String",
+        "lang": "python"
+      },
+      "keyIdeas": "Track a *range* of possible open-paren counts as you scan. `(` increments both bounds, `)` decrements both, `*` can be anything so it widens the range. If the max possible count goes negative, impossible. At the end, check if 0 is in the valid range. Greedy because you track bounds instead of exploring all 3^(number of stars) assignments.",
+      "hints": [
+        "Each `*` can be `(`, `)`, or empty — that's 3^k possibilities if there are k stars. Can you avoid enumerating all of them?",
+        "Track the *range* of possible open-paren counts: a min and max. How does each character affect these bounds?",
+        "`(` adds 1 to both, `)` subtracts 1 from both, `*` can add/subtract/do nothing — so it expands the range. Clamp min to 0 (can't go negative in valid strings). At the end, check if 0 is reachable."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — greedy range tracking",
+          "keyIdea": "Maintain a range [min_open, max_open] of valid open-paren counts. `(` increments both, `)` decrements both, `*` widens the range (can be `(`, `)`, or empty). Greedy because we avoid enumerating 3^k assignments of stars — we just track bounds. Valid if 0 is reachable at the end. Reach for this over DP when you want O(1) space and the greedy insight is clear.",
+          "code": "class Solution:\n    def checkValidString(self, s: str) -> bool:\n        min_open = 0  # minimum possible open parens\n        max_open = 0  # maximum possible open parens\n        for c in s:\n            if c == '(':\n                min_open += 1\n                max_open += 1\n            elif c == ')':\n                min_open -= 1\n                max_open -= 1\n            else:  # '*'\n                min_open -= 1  # treat as ')' for min\n                max_open += 1  # treat as '(' for max\n            if max_open < 0:\n                return False  # too many ')'\n            min_open = max(min_open, 0)  # can't go negative\n        return min_open == 0  # must be able to balance exactly",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — DP (top-down)",
+          "keyIdea": "Recursively try all three choices for each `*` (treat as `(`, `)`, or empty), memoizing (index, open_count) states. This explores 3^k star assignments but prunes with memoization. Use when the greedy range insight isn't obvious or when you need to track additional state (e.g., which stars were used as what).",
+          "code": "class Solution:\n    def checkValidString(self, s: str) -> bool:\n        memo = {}\n        \n        def dp(i: int, open_count: int) -> bool:\n            if open_count < 0:\n                return False  # more ')' than '('\n            if i == len(s):\n                return open_count == 0\n            if (i, open_count) in memo:\n                return memo[(i, open_count)]\n            \n            result = False\n            if s[i] == '(':\n                result = dp(i + 1, open_count + 1)\n            elif s[i] == ')':\n                result = dp(i + 1, open_count - 1)\n            else:  # '*' — try all three\n                result = (dp(i + 1, open_count + 1) or  # treat as '('\n                          dp(i + 1, open_count - 1) or  # treat as ')'\n                          dp(i + 1, open_count))         # treat as empty\n            \n            memo[(i, open_count)] = result\n            return result\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(n^2) — n positions × n possible open counts",
+          "spaceComplexity": "O(n^2) — memoization table"
+        },
+        {
+          "label": "Alternative — two-pass stack",
+          "keyIdea": "First pass left-to-right: treat `*` as `(` and ensure we can match all `)`. Second pass right-to-left: treat `*` as `)` and ensure we can match all `(`. Both must succeed. This validates that stars can be assigned to balance both directions. Use when you want an explicit validation in both directions; greedy range is more elegant.",
+          "code": "class Solution:\n    def checkValidString(self, s: str) -> bool:\n        # Left-to-right: treat * as (\n        open_count = 0\n        for c in s:\n            if c == '(' or c == '*':\n                open_count += 1\n            else:  # ')'\n                open_count -= 1\n            if open_count < 0:\n                return False  # too many ')'\n        \n        # Right-to-left: treat * as )\n        close_count = 0\n        for c in reversed(s):\n            if c == ')' or c == '*':\n                close_count += 1\n            else:  # '('\n                close_count -= 1\n            if close_count < 0:\n                return False  # too many '('\n        \n        return True",
+          "timeComplexity": "O(n) — two passes",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given a string s containing only three types of characters: &#39;(&#39;, &#39;)&#39; and &#39;*&#39;, return true if s is valid.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "string-validation"
+    },
+    {
+      "id": "find-min-arrow-shots",
+      "title": "find Min Arrow Shots",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "interval-overlap",
+      "leetcodeSlug": "find-min-arrow-shots",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\n\ndef findMinArrowShots(points):\n    points.sort(key=lambda x:(x[0],x[1]))\n    numArrows, index = 0, 0\n    while index<len(points):\n        nextBalloonToPickEnd = points[index][1]\n        while index<len(points) and points[index][0]<=nextBalloonToPickEnd:\n            nextBalloonToPickEnd = min(nextBalloonToPickEnd, points[index][1])\n            index += 1\n        numArrows += 1\n    return numArrows\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "frog-jump2",
+      "title": "frog Jump2",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "optimization",
+      "leetcodeSlug": "frog-jump2",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def maxJump(self, stones: List[int]) -> int:\n        maxJump = stones[1] - stones[0]\n        for i in range(len(stones)-2):\n            maxJump = max(maxJump, stones[i+2]-stones[i])\n        return maxJump\n    \n\nclass Solution:\n    def maxJump(self, stones: List[int]) -> int:\n\n        def isValidMaxJumpHelper(maxJump, stones):\n            startIndex, endIndex, usedStones = 0, 0, set()\n            while startIndex<len(stones)-1:\n                while endIndex+1<len(stones) and stones[endIndex+1]-stones[startIndex]<=maxJump:\n                    endIndex += 1\n                if startIndex==endIndex: \n                    return False, []\n                startIndex = endIndex\n                usedStones.add(stones[startIndex])\n            return True, usedStones\n        \n        def isValidMaxJump(maxJump):\n            jumpsPossible, usedStones = isValidMaxJumpHelper(maxJump, stones)\n            if not jumpsPossible: return False\n            return isValidMaxJumpHelper(maxJump, [0] + [stone for stone in stones if stone not in usedStones] + [stones[-1]])[0]\n        \n        low, high = 1, max(stones)\n        while low<high:\n            mid = (low+high)//2\n            if isValidMaxJump(mid):\n                high = mid\n            else:\n                low = mid+1\n        return low",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "interval-list-intersections",
+      "title": "interval List Intersections",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "interval-merge",
+      "leetcodeSlug": "interval-list-intersections",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def intervalIntersection(self, firstList, secondList):\n\n        intersectionsList = []\n        firstListIndex, secondListIndex = 0, 0\n\n        while True:\n            if firstListIndex==len(firstList) or secondListIndex==len(secondList): break\n            firstListIntervalStart, firstListIntervalEnd = firstList[firstListIndex]\n            secondListIntervalStart, secondListIntervalEnd = secondList[secondListIndex]\n\n            if max(firstListIntervalStart, secondListIntervalStart)<=min(firstListIntervalEnd, secondListIntervalEnd):\n                intersectionsList.append([max(firstListIntervalStart, secondListIntervalStart), min(firstListIntervalEnd, secondListIntervalEnd)])\n\n            if firstListIntervalEnd<secondListIntervalEnd: firstListIndex+=1\n            else: secondListIndex+=1\n\n        return intersectionsList",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given two lists of closed intervals, firstList and secondList, where firstList[i] = [starti, endi] and secondList[j] = [startj, endj]. Each list of intervals is pairwise disjoint and in sorted order.",
+      "phaseId": 3
+    },
+    {
+      "id": "ipo",
+      "title": "ipo",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "selection",
+      "leetcodeSlug": "ipo",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# (-profit)",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# (-profit)",
+          "code": "import heapq\nclass Solution:\n    def findMaximizedCapital(self, k: int, w: int, profits, capital):\n        indexTillCapitalWhichAreAdded = -1\n        capital, profits = zip(*sorted(zip(capital, profits)))\n        # (-profit)\n        profitsHeap = []\n        def addTill(currentWeight):\n            nonlocal indexTillCapitalWhichAreAdded, profitsHeap\n            while indexTillCapitalWhichAreAdded + 1 < len(capital) and capital[indexTillCapitalWhichAreAdded+1]<=currentWeight:\n                indexTillCapitalWhichAreAdded += 1 \n                heapq.heappush(profitsHeap, -profits[indexTillCapitalWhichAreAdded])\n        \n        for _ in range(k):\n            addTill(w)\n            if profitsHeap:\n                w -= heapq.heappop(profitsHeap)\n        return w\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Suppose LeetCode will start its IPO soon. In order to sell a good price of its shares to Venture Capital, LeetCode would like to work on some projects to increase its capital before the IPO. Since it has limited resources, it can only finish at most k distinct projects before the IPO. Help LeetCode design the best way to maximize its total capital after finishing at most k distinct projects.",
+      "phaseId": 3
+    },
+    {
+      "id": "jump-game2",
+      "title": "jump Game2",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "array-jumps",
+      "leetcodeSlug": "jump-game2",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "BFS, DP, Optimized DP/Greedy",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "BFS, DP, Optimized DP/Greedy",
+          "code": "# BFS, DP, Optimized DP/Greedy \nfrom collections import deque\nclass Solution:\n    def jump(self, nums):\n        queue, visited, n = deque([(0,0)]), set([0]), len(nums)\n        if n==1: return 0\n        while queue:\n            index, stepsSoFar = queue.popleft()\n            for neigh in range(index+1, index+nums[index]+1):\n                if neigh==n-1:\n                    return stepsSoFar+1\n                if neigh not in visited:\n                    visited.add(neigh)\n                    queue.append((neigh, stepsSoFar+1))\n\nclass Solution:\n    def jump(self, nums):\n        dp = [0 for _ in range(len(nums))]\n        for index in range(len(nums)-2, -1, -1):\n            dp[index] = min([1e9]+dp[index+1:index+nums[index]+1]) + 1\n        return dp[0]\n\nclass Solution:\n    def jump(self, nums):\n        lastIndexOfPreviousJumpSet, largestJumpableIndexFromPreviousJumpSet, jumps = -1, 0, 0\n        while largestJumpableIndexFromPreviousJumpSet<len(nums)-1:\n            largestJumpableIndexFromPreviousJumpSet, lastIndexOfPreviousJumpSet = max([nums[index]+index for index in range(lastIndexOfPreviousJumpSet+1, largestJumpableIndexFromPreviousJumpSet+1)]), largestJumpableIndexFromPreviousJumpSet\n            jumps+=1\n        return jumps",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "max-num-of-meetings",
+      "title": "max Num Of Meetings",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "scheduling",
+      "leetcodeSlug": "max-num-of-meetings",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def maximumMeetings(n,start,end):\n    combined = [(start[i], end[i]) for i in range(n)]\n    combined.sort(key=lambda x: x[1])\n    endTime = 0\n    numMeetings = 0\n    for slot in combined:\n        if endTime<slot[0]:\n            numMeetings += 1\n            endTime = slot[1]\n    return numMeetings\n    \nstart = [10, 12, 20]\nend =  [20, 25, 30]\nprint(maximumMeetings(len(start), start, end))",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "max-profit-in-unit-time-jobs",
+      "title": "max Profit In Unit Time Jobs",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "scheduling",
+      "leetcodeSlug": "max-profit-in-unit-time-jobs",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "User function Template for python3     #Function to find the maximum profit and the number of jobs done.             #add future deadline jobs which are in heap if you can in extra slots if you can             #add all elements with currentDeadline to heap             #add max profit job in this slot",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "User function Template for python3     #Function to find the maximum profit and the number of jobs done.             #add future deadline jobs which are in heap if you can in extra slots if you can             #add all elements with currentDeadline to heap             #add max profit job in this slot",
+          "code": "#User function Template for python3\nimport heapq\nclass Solution:\n    \n    #Function to find the maximum profit and the number of jobs done.\n    def JobScheduling(self,jobs,n):\n        jobs.sort(key=lambda x:x.deadline)\n        numJobs, maxProfit, heap, index, nextDeadline = 0, 0, [], n-1, 0\n        printJobs(jobs)\n        while index>=0:\n            currDeadline = jobs[index].deadline\n\n            #add future deadline jobs which are in heap if you can in extra slots if you can\n            numExtraSlots = nextDeadline - currDeadline - 1\n            while heap and numExtraSlots>=1:\n                maxProfitJobWithFutureDeadline = heapq.heappop(heap)\n                maxProfit -= maxProfitJobWithFutureDeadline\n                numJobs += 1\n                numExtraSlots -= 1\n\n            #add all elements with currentDeadline to heap\n            while index>=0 and jobs[index].deadline==currDeadline:\n                currDeadlineProfit = jobs[index].profit\n                heapq.heappush(heap, -currDeadlineProfit)\n                index -= 1\n            \n            #add max profit job in this slot   \n            maxProfitJobWithAnyDeadline = heapq.heappop(heap)\n            maxProfit -= maxProfitJobWithAnyDeadline\n            numJobs += 1\n            \n            nextDeadline = currDeadline\n\n        #add jobs till deadline = 0\n        currDeadline = 0\n        numExtraSlots = nextDeadline - currDeadline - 1\n        while heap and numExtraSlots>=1:\n            maxProfitJobWithFutureDeadline = heapq.heappop(heap)\n            maxProfit -= maxProfitJobWithFutureDeadline\n            numJobs += 1\n            numExtraSlots -= 1\n        return (numJobs, maxProfit)\n\n\n#{ \n # Driver Code Starts\n#Initial Template for Python 3\nimport atexit\nimport io\nimport sys\n\n#Contributed by : Nagendra Jha\nclass Job:\n    '''\n    Job class which stores profit and deadline.\n    '''\n    def __init__(self,profit=0,deadline=0):\n        self.profit = profit\n        self.deadline = deadline\n        self.id = 0\n\nif __name__ == '__main__':\n    test_cases = 1\n    # for cases in range(test_cases) :\n    #     info = [(1,1,100),(1,4,1),(1,4,2),(1,5,2),(1,5,2)]\n    #     n = len(info)\n    #     Jobs = [Job() for i in range(n)]\n    #     for i in range(n):\n    #         # Jobs[i].id = info[3*i]\n    #         # Jobs[i].deadline = info[3 * i + 1]\n    #         # Jobs[i].profit=info[3*i+2]\n    #         Jobs[i].id = info[i][0]\n    #         Jobs[i].deadline = info[i][1]\n    #         Jobs[i].profit=info[i][2]\n    #     ob = Solution()\n    #     def printJobs(jobs):\n    #         for job in Jobs:\n    #             print(job.id, job.deadline, job.profit)\n    #     # printJobs(Jobs)\n    #     res = ob.JobScheduling(Jobs,n)\n    #     print (res[0], end=\" \")\n    #     print (res[1])\n    for cases in range(test_cases) :\n        n = 79\n        s = \"1 23 400 2 100 143 3 31 191 4 64 291 5 30 140 6 5 23 7 63 137 8 91 443 9 97 403 10 99 28 11 62 463 12 87 114 13 10 486 14 73 489 15 73 468 16 67 248 17 19 218 18 42 1 19 8 406 20 44 489 21 45 48 22 63 359 23 36 305 24 53 284 25 8 4 26 64 221 27 66 250 28 35 328 29 36 359 30 16 60 31 26 135 32 7 396 33 52 401 34 97 112 35 6 392 36 100 202 37 91 315 38 61 326 39 19 213 40 9 326 41 16 124 42 99 34 43 74 85 44 61 461 45 43 176 46 72 121 47 10 31 48 16 14 49 31 264 50 25 236 51 55 76 52 37 445 53 90 497 54 22 361 55 62 83 56 38 277 57 6 436 58 10 431 59 20 170 60 91 315 61 98 263 62 35 359 63 93 450 64 72 75 65 66 496 66 10 220 67 72 98 68 17 313 69 47 138 70 73 8 71 72 211 72 84 278 73 46 446 74 8 18 75 67 451 76 32 164 77 65 266 78 23 209 79 67 394\"\n        info = list(map(int,s.strip().split()))\n        Jobs = [Job() for i in range(n)]\n        for i in range(n):\n            Jobs[i].id = info[3*i]\n            Jobs[i].deadline = info[3 * i + 1]\n            Jobs[i].profit=info[3*i+2]\n\n        ob = Solution()\n        def printJobs(jobs):\n            for job in Jobs:\n                print(job.id, job.deadline, job.profit)\n        # printJobs(Jobs)\n        res = ob.JobScheduling(Jobs,n)\n        print (res[0], end=\" \")\n        print (res[1])\n# } Driver Code Ends\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "maximum-ice-cream-bars",
+      "title": "maximum Ice Cream Bars",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "selection",
+      "leetcodeSlug": "maximum-ice-cream-bars",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "def maxIceCream(costs, coins):\n    costs.sort()\n    numIceCreams = 0\n    for cost in costs:\n        if cost<=coins:\n            coins-=cost\n            numIceCreams += 1\n        else:\n            break\n    return numIceCreams",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "It is a sweltering summer day, and a boy wants to buy some ice cream bars.",
+      "phaseId": 4
+    },
+    {
+      "id": "queue-reconstruction-from-height",
+      "title": "queue Reconstruction From Height",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "reconstruction",
+      "leetcodeSlug": "queue-reconstruction-from-height",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# unnecessary space for rangeArr and arr is not exactly needed",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# unnecessary space for rangeArr and arr is not exactly needed",
+          "code": "import heapq\n\nclass Solution:\n    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:\n\n        unseenSet = set([tuple(p) for p in people])\n        minHeap = []\n\n        sortedHeights = sorted(list(set(h for h, k in people)))\n        heightToCountMap = defaultdict(int)\n\n        while unseenSet or minHeap:\n            nextUnseenSet = set()\n            for height, peopleInFront in unseenSet:\n                if heightToCountMap[height]==peopleInFront:\n                    heapq.heappush(minHeap, (height, peopleInFront))\n                else:\n                    nextUnseenSet.add((height, peopleInFront))\n\n            heightToAdd, peopleInFrontToAdd = heapq.heappop(minHeap)\n            for height in sortedHeights:\n                if height<=heightToAdd: heightToCountMap[height] += 1\n                else: break\n            \n            yield([heightToAdd, peopleInFrontToAdd])\n\n            unseenSet = nextUnseenSet\n\n\nclass Solution:\n    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:\n        ansArr = []\n        for height, peopleInFront in sorted(people, key=lambda x:(-x[0],x[1])):\n            ansArr.insert(peopleInFront, [height, peopleInFront])\n        return ansArr\n\n\n\n\nclass BIT:\n    def __init__(self, arrSize) -> None:\n        self.treeSize = arrSize + 1\n        self.bit = [0 for _ in range(self.treeSize)]\n        for index in range(arrSize):\n            self.update(index, 0, 1)\n\n    def update(self, arrIndex, oldVal, newVal):\n        val = newVal - oldVal\n        treeIndex = arrIndex+1\n        while treeIndex<self.treeSize:\n            self.bit[treeIndex] += val\n            treeIndex += (treeIndex & -treeIndex)\n    \n    def getSumTill(self, arrIndex):\n        treeIndex = arrIndex + 1\n        total = 0\n        while treeIndex>0:\n            total += self.bit[treeIndex]\n            treeIndex -= (treeIndex & -treeIndex)\n        return total\n\nimport bisect\nclass Solution:\n    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:\n        n = len(people)\n        bit, rangeArr, outputArr = BIT(n), range(n), [None for _ in range(n)]\n\n        for height, numPrevEmptyPositions in sorted(people, key=lambda x:(x[0], -x[1])):\n            index = bisect.bisect_left(rangeArr, numPrevEmptyPositions+1, key=lambda i: bit.getSumTill(i))\n            outputArr[index] = [height, numPrevEmptyPositions]\n            bit.update(index, 1, 0)\n\n        return outputArr\n    \n\nimport bisect\nclass Solution:\n    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:\n        n = len(people)\n        bit, outputArr = BIT(n), [None for _ in range(n)]\n\n        def getIndexToFill(numUnusedPositionsNeeded):\n            low, high = 0, n-1\n            while low<high:\n                mid = (low+high)//2\n                unusedPositions = bit.getSumTill(mid)\n                if unusedPositions<numUnusedPositionsNeeded:\n                    low = mid + 1\n                else:\n                    high = mid\n            return low\n            \n\n        for height, numPrevEmptyPositions in sorted(people, key=lambda x:(x[0], -x[1])):\n            index = getIndexToFill(numPrevEmptyPositions+1)\n            outputArr[index] = [height, numPrevEmptyPositions]\n            bit.update(index, 1, 0)\n\n        return outputArr\n    \n\n\nimport bisect\nclass Solution:\n    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:\n        n = len(people)\n        bit, rangeArr, outputArr = BIT(n), range(n), [None for _ in range(n)]\n\n        def customBisectLeft(arr, need, key):\n            low, high = 0, len(arr)\n            while low<high:\n                mid = (low+high)//2\n                if key(mid)<need:\n                    low = mid + 1\n                else:\n                    high = mid\n            return low\n\n        for height, numPrevEmptyPositions in sorted(people, key=lambda x:(x[0], -x[1])):\n            index = customBisectLeft(rangeArr, numPrevEmptyPositions+1, key=lambda i: bit.getSumTill(i))\n            outputArr[index] = [height, numPrevEmptyPositions]\n            bit.update(index, 1, 0)\n\n        return outputArr\n    \n\n\nimport bisect\nclass Solution:\n    def reconstructQueue(self, people: List[List[int]]) -> List[List[int]]:\n        n = len(people)\n        bit, rangeArr, outputArr = BIT(n), range(n), [None for _ in range(n)]\n        # unnecessary space for rangeArr and arr is not exactly needed\n        def customBisectRight(arr, need, key):\n            low, high = 0, len(arr)\n            while low<high:\n                mid = (low+high)//2\n                if key(mid)<=need:\n                    low = mid + 1\n                else:\n                    high = mid\n            return low\n\n        for height, numPrevEmptyPositions in sorted(people, key=lambda x:(x[0], -x[1])):\n            index = customBisectRight(rangeArr, numPrevEmptyPositions, key=lambda i: bit.getSumTill(i))\n            outputArr[index] = [height, numPrevEmptyPositions]\n            bit.update(index, 1, 0)\n\n        return outputArr",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "reducing-dishes",
+      "title": "reducing Dishes",
+      "difficulty": "Medium",
+      "patternId": "greedy",
+      "subcategory": "optimization",
+      "leetcodeSlug": "reducing-dishes",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def maxSatisfaction(self, satisfaction):\n        satisfaction.sort()\n        cumulativeSum, i = 0, len(satisfaction)\n        while i>0:\n            if cumulativeSum+satisfaction[i-1]>=0: \n                i-=1\n                cumulativeSum+=satisfaction[i]\n            else: break\n        return sum(mult*satisfaction[i+mult-1] for mult in range(1, len(satisfaction)-i+1))\n        \n    def maxSatisfaction(self, satisfaction):\n        res = total = 0\n        satisfaction.sort()\n        while satisfaction and satisfaction[-1] + total > 0:\n            total += satisfaction.pop()\n            res += total\n        return res",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "A chef has collected data on the satisfaction level of his n dishes. Chef can cook any dish in 1 unit of time.",
+      "phaseId": 4
+    }
+  ]
+}

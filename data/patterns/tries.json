@@ -1,0 +1,152 @@
+{
+  "id": "tries",
+  "name": "Tries",
+  "phaseId": 8,
+  "order": 1,
+  "tagline": "Prefix trees — anything about words to prefixes.",
+  "concept": "## The idea\n\nA **trie** (from re*trie*val, often pronounced \"try\") is a tree where each edge represents a character, and paths from root to node spell out prefixes. It's the data structure when you need to:\n\n- Check if a word exists or if any word **starts with** a prefix — both in O(k) where k is the word length, instead of O(n·k) scanning a list of n words.\n- Store a dictionary compactly when words share prefixes (think autocomplete).\n\nIn Python, the simplest trie is a **nested dict**: `trie = {}`, then `trie['c']['a']['t'] = True` marks \"cat\" as a word. For more structure, define a `TrieNode` class with a `children` dict (maps char → child node) and an `is_end` flag.\n\nInsertion: walk/create nodes for each character, mark the last. Search: walk; if you hit a missing child or the path doesn't end with `is_end`, no match. Prefix check: just walk — you don't need `is_end`.\n\n## Python you'll pick up here\n\n- `collections.defaultdict(TrieNode)` — auto-creates children on first access, cleaner than `if char not in node.children`\n- Nested dict tries: `trie = {}; current = trie; current = current.setdefault(char, {})`\n- Class definitions with `__init__`, instance variables (`self.children`, `self.is_end`)\n- The `any()` builtin and recursive backtracking for wildcard search\n- DFS on a grid + trie pruning (Word Search II)",
+  "whenToUse": [
+    "You're asked to store a dictionary and check prefix existence (autocomplete, word validation)",
+    "Search needs to scale with word length, not number of words",
+    "You need to find all words in a grid/string that match a dictionary (DFS + trie pruning)",
+    "The problem says 'prefix', 'dictionary', 'autocomplete', or 'word lookup'"
+  ],
+  "problems": [
+    {
+      "id": "implement-trie-prefix-tree",
+      "title": "Implement Trie (Prefix Tree)",
+      "leetcodeSlug": "implement-trie-prefix-tree",
+      "difficulty": "Medium",
+      "patternId": "tries",
+      "tags": [
+        "trie",
+        "design"
+      ],
+      "video": {
+        "title": "NeetCode — Implement Trie (Prefix Tree) (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Implement+Trie+Prefix+Tree",
+        "lang": "python"
+      },
+      "keyIdeas": "The foundational trie problem. Each `TrieNode` holds a dict of children (char → node) and an `is_end` flag. Insert walks/creates nodes for each character and sets the flag. Search walks and checks the flag. `startsWith` walks but ignores the flag. All operations are O(k) where k is the word length.",
+      "hints": [
+        "Each node needs to store: (1) its children as a map from character to child node, and (2) a boolean marking if a word ends here.",
+        "Insert: for each character, get-or-create the child node, then move to it. After the last character, set `is_end = True`.",
+        "Search is like insert but read-only: walk the path; if you can't find a character or the final node isn't marked as a word end, return False."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — hashset",
+          "keyIdea": "Store all words in a set for search. For prefix check, iterate through all words checking if any starts with the prefix. Motivates the trie: prefix search is O(n·k) here vs O(k) with a trie.",
+          "code": "class Trie:\n    def __init__(self):\n        self.words = set()\n\n    def insert(self, word: str) -> None:\n        self.words.add(word)\n\n    def search(self, word: str) -> bool:\n        return word in self.words\n\n    def startsWith(self, prefix: str) -> bool:\n        # check if any word starts with prefix\n        return any(w.startswith(prefix) for w in self.words)",
+          "timeComplexity": "O(1) insert, O(1) search, O(n·k) startsWith where n = #words, k = prefix length",
+          "spaceComplexity": "O(n·k) for n words"
+        },
+        {
+          "label": "Optimal — TrieNode with dict",
+          "keyIdea": "Define a TrieNode with a children dict and is_end flag. Walk/create for insert, walk/check for search. All operations O(k). Reach for this when you need fast prefix queries and memory isn't the bottleneck — the dict is flexible for any character set.",
+          "code": "class TrieNode:\n    def __init__(self):\n        self.children = {}   # maps char -> TrieNode\n        self.is_end = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word: str) -> None:\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                node.children[char] = TrieNode()\n            node = node.children[char]\n        node.is_end = True\n\n    def search(self, word: str) -> bool:\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return node.is_end\n\n    def startsWith(self, prefix: str) -> bool:\n        node = self.root\n        for char in prefix:\n            if char not in node.children:\n                return False\n            node = node.children[char]\n        return True",
+          "timeComplexity": "O(k) per operation, k = word/prefix length",
+          "spaceComplexity": "O(n·k) total, n = number of words"
+        },
+        {
+          "label": "Alternative — TrieNode with array[26]",
+          "keyIdea": "Use a fixed array of 26 children (for lowercase 'a'-'z') instead of a dict. Faster lookups (O(1) array index vs dict hash), more cache-friendly, but wastes space when nodes are sparse. Reach for this in performance-critical code with known character sets.",
+          "code": "class TrieNode:\n    def __init__(self):\n        self.children = [None] * 26  # fixed array for 'a'-'z'\n        self.is_end = False\n\nclass Trie:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def insert(self, word: str) -> None:\n        node = self.root\n        for char in word:\n            idx = ord(char) - ord('a')\n            if node.children[idx] is None:\n                node.children[idx] = TrieNode()\n            node = node.children[idx]\n        node.is_end = True\n\n    def search(self, word: str) -> bool:\n        node = self.root\n        for char in word:\n            idx = ord(char) - ord('a')\n            if node.children[idx] is None:\n                return False\n            node = node.children[idx]\n        return node.is_end\n\n    def startsWith(self, prefix: str) -> bool:\n        node = self.root\n        for char in prefix:\n            idx = ord(char) - ord('a')\n            if node.children[idx] is None:\n                return False\n            node = node.children[idx]\n        return True",
+          "timeComplexity": "O(k) per operation, k = word/prefix length",
+          "spaceComplexity": "O(n·k·26) = O(n·k) total, but higher constant — each node allocates 26 slots"
+        }
+      ],
+      "description": "A trie (pronounced as \"try\") or prefix tree is a tree data structure used to efficiently store and retrieve keys in a dataset of strings. There are various applications of this data structure, such as autocomplete and spellchecker.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "basics"
+    },
+    {
+      "id": "design-add-and-search-words-data-structure",
+      "title": "Design Add and Search Words Data Structure",
+      "leetcodeSlug": "design-add-and-search-words-data-structure",
+      "difficulty": "Medium",
+      "patternId": "tries",
+      "tags": [
+        "trie",
+        "design",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Design Add and Search Words Data Structure (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Design+Add+and+Search+Words+Data+Structure",
+        "lang": "python"
+      },
+      "keyIdeas": "Extends the basic trie with **wildcard search**: `.` matches any character. When you hit a `.`, branch: try *all* children at that position (DFS/backtracking). If any branch completes the match, return True. Insert is unchanged from Trie I.",
+      "hints": [
+        "The wildcard `.` means you can't just walk a single path — you need to explore all possible branches at that character.",
+        "Write a recursive helper `dfs(node, i)` that searches from `node` starting at index `i` of the word. If `word[i] == '.'`, recurse on all children.",
+        "Base case: when you've consumed the whole word (i == len(word)), check if the current node is a word end."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — list + manual wildcard matching",
+          "keyIdea": "Store all words in a list. For search with wildcards, iterate through every word and match character-by-character, treating '.' as a wildcard. O(n·k) per search, motivates the trie's ability to prune branches early.",
+          "code": "class WordDictionary:\n    def __init__(self):\n        self.words = []\n\n    def addWord(self, word: str) -> None:\n        self.words.append(word)\n\n    def search(self, word: str) -> bool:\n        def match(w, pattern):\n            if len(w) != len(pattern):\n                return False\n            for i in range(len(w)):\n                if pattern[i] != '.' and w[i] != pattern[i]:\n                    return False\n            return True\n        return any(match(w, word) for w in self.words)",
+          "timeComplexity": "O(1) addWord; O(n·k) search where n = #words, k = word length",
+          "spaceComplexity": "O(n·k)"
+        },
+        {
+          "label": "Optimal — Trie + DFS for wildcards",
+          "keyIdea": "Insert is standard trie. Search becomes a recursive DFS: on '.', try every child; on a letter, follow that one path. The trie prunes invalid paths immediately (no need to scan all words), making it much faster than brute force when the dictionary is large.",
+          "code": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n\nclass WordDictionary:\n    def __init__(self):\n        self.root = TrieNode()\n\n    def addWord(self, word: str) -> None:\n        node = self.root\n        for char in word:\n            if char not in node.children:\n                node.children[char] = TrieNode()\n            node = node.children[char]\n        node.is_end = True\n\n    def search(self, word: str) -> bool:\n        def dfs(node, i):\n            if i == len(word):\n                return node.is_end\n            char = word[i]\n            if char == '.':\n                # try all children\n                return any(dfs(child, i + 1) for child in node.children.values())\n            else:\n                if char not in node.children:\n                    return False\n                return dfs(node.children[char], i + 1)\n        return dfs(self.root, 0)",
+          "timeComplexity": "O(k) addWord; O(m) search worst-case for m nodes explored (exponential with many dots)",
+          "spaceComplexity": "O(n·k) for n words"
+        }
+      ],
+      "description": "Design a data structure that supports adding new words and finding if a string matches any previously added string.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "wildcard-search"
+    },
+    {
+      "id": "word-search-ii",
+      "title": "Word Search II",
+      "leetcodeSlug": "word-search-ii",
+      "difficulty": "Hard",
+      "patternId": "tries",
+      "tags": [
+        "trie",
+        "backtracking",
+        "dfs",
+        "grid"
+      ],
+      "video": {
+        "title": "NeetCode — Word Search II (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Word+Search+II",
+        "lang": "python"
+      },
+      "keyIdeas": "Build a trie from the word list. DFS from every cell, carrying the current trie node. Each step checks if `board[r][c]` is a child of the current node — if not, prune that path (no word can match). When you hit a node with `is_end`, you've found a word. Mark cells visited in-place (or use a set) to avoid revisiting. This is O(rows·cols·4^L) where L is max word length, but the trie pruning makes it vastly faster than running Word Search I per word.",
+      "hints": [
+        "Running the grid DFS separately for each word would be O(words · rows · cols · 4^L). A trie lets you search for all words in a single pass.",
+        "Build the trie from the word list. Start DFS from every cell, passing the current trie node. At each step, check if the cell's letter is in node.children; if not, stop (prune).",
+        "When you reach a node where `is_end` is True, you've found a word — add it to the result. Remove it from the trie (set `is_end = False` and prune the node if it has no children) to avoid duplicates."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force (Word Search I per word)",
+          "keyIdea": "Run the classic backtracking Word Search once for each word in the list. Very slow when the word list is large.",
+          "code": "class Solution:\n    def findWords(self, board: list[list[str]], words: list[str]) -> list[str]:\n        def dfs(r, c, word, i):\n            if i == len(word):\n                return True\n            if r < 0 or r >= rows or c < 0 or c >= cols or board[r][c] != word[i]:\n                return False\n            tmp = board[r][c]\n            board[r][c] = '#'  # mark visited\n            found = (dfs(r+1, c, word, i+1) or dfs(r-1, c, word, i+1) or\n                     dfs(r, c+1, word, i+1) or dfs(r, c-1, word, i+1))\n            board[r][c] = tmp\n            return found\n\n        rows, cols = len(board), len(board[0])\n        result = []\n        for word in words:\n            # try starting from every cell\n            if any(dfs(r, c, word, 0) for r in range(rows) for c in range(cols)):\n                result.append(word)\n        return result",
+          "timeComplexity": "O(w · m · n · 4^L) where w = #words, m·n = grid, L = max word length",
+          "spaceComplexity": "O(L) recursion depth"
+        },
+        {
+          "label": "Optimal — Trie + DFS",
+          "keyIdea": "Build a trie from words, then DFS from every cell carrying the trie node. Prune branches when the letter isn't in the trie.",
+          "code": "class TrieNode:\n    def __init__(self):\n        self.children = {}\n        self.is_end = False\n        self.word = None  # store the word here for easy collection\n\nclass Solution:\n    def findWords(self, board: list[list[str]], words: list[str]) -> list[str]:\n        # build trie\n        root = TrieNode()\n        for word in words:\n            node = root\n            for char in word:\n                if char not in node.children:\n                    node.children[char] = TrieNode()\n                node = node.children[char]\n            node.is_end = True\n            node.word = word\n\n        rows, cols = len(board), len(board[0])\n        result = set()\n\n        def dfs(r, c, node):\n            char = board[r][c]\n            if char not in node.children:\n                return\n            node = node.children[char]\n            if node.is_end:\n                result.add(node.word)  # found a word\n                node.is_end = False    # avoid duplicates\n            \n            board[r][c] = '#'  # mark visited\n            for dr, dc in [(1,0), (-1,0), (0,1), (0,-1)]:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < rows and 0 <= nc < cols and board[nr][nc] != '#':\n                    dfs(nr, nc, node)\n            board[r][c] = char  # restore\n\n        for r in range(rows):\n            for c in range(cols):\n                dfs(r, c, root)\n        return list(result)",
+          "timeComplexity": "O(m · n · 4^L) where m·n = grid, L = max word length (but trie pruning reduces this dramatically)",
+          "spaceComplexity": "O(w·L) for trie, w = #words"
+        }
+      ],
+      "description": "Given an m x n board of characters and a list of strings words, return all words on the board.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "grid-search"
+    }
+  ]
+}

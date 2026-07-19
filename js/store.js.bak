@@ -1,0 +1,185 @@
+// store.js — app state, localStorage persistence, and derived selectors.
+// Progress is mirrored in localStorage (offline source of truth) and, when a token
+// is present, synced to a private Gist by sync.js.
+
+const LS = {
+  progress: 'dsa:progress',
+  settings: 'dsa:settings',
+  token: 'dsa:token',
+  gistId: 'dsa:gistId',
+  lastSync: 'dsa:lastSync',
+};
+
+const REVIEW_STEPS = [1, 3, 7, 21]; // spaced-repetition intervals (days)
+const DAY = 86400000;
+
+function nowISO() { return new Date().toISOString(); }
+function todayKey(d = new Date()) { return d.toISOString().slice(0, 10); }
+
+function load(key, fallback) {
+  try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; }
+  catch { return fallback; }
+}
+function save(key, val) {
+  try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
+}
+
+const listeners = new Set();
+function emit() { listeners.forEach(fn => fn()); }
+
+const store = {
+  progress: load(LS.progress, { version: 1, user: 'Shirisha', updatedAt: nowISO(), phaseStartedAt: {}, problems: {} }),
+  settings: load(LS.settings, { name: 'Shirisha', theme: 'auto' }),
+
+  subscribe(fn) { listeners.add(fn); return () => listeners.delete(fn); },
+
+  // ---- token / gist (read-through to localStorage) ----
+  getToken() { return localStorage.getItem(LS.token) || ''; },
+  setToken(t) { t ? localStorage.setItem(LS.token, t.trim()) : localStorage.removeItem(LS.token); },
+  getGistId() { return localStorage.getItem(LS.gistId) || ''; },
+  setGistId(id) { id ? localStorage.setItem(LS.gistId, id) : localStorage.removeItem(LS.gistId); },
+  getLastSync() { return localStorage.getItem(LS.lastSync) || ''; },
+  setLastSync(t) { localStorage.setItem(LS.lastSync, t); },
+
+  // ---- problem state ----
+  getProblem(id) { return this.progress.problems[id] || { status: 'not-started', attempts: 0 }; },
+
+  _touch(id) {
+    const p = this.progress.problems[id] || (this.progress.problems[id] = { status: 'not-started', attempts: 0 });
+    p.updatedAt = nowISO();
+    this.progress.updatedAt = nowISO();
+    return p;
+  },
+
+  setStatus(id, status) {
+    const p = this._touch(id);
+    const prev = p.status;
+    p.status = status;
+    if (status === 'attempted' && prev === 'not-started') { p.attempts = (p.attempts || 0) + 1; p.firstAttemptedAt = p.firstAttemptedAt || nowISO(); }
+    if (status === 'solved') {
+      p.solvedAt = p.solvedAt || nowISO();
+      // seed spaced-repetition schedule on first solve
+      if (!p.revision) p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
+    }
+    if (status === 'needs-revision') {
+      p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
+    }
+    this._persist();
+  },
+
+  bumpAttempt(id) { const p = this._touch(id); p.attempts = (p.attempts || 0) + 1; if (p.status === 'not-started') p.status = 'attempted'; p.firstAttemptedAt = p.firstAttemptedAt || nowISO(); this._persist(); },
+
+  setNotes(id, notes) { const p = this._touch(id); p.notes = notes; this._persist(); },
+
+  // advance a review one step along 1→3→7→21 then graduate (clear)
+  reviewed(id) {
+    const p = this.progress.problems[id]; if (!p || !p.revision) return;
+    const idx = REVIEW_STEPS.indexOf(p.revision.interval);
+    const next = REVIEW_STEPS[idx + 1];
+    if (next) { p.revision = { interval: next, due: new Date(Date.now() + next * DAY).toISOString(), lastReviewedAt: nowISO() }; }
+    else { delete p.revision; } // mastered
+    p.updatedAt = nowISO(); this._persist();
+  },
+
+  markPhaseStarted(phaseId) {
+    if (!this.progress.phaseStartedAt[phaseId]) { this.progress.phaseStartedAt[phaseId] = nowISO(); this._persist(); }
+  },
+
+  setSettings(patch) { this.settings = { ...this.settings, ...patch }; save(LS.settings, this.settings); emit(); },
+
+  _persist() { save(LS.progress, this.progress); emit(); if (this._onChange) this._onChange(); },
+  onChange(fn) { this._onChange = fn; },
+
+  // replace progress after a sync-merge
+  replaceProgress(next) { this.progress = next; save(LS.progress, this.progress); emit(); },
+
+  exportJSON() { return JSON.stringify(this.progress, null, 2); },
+  importJSON(text) {
+    const parsed = JSON.parse(text);
+    if (!parsed || typeof parsed !== 'object' || !parsed.problems) throw new Error('Not a valid progress file');
+    this.replaceProgress(parsed); this._persist();
+  },
+
+  // ---------- derived selectors ----------
+  counts() {
+    const c = { 'not-started': 0, attempted: 0, solved: 0, 'needs-revision': 0 };
+    for (const p of Object.values(this.progress.problems)) c[p.status] = (c[p.status] || 0) + 1;
+    return c;
+  },
+
+  patternCoverage(pattern) {
+    const ids = pattern.problems.map(p => p.id);
+    const solved = ids.filter(id => this.getProblem(id).status === 'solved').length;
+    return { solved, total: ids.length, pct: ids.length ? Math.round(100 * solved / ids.length) : 0 };
+  },
+
+  dueForRevision() {
+    const out = [];
+    const now = Date.now();
+    for (const [id, p] of Object.entries(this.progress.problems)) {
+      if (p.revision && new Date(p.revision.due).getTime() <= now) out.push({ id, due: p.revision.due });
+    }
+    return out.sort((a, b) => new Date(a.due) - new Date(b.due));
+  },
+
+  streak() {
+    // consecutive days (ending today or yesterday) with >=1 status advance
+    const days = new Set();
+    for (const p of Object.values(this.progress.problems)) {
+      for (const t of [p.firstAttemptedAt, p.solvedAt, p.updatedAt]) if (t) days.add(todayKey(new Date(t)));
+    }
+    let streak = 0, cur = new Date();
+    if (!days.has(todayKey(cur))) cur = new Date(Date.now() - DAY); // allow "yesterday" to keep streak alive
+    while (days.has(todayKey(cur))) { streak++; cur = new Date(cur.getTime() - DAY); }
+    return streak;
+  },
+
+  lastActiveProblemId() {
+    let best = null, bestT = 0;
+    for (const [id, p] of Object.entries(this.progress.problems)) {
+      const t = new Date(p.updatedAt || 0).getTime();
+      if (t > bestT) { bestT = t; best = id; }
+    }
+    return best;
+  },
+};
+
+  // ---- quiz tracking ----
+  getQuizData(id) {
+    const p = this.progress.problems[id] || (this.progress.problems[id] = { status: 'not-started', attempts: 0 });
+    if (!p.quiz) p.quiz = { correct: 0, incorrect: 0, lastAnswered: null };
+    return p.quiz;
+  },
+
+  recordQuizAnswer(id, isCorrect) {
+    const p = this._touch(id);
+    if (!p.quiz) p.quiz = { correct: 0, incorrect: 0, lastAnswered: null };
+    if (isCorrect) p.quiz.correct++;
+    else p.quiz.incorrect++;
+    p.quiz.lastAnswered = nowISO();
+    this._persist();
+  },
+
+  getQuizStats() {
+    let totalCorrect = 0, totalIncorrect = 0;
+    for (const p of Object.values(this.progress.problems)) {
+      if (p.quiz) {
+        totalCorrect += p.quiz.correct;
+        totalIncorrect += p.quiz.incorrect;
+      }
+    }
+    const total = totalCorrect + totalIncorrect;
+    const accuracy = total > 0 ? Math.round((totalCorrect / total) * 100) : 0;
+    const bestStreak = this.progress.quizBestStreak || 0;
+
+    return { totalAttempted: total, accuracy, bestStreak };
+  },
+
+  updateQuizBestStreak(streak) {
+    if (!this.progress.quizBestStreak || streak > this.progress.quizBestStreak) {
+      this.progress.quizBestStreak = streak;
+      this._persist();
+    }
+  },
+
+export { store, REVIEW_STEPS };

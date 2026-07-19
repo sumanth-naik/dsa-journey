@@ -1,0 +1,348 @@
+{
+  "id": "math-geometry",
+  "name": "Math & Geometry",
+  "phaseId": 8,
+  "order": 2,
+  "tagline": "Matrix manipulation and number tricks.",
+  "concept": "## The idea\n\nYou already know 2-D arrays are just arrays-of-arrays. **Math & Geometry** problems ask you to transform matrices in-place (rotate, spiral-scan, or mark patterns) and work with number operations that feel more like puzzles than traditional DS.\n\nTwo common shapes:\n\n1. **In-place matrix transforms** — transpose then reverse rows (rotate 90°), or walk layer-by-layer boundaries (spiral). The trick: work with **indices directly** rather than copying.\n2. **Number tricks** — digit manipulation, exponentiation, cycle detection (happy numbers), or coordinate hashing.\n\nThe magic: these look \"mathy\" but are really about **careful index arithmetic** and thinking in terms of transformations — no complex data structures needed.\n\n## Python you'll pick up here\n\n- `zip(*matrix)` — transpose a matrix in one line (unpacks rows as args to zip)\n- `matrix[i][::-1]` — reverse a single row in-place idiomatically\n- `divmod(n, 10)` — split a number into (quotient, remainder) in one call\n- `range(start, end, step)` with step to walk layers inward\n- `defaultdict(list)` for grouping coordinates\n- List comprehensions for generating new matrices: `[[0]*n for _ in range(m)]`",
+  "whenToUse": [
+    "The problem gives you a square/rectangular matrix and asks to rotate, spiral-scan, or mark cells",
+    "You're manipulating digits of a number (add one, multiply as strings, detect cycles)",
+    "You need to work with coordinates and detect geometric patterns (squares, distances)",
+    "The interviewer says 'do it in-place' for a matrix operation"
+  ],
+  "problems": [
+    {
+      "id": "rotate-image",
+      "title": "Rotate Image",
+      "leetcodeSlug": "rotate-image",
+      "difficulty": "Medium",
+      "patternId": "math-geometry",
+      "tags": [
+        "array",
+        "matrix"
+      ],
+      "video": {
+        "title": "NeetCode — Rotate Image (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Rotate+Image",
+        "lang": "python"
+      },
+      "keyIdeas": "Rotating 90° clockwise = **transpose** (swap across diagonal) then **reverse each row**. Both operations can be done in-place with pure index manipulation. This two-step trick is the foundational matrix transform — you'll use it everywhere.",
+      "hints": [
+        "Brute force would copy to a new matrix. What's the mapping from old (r, c) to new position after a 90° clockwise turn?",
+        "Rotating 90° clockwise is the same as transposing the matrix, then reversing each row. Try it on paper with a 3×3.",
+        "Transpose: swap matrix[i][j] with matrix[j][i] for all i < j. Then reverse each row: matrix[i] = matrix[i][::-1]."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Copy to a new matrix using the rotation formula: new[j][n-1-i] = old[i][j].",
+          "code": "class Solution:\n    def rotate(self, matrix: list[list[int]]) -> None:\n        n = len(matrix)\n        new = [[0] * n for _ in range(n)]\n        for i in range(n):\n            for j in range(n):\n                new[j][n - 1 - i] = matrix[i][j]\n        # Copy back\n        for i in range(n):\n            matrix[i] = new[i]",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(n^2)"
+        },
+        {
+          "label": "Optimal — transpose + reverse",
+          "keyIdea": "Transpose the matrix (swap across diagonal), then reverse each row. Both steps are in-place. Reach for this when you see the two-step trick; it's the cleanest and most interview-friendly approach.",
+          "code": "class Solution:\n    def rotate(self, matrix: list[list[int]]) -> None:\n        n = len(matrix)\n        # Transpose: swap matrix[i][j] with matrix[j][i]\n        for i in range(n):\n            for j in range(i + 1, n):\n                matrix[i][j], matrix[j][i] = matrix[j][i], matrix[i][j]\n        # Reverse each row\n        for i in range(n):\n            matrix[i].reverse()   # or matrix[i] = matrix[i][::-1]",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Alternative — layer-by-layer 4-way swap",
+          "keyIdea": "Rotate each concentric layer by performing 4-way swaps on elements in a cycle. More direct but harder to code correctly than transpose+reverse; use when you want to understand the rotation mechanics deeply.",
+          "code": "class Solution:\n    def rotate(self, matrix: list[list[int]]) -> None:\n        n = len(matrix)\n        # Process each layer from outside to inside\n        for layer in range(n // 2):\n            first, last = layer, n - 1 - layer\n            for i in range(first, last):\n                offset = i - first\n                # Save top element\n                top = matrix[first][i]\n                # Left -> Top\n                matrix[first][i] = matrix[last - offset][first]\n                # Bottom -> Left\n                matrix[last - offset][first] = matrix[last][last - offset]\n                # Right -> Bottom\n                matrix[last][last - offset] = matrix[i][last]\n                # Top -> Right\n                matrix[i][last] = top",
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "You are given an n x n 2D matrix representing an image, rotate the image by 90 degrees (clockwise).",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "matrix"
+    },
+    {
+      "id": "spiral-matrix",
+      "title": "Spiral Matrix",
+      "leetcodeSlug": "spiral-matrix",
+      "difficulty": "Medium",
+      "patternId": "math-geometry",
+      "tags": [
+        "array",
+        "matrix",
+        "simulation"
+      ],
+      "video": {
+        "title": "NeetCode — Spiral Matrix (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Spiral+Matrix",
+        "lang": "python"
+      },
+      "keyIdeas": "Walk the outermost layer (top row → right column → bottom row ← left column), then shrink the boundary and repeat. Keep four pointers (`top`, `bottom`, `left`, `right`) and increment/decrement them after each edge. Stop when boundaries cross.",
+      "hints": [
+        "Imagine peeling the matrix layer by layer. Start with the outermost rectangle.",
+        "Use four boundaries: top, bottom, left, right. Walk top row left→right, then right column top→bottom, etc.",
+        "After completing one layer, shrink the boundaries inward (top++, bottom--, left++, right--) and repeat until they cross."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — boundary-shrinking",
+          "keyIdea": "Maintain four boundary pointers; walk each edge in order, then shrink boundaries and repeat. This is the cleanest approach for spiral traversal — reach for it first.",
+          "code": "class Solution:\n    def spiralOrder(self, matrix: list[list[int]]) -> list[int]:\n        result = []\n        if not matrix:\n            return result\n        top, bottom = 0, len(matrix) - 1\n        left, right = 0, len(matrix[0]) - 1\n        \n        while top <= bottom and left <= right:\n            # Top row: left to right\n            for col in range(left, right + 1):\n                result.append(matrix[top][col])\n            top += 1\n            \n            # Right column: top to bottom\n            for row in range(top, bottom + 1):\n                result.append(matrix[row][right])\n            right -= 1\n            \n            # Bottom row: right to left (if still valid)\n            if top <= bottom:\n                for col in range(right, left - 1, -1):\n                    result.append(matrix[bottom][col])\n                bottom -= 1\n            \n            # Left column: bottom to top (if still valid)\n            if left <= right:\n                for row in range(bottom, top - 1, -1):\n                    result.append(matrix[row][left])\n                left += 1\n        \n        return result",
+          "timeComplexity": "O(m * n)",
+          "spaceComplexity": "O(1) excluding output"
+        },
+        {
+          "label": "Alternative — direction vector + visited",
+          "keyIdea": "Walk in the current direction until you hit a boundary or visited cell, then rotate 90° right. Repeat until all cells are visited. More general technique useful when the path pattern varies; boundary-shrinking is simpler here.",
+          "code": "class Solution:\n    def spiralOrder(self, matrix: list[list[int]]) -> list[int]:\n        if not matrix:\n            return []\n        m, n = len(matrix), len(matrix[0])\n        visited = [[False] * n for _ in range(m)]\n        result = []\n        \n        # Direction vectors: right, down, left, up\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        dir_idx = 0\n        r, c = 0, 0\n        \n        for _ in range(m * n):\n            result.append(matrix[r][c])\n            visited[r][c] = True\n            \n            # Try to continue in current direction\n            dr, dc = directions[dir_idx]\n            next_r, next_c = r + dr, c + dc\n            \n            # If out of bounds or visited, rotate 90° right\n            if not (0 <= next_r < m and 0 <= next_c < n and not visited[next_r][next_c]):\n                dir_idx = (dir_idx + 1) % 4\n                dr, dc = directions[dir_idx]\n                next_r, next_c = r + dr, c + dc\n            \n            r, c = next_r, next_c\n        \n        return result",
+          "timeComplexity": "O(m * n)",
+          "spaceComplexity": "O(m * n) for visited array"
+        }
+      ],
+      "description": "Given an m x n matrix, return all elements of the matrix in spiral order.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "matrix"
+    },
+    {
+      "id": "set-matrix-zeroes",
+      "title": "Set Matrix Zeroes",
+      "leetcodeSlug": "set-matrix-zeroes",
+      "difficulty": "Medium",
+      "patternId": "math-geometry",
+      "tags": [
+        "array",
+        "matrix"
+      ],
+      "video": {
+        "title": "NeetCode — Set Matrix Zeroes (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Set+Matrix+Zeroes",
+        "lang": "python"
+      },
+      "keyIdeas": "Use the **first row and first column** as markers to track which rows/cols need zeroing. Handle the first row/col separately with boolean flags since they overlap. This avoids using extra O(m+n) space.",
+      "hints": [
+        "Brute force uses O(m+n) extra space to track which rows and columns have a zero. Can you use the matrix itself?",
+        "The first row and first column can serve as markers. If matrix[i][j] is zero, mark matrix[i][0] and matrix[0][j] as zero.",
+        "Problem: the first row and column overlap at matrix[0][0]. Use a separate boolean flag for the first column, and use matrix[0][0] for the first row."
+      ],
+      "solutions": [
+        {
+          "label": "Better — O(m+n) space",
+          "keyIdea": "Track which rows and columns need zeroing in two separate sets.",
+          "code": "class Solution:\n    def setZeroes(self, matrix: list[list[int]]) -> None:\n        m, n = len(matrix), len(matrix[0])\n        rows, cols = set(), set()\n        \n        for i in range(m):\n            for j in range(n):\n                if matrix[i][j] == 0:\n                    rows.add(i)\n                    cols.add(j)\n        \n        for i in range(m):\n            for j in range(n):\n                if i in rows or j in cols:\n                    matrix[i][j] = 0",
+          "timeComplexity": "O(m * n)",
+          "spaceComplexity": "O(m + n)"
+        },
+        {
+          "label": "Optimal — O(1) space",
+          "keyIdea": "Use the first row and column as markers. Handle the first column with a separate flag to avoid overlap.",
+          "code": "class Solution:\n    def setZeroes(self, matrix: list[list[int]]) -> None:\n        m, n = len(matrix), len(matrix[0])\n        first_col_zero = False\n        \n        # Use first row and column as markers\n        for i in range(m):\n            if matrix[i][0] == 0:\n                first_col_zero = True\n            for j in range(1, n):\n                if matrix[i][j] == 0:\n                    matrix[i][0] = 0\n                    matrix[0][j] = 0\n        \n        # Zero out cells based on markers (skip first row/col for now)\n        for i in range(1, m):\n            for j in range(1, n):\n                if matrix[i][0] == 0 or matrix[0][j] == 0:\n                    matrix[i][j] = 0\n        \n        # Handle first row\n        if matrix[0][0] == 0:\n            for j in range(n):\n                matrix[0][j] = 0\n        \n        # Handle first column\n        if first_col_zero:\n            for i in range(m):\n                matrix[i][0] = 0",
+          "timeComplexity": "O(m * n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Given an m x n integer matrix matrix, if an element is 0, set its entire row and column to 0&#39;s.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "matrix"
+    },
+    {
+      "id": "happy-number",
+      "title": "Happy Number",
+      "leetcodeSlug": "happy-number",
+      "difficulty": "Easy",
+      "patternId": "math-geometry",
+      "tags": [
+        "math",
+        "hash-table",
+        "two-pointers"
+      ],
+      "video": {
+        "title": "NeetCode — Happy Number (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Happy+Number",
+        "lang": "python"
+      },
+      "keyIdeas": "Repeatedly replace the number with the sum of squares of its digits. Either you hit 1 (happy) or you **cycle forever** (not happy). Detect the cycle with a set, or use Floyd's cycle detection (fast/slow pointers) for O(1) space.",
+      "hints": [
+        "What does 'not a happy number' mean? If it doesn't reach 1, it must enter a cycle.",
+        "Use a set to track numbers you've seen. If you see the same number twice, you're in a cycle.",
+        "For O(1) space, use Floyd's cycle detection: one pointer moves one step, another moves two steps per iteration."
+      ],
+      "solutions": [
+        {
+          "label": "Hash set",
+          "keyIdea": "Track seen numbers in a set to detect cycles.",
+          "code": "class Solution:\n    def isHappy(self, n: int) -> bool:\n        seen = set()\n        while n != 1 and n not in seen:\n            seen.add(n)\n            n = sum(int(digit) ** 2 for digit in str(n))\n        return n == 1",
+          "timeComplexity": "O(log n) iterations (number of digits shrinks)",
+          "spaceComplexity": "O(log n)"
+        },
+        {
+          "label": "Optimal — Floyd's cycle detection",
+          "keyIdea": "Use fast/slow pointers to detect cycles without extra space.",
+          "code": "class Solution:\n    def isHappy(self, n: int) -> bool:\n        def next_num(x):\n            total = 0\n            while x > 0:\n                x, digit = divmod(x, 10)   # divmod splits into (quotient, remainder)\n                total += digit ** 2\n            return total\n        \n        slow = n\n        fast = next_num(n)\n        while fast != 1 and slow != fast:\n            slow = next_num(slow)\n            fast = next_num(next_num(fast))\n        return fast == 1",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Write an algorithm to determine if a number n is happy.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "number-theory"
+    },
+    {
+      "id": "plus-one",
+      "title": "Plus One",
+      "leetcodeSlug": "plus-one",
+      "difficulty": "Easy",
+      "patternId": "math-geometry",
+      "tags": [
+        "array",
+        "math"
+      ],
+      "video": {
+        "title": "NeetCode — Plus One (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Plus+One",
+        "lang": "python"
+      },
+      "keyIdeas": "Walk from the **end** (least significant digit). If digit < 9, just increment and return. If it's 9, set it to 0 and carry over. If all digits were 9, prepend 1.",
+      "hints": [
+        "Start from the last digit. If it's not 9, just add one and you're done.",
+        "If the last digit is 9, it becomes 0 and you carry 1 to the next digit. Repeat.",
+        "If all digits are 9 (e.g., [9,9,9]), the result is [1,0,0,0] — prepend 1 to a list of zeros."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal",
+          "keyIdea": "Walk backwards; handle carry. If all 9s, prepend 1.",
+          "code": "class Solution:\n    def plusOne(self, digits: list[int]) -> list[int]:\n        for i in range(len(digits) - 1, -1, -1):\n            if digits[i] < 9:\n                digits[i] += 1\n                return digits\n            digits[i] = 0   # carry over\n        # All were 9s: need an extra leading 1\n        return [1] + digits",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1) (modifies in-place, except the all-9s case)"
+        }
+      ],
+      "description": "You are given a large integer represented as an integer array digits, where each digits[i] is the ith digit of the integer. The digits are ordered from most significant to least significant in left-to-right order. The large integer does not contain any leading 0&#39;s.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "arithmetic"
+    },
+    {
+      "id": "powx-n",
+      "title": "Pow(x, n)",
+      "leetcodeSlug": "powx-n",
+      "difficulty": "Medium",
+      "patternId": "math-geometry",
+      "tags": [
+        "math",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Pow(x, n) (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Pow+x+n",
+        "lang": "python"
+      },
+      "keyIdeas": "Naive loop is O(n). **Exponentiation by squaring** reduces it to O(log n): if n is even, x^n = (x^(n/2))^2; if odd, x^n = x * x^(n-1). Handle negative exponents by computing x^(-n) then taking reciprocal.",
+      "hints": [
+        "Multiplying x by itself n times is O(n). Can you do better?",
+        "x^8 = (x^4)^2, and x^4 = (x^2)^2. You only need log(n) steps.",
+        "Recursively: myPow(x, n) = myPow(x, n//2)^2 if n is even; multiply by x once more if n is odd. Handle negative n by computing myPow(x, -n) and taking 1/result."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force",
+          "keyIdea": "Multiply x by itself n times. Too slow for large n.",
+          "code": "class Solution:\n    def myPow(self, x: float, n: int) -> float:\n        if n < 0:\n            x = 1 / x\n            n = -n\n        result = 1\n        for _ in range(n):\n            result *= x\n        return result",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        },
+        {
+          "label": "Optimal — fast exponentiation (recursive)",
+          "keyIdea": "Recursively square the result each time, cutting the exponent in half. O(log n) multiplications. Reach for this when the recursive structure is clearest in interviews.",
+          "code": "class Solution:\n    def myPow(self, x: float, n: int) -> float:\n        if n == 0:\n            return 1\n        if n < 0:\n            x = 1 / x\n            n = -n\n        \n        # Recursive helper\n        def helper(base, exp):\n            if exp == 0:\n                return 1\n            half = helper(base, exp // 2)\n            if exp % 2 == 0:\n                return half * half\n            else:\n                return half * half * base\n        \n        return helper(x, n)",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(log n) for recursion stack"
+        },
+        {
+          "label": "Alternative — fast exponentiation (iterative)",
+          "keyIdea": "Iteratively build the result by squaring x and halving n. Process the binary representation of n from right to left: if the current bit is 1, multiply the result by the current x. Same O(log n) time, but O(1) space — use when the interviewer wants iterative or when recursion depth is a concern.",
+          "code": "class Solution:\n    def myPow(self, x: float, n: int) -> float:\n        if n < 0:\n            x = 1 / x\n            n = -n\n        \n        result = 1\n        current_product = x\n        \n        while n > 0:\n            if n % 2 == 1:   # if current bit is 1\n                result *= current_product\n            current_product *= current_product   # square the base\n            n //= 2   # shift to next bit\n        \n        return result",
+          "timeComplexity": "O(log n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "Implement pow(x, n), which calculates x raised to the power n (i.e., xn).",
+      "phaseId": 2,
+      "subcategory": "exponentiation"
+    },
+    {
+      "id": "multiply-strings",
+      "title": "Multiply Strings",
+      "leetcodeSlug": "multiply-strings",
+      "difficulty": "Medium",
+      "patternId": "math-geometry",
+      "tags": [
+        "math",
+        "string"
+      ],
+      "video": {
+        "title": "NeetCode — Multiply Strings (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Multiply+Strings",
+        "lang": "python"
+      },
+      "keyIdeas": "Simulate grade-school multiplication. **Key insight**: digit i of num1 times digit j of num2 contributes to positions i+j and i+j+1 of the result. Use an array of size m+n to accumulate carries, then convert back to a string.",
+      "hints": [
+        "You can't use int() — simulate multiplication digit-by-digit like you learned in school.",
+        "For two numbers of lengths m and n, the product has at most m+n digits.",
+        "Multiply each digit of num1 with each digit of num2. The product of digits at positions i and j adds to result positions i+j and i+j+1 (for carry)."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — grade-school multiplication",
+          "keyIdea": "Use an array of size m+n to store intermediate products and carries. Build the result backwards.",
+          "code": "class Solution:\n    def multiply(self, num1: str, num2: str) -> str:\n        if num1 == \"0\" or num2 == \"0\":\n            return \"0\"\n        \n        m, n = len(num1), len(num2)\n        result = [0] * (m + n)\n        \n        # Multiply each digit of num1 with each digit of num2\n        for i in range(m - 1, -1, -1):\n            for j in range(n - 1, -1, -1):\n                mul = int(num1[i]) * int(num2[j])\n                pos1, pos2 = i + j, i + j + 1\n                total = mul + result[pos2]\n                \n                result[pos2] = total % 10\n                result[pos1] += total // 10\n        \n        # Convert to string, skip leading zeros\n        result_str = ''.join(map(str, result)).lstrip('0')\n        return result_str if result_str else '0'",
+          "timeComplexity": "O(m * n)",
+          "spaceComplexity": "O(m + n)"
+        }
+      ],
+      "description": "Given two non-negative integers num1 and num2 represented as strings, return the product of num1 and num2, also represented as a string.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "arithmetic"
+    },
+    {
+      "id": "detect-squares",
+      "title": "Detect Squares",
+      "leetcodeSlug": "detect-squares",
+      "difficulty": "Medium",
+      "patternId": "math-geometry",
+      "tags": [
+        "array",
+        "hash-table",
+        "math",
+        "design"
+      ],
+      "video": {
+        "title": "NeetCode — Detect Squares (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Detect+Squares",
+        "lang": "python"
+      },
+      "keyIdeas": "Store points in a hash map grouped by x-coordinate. On `count(query)`, iterate over all points sharing the **same y-coordinate** (potential diagonal corners), then check if the other two corners exist using the hash map. Multiply their counts.",
+      "hints": [
+        "For a square with one corner at the query point, you need three more points. How can you find potential diagonal corners?",
+        "Group points by x-coordinate in a hash map. For each point with the same y as the query, check if the other two corners exist.",
+        "If you have points (x1, y1) and (x2, y1) on the same horizontal line, the other two corners are at (x1, y2) and (x2, y2) where |y2 - y1| = |x2 - x1|."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — hash map + combinatorics",
+          "keyIdea": "Store points by coordinate. On count, iterate potential diagonal corners and check for the other two.",
+          "code": "from collections import defaultdict\n\nclass DetectSquares:\n    def __init__(self):\n        self.points = defaultdict(int)   # (x, y) -> count\n        self.x_coords = defaultdict(list)  # x -> list of y values\n    \n    def add(self, point: list[int]) -> None:\n        x, y = point\n        self.points[(x, y)] += 1\n        if y not in self.x_coords[x]:\n            self.x_coords[x].append(y)\n    \n    def count(self, point: list[int]) -> int:\n        x1, y1 = point\n        total = 0\n        \n        # Look for diagonal corners: points with same y1 but different x\n        for x2 in self.x_coords:\n            if x2 == x1:\n                continue\n            side_len = abs(x2 - x1)\n            # Two possible y values for the square\n            for y2 in [y1 + side_len, y1 - side_len]:\n                # Check if all four corners exist\n                total += (self.points[(x2, y1)] * \n                          self.points[(x1, y2)] * \n                          self.points[(x2, y2)])\n        \n        return total",
+          "timeComplexity": "O(n) per count, O(1) per add",
+          "spaceComplexity": "O(n) for storing points"
+        }
+      ],
+      "description": "You are given a stream of points on the X-Y plane. Design an algorithm that:",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "geometry"
+    }
+  ]
+}

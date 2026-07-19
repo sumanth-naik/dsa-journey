@@ -1,0 +1,2724 @@
+{
+  "version": 1,
+  "title": "DSA Learning Path",
+  "phases": [
+    {
+      "id": 1,
+      "title": "Arrays, Hashing & Two Pointers",
+      "subtitle": "Breadth-first spiral — highest-frequency patterns first.",
+      "goal": "The highest-frequency patterns in interviews: hash for O(1) lookups, two indices to collapse O(n²) scans, and a first taste of windows.",
+      "patternIds": [
+        "two-pointers",
+        "hashing",
+        "sliding-window"
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Stack & Binary Search",
+      "subtitle": "",
+      "goal": "LIFO thinking (monotonic stacks, spans) and halving the search space in O(log n).",
+      "patternIds": [
+        "stack",
+        "binary-search"
+      ]
+    },
+    {
+      "id": 3,
+      "title": "Linked Lists & Trees",
+      "subtitle": "",
+      "goal": "Pointer surgery on lists, and recursion on binary trees — DFS/BFS, BST invariants.",
+      "patternIds": [
+        "linked-list",
+        "trees"
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Backtracking & Heaps",
+      "subtitle": "",
+      "goal": "Systematic search of all choices (subsets/permutations), and top-k / streaming with a priority queue.",
+      "patternIds": [
+        "backtracking",
+        "heap"
+      ]
+    },
+    {
+      "id": 5,
+      "title": "Graphs & Advanced Graphs",
+      "subtitle": "",
+      "goal": "Grid/adjacency traversal, topological order, union-find, then shortest-path (Dijkstra) and MST.",
+      "patternIds": [
+        "graphs",
+        "advanced-graphs"
+      ]
+    },
+    {
+      "id": 6,
+      "title": "Dynamic Programming",
+      "subtitle": "",
+      "goal": "The big one: 1-D take/skip and subsequence DP, then 2-D grid/string DP. Decompose into subproblems.",
+      "patternIds": [
+        "one-d-dp",
+        "two-d-dp"
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Greedy & Intervals",
+      "subtitle": "",
+      "goal": "Locally-optimal choices that prove globally optimal, and the sort-then-sweep interval toolkit.",
+      "patternIds": [
+        "greedy",
+        "intervals"
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Tries, Math & Bit Manipulation",
+      "subtitle": "",
+      "goal": "Prefix trees for word problems, matrix/number geometry, and bit tricks.",
+      "patternIds": [
+        "tries",
+        "math-geometry",
+        "bit-manipulation"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "id": "two-pointers",
+      "phaseId": 1,
+      "order": 1,
+      "name": "Two Pointers",
+      "file": "two-pointers.json",
+      "tagline": "Two indices sweeping a sorted/bounded array."
+    },
+    {
+      "id": "hashing",
+      "phaseId": 1,
+      "order": 2,
+      "name": "Hashing (Maps & Sets)",
+      "file": "hashing.json",
+      "tagline": "Trade memory for O(1) lookups."
+    },
+    {
+      "id": "sliding-window",
+      "phaseId": 1,
+      "order": 3,
+      "name": "Sliding Window",
+      "file": "sliding-window.json",
+      "tagline": "A moving range over contiguous elements."
+    },
+    {
+      "id": "stack",
+      "phaseId": 2,
+      "order": 1,
+      "name": "Stack",
+      "file": "stack.json",
+      "tagline": "LIFO — last in, first out. Great for matching and spans."
+    },
+    {
+      "id": "binary-search",
+      "phaseId": 2,
+      "order": 2,
+      "name": "Binary Search",
+      "file": "binary-search.json",
+      "tagline": "Halve the search space each step — O(log n)."
+    },
+    {
+      "id": "linked-list",
+      "phaseId": 3,
+      "order": 1,
+      "name": "Linked List",
+      "file": "linked-list.json",
+      "tagline": "Pointer surgery: reverse, merge, detect cycles."
+    },
+    {
+      "id": "trees",
+      "phaseId": 3,
+      "order": 2,
+      "name": "Trees",
+      "file": "trees.json",
+      "tagline": "Recursion on binary trees — DFS, BFS, BST invariants."
+    },
+    {
+      "id": "backtracking",
+      "phaseId": 4,
+      "order": 1,
+      "name": "Backtracking",
+      "file": "backtracking.json",
+      "tagline": "Try a choice, recurse, undo it — explore all possibilities."
+    },
+    {
+      "id": "heap",
+      "phaseId": 4,
+      "order": 2,
+      "name": "Heap / Priority Queue",
+      "file": "heap.json",
+      "tagline": "Always pull the min/max in O(log n) — top-k and streaming."
+    },
+    {
+      "id": "graphs",
+      "phaseId": 5,
+      "order": 1,
+      "name": "Graphs",
+      "file": "graphs.json",
+      "tagline": "Grid & adjacency traversal, topo sort, union-find."
+    },
+    {
+      "id": "advanced-graphs",
+      "phaseId": 5,
+      "order": 2,
+      "name": "Advanced Graphs",
+      "file": "advanced-graphs.json",
+      "tagline": "Shortest paths (Dijkstra/Bellman-Ford), MST, Eulerian paths."
+    },
+    {
+      "id": "one-d-dp",
+      "phaseId": 6,
+      "order": 1,
+      "name": "1-D Dynamic Programming",
+      "file": "one-d-dp.json",
+      "tagline": "Take/skip, subsequences, and 1-D state transitions."
+    },
+    {
+      "id": "two-d-dp",
+      "phaseId": 6,
+      "order": 2,
+      "name": "2-D Dynamic Programming",
+      "file": "two-d-dp.json",
+      "tagline": "Grids and two-string DP tables."
+    },
+    {
+      "id": "greedy",
+      "phaseId": 7,
+      "order": 1,
+      "name": "Greedy",
+      "file": "greedy.json",
+      "tagline": "Locally-optimal choices that are provably globally optimal."
+    },
+    {
+      "id": "intervals",
+      "phaseId": 7,
+      "order": 2,
+      "name": "Intervals",
+      "file": "intervals.json",
+      "tagline": "Sort by start/end, then sweep and merge."
+    },
+    {
+      "id": "tries",
+      "phaseId": 8,
+      "order": 1,
+      "name": "Tries",
+      "file": "tries.json",
+      "tagline": "Prefix trees — anything about words → prefixes."
+    },
+    {
+      "id": "math-geometry",
+      "phaseId": 8,
+      "order": 2,
+      "name": "Math & Geometry",
+      "file": "math-geometry.json",
+      "tagline": "Matrix manipulation and number tricks."
+    },
+    {
+      "id": "bit-manipulation",
+      "phaseId": 8,
+      "order": 3,
+      "name": "Bit Manipulation",
+      "file": "bit-manipulation.json",
+      "tagline": "XOR, masks, and bit counting."
+    }
+  ],
+  "problemIndex": [
+    {
+      "id": "valid-palindrome",
+      "title": "Valid Palindrome",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Easy",
+      "leetcodeSlug": "valid-palindrome"
+    },
+    {
+      "id": "two-sum-ii",
+      "title": "Two Sum II — Input Array Is Sorted",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "two-sum-ii-input-array-is-sorted"
+    },
+    {
+      "id": "container-with-most-water",
+      "title": "Container With Most Water",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "container-with-most-water"
+    },
+    {
+      "id": "3sum",
+      "title": "3Sum",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "3sum"
+    },
+    {
+      "id": "3-sum",
+      "title": "3 Sum",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "3-sum"
+    },
+    {
+      "id": "4-sum",
+      "title": "4 Sum",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "4-sum"
+    },
+    {
+      "id": "count-sub-strings-that-differ-by-one-character",
+      "title": "count Sub Strings That Differ By One Character",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-sub-strings-that-differ-by-one-character"
+    },
+    {
+      "id": "count-subarrays-with-fixed-bounds",
+      "title": "count Subarrays With Fixed Bounds",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-subarrays-with-fixed-bounds"
+    },
+    {
+      "id": "find-all-anagrams",
+      "title": "find All Anagrams",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-all-anagrams"
+    },
+    {
+      "id": "fruit-into-baskets",
+      "title": "fruit Into Baskets",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "fruit-into-baskets"
+    },
+    {
+      "id": "largest-subarry-of1s-after-deleting-one-element",
+      "title": "largest Subarry Of1s After Deleting One Element",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "largest-subarry-of1s-after-deleting-one-element"
+    },
+    {
+      "id": "longest-palindrome-substring",
+      "title": "longest Palindrome Substring",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-palindrome-substring"
+    },
+    {
+      "id": "longest-substring-without-repeating-characters",
+      "title": "longest Substring Without Repeating Characters",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-substring-without-repeating-characters"
+    },
+    {
+      "id": "minimum-time-to-make-rope-colorful",
+      "title": "minimum Time To Make Rope Colorful",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-time-to-make-rope-colorful"
+    },
+    {
+      "id": "minimum-window-substring",
+      "title": "minimum Window Substring",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-window-substring"
+    },
+    {
+      "id": "number-of-subsequences-that-satisfythe-given-sum-condition",
+      "title": "number Of Subsequences That Satisfythe Given Sum Condition",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-subsequences-that-satisfythe-given-sum-condition"
+    },
+    {
+      "id": "permutation-in-a-string",
+      "title": "permutation In A String",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "permutation-in-a-string"
+    },
+    {
+      "id": "text-justification",
+      "title": "text Justification",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "text-justification"
+    },
+    {
+      "id": "three-equal-parts",
+      "title": "three Equal Parts",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "three-equal-parts"
+    },
+    {
+      "id": "trapping-rain-water",
+      "title": "Trapping Rain Water",
+      "patternId": "two-pointers",
+      "phaseId": 1,
+      "difficulty": "Hard",
+      "leetcodeSlug": "trapping-rain-water"
+    },
+    {
+      "id": "contains-duplicate",
+      "title": "Contains Duplicate",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Easy",
+      "leetcodeSlug": "contains-duplicate"
+    },
+    {
+      "id": "valid-anagram",
+      "title": "Valid Anagram",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Easy",
+      "leetcodeSlug": "valid-anagram"
+    },
+    {
+      "id": "two-sum",
+      "title": "Two Sum",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Easy",
+      "leetcodeSlug": "two-sum"
+    },
+    {
+      "id": "group-anagrams",
+      "title": "Group Anagrams",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "group-anagrams"
+    },
+    {
+      "id": "top-k-frequent-elements",
+      "title": "Top K Frequent Elements",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "top-k-frequent-elements"
+    },
+    {
+      "id": "product-of-array-except-self",
+      "title": "Product of Array Except Self",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "product-of-array-except-self"
+    },
+    {
+      "id": "valid-sudoku",
+      "title": "Valid Sudoku",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "valid-sudoku"
+    },
+    {
+      "id": "encode-and-decode-strings",
+      "title": "Encode and Decode Strings",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "encode-and-decode-strings"
+    },
+    {
+      "id": "longest-consecutive-sequence",
+      "title": "Longest Consecutive Sequence",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-consecutive-sequence"
+    },
+    {
+      "id": "majority-element",
+      "title": "majority Element",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "majority-element"
+    },
+    {
+      "id": "majority-element2-boyer-moore",
+      "title": "majority Element2 Boyer Moore",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "majority-element2-boyer-moore"
+    },
+    {
+      "id": "maximum-equal-frequency",
+      "title": "maximum Equal Frequency",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-equal-frequency"
+    },
+    {
+      "id": "find-the-index-of-first-match",
+      "title": "find The Index Of First Match",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-the-index-of-first-match"
+    },
+    {
+      "id": "k-divisible-elements-subarrays",
+      "title": "k Divisible Elements Subarrays",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "k-divisible-elements-subarrays"
+    },
+    {
+      "id": "repeated-string-match",
+      "title": "repeated String Match",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "repeated-string-match"
+    },
+    {
+      "id": "shortest-palindrome",
+      "title": "shortest Palindrome",
+      "patternId": "hashing",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "shortest-palindrome"
+    },
+    {
+      "id": "longest-substring-without-repeating",
+      "title": "Longest Substring Without Repeating Characters",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-substring-without-repeating-characters"
+    },
+    {
+      "id": "minimum-size-subarray-sum",
+      "title": "Minimum Size Subarray Sum",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-size-subarray-sum"
+    },
+    {
+      "id": "best-time-to-buy-and-sell-stock",
+      "title": "Best Time to Buy and Sell Stock",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Easy",
+      "leetcodeSlug": "best-time-to-buy-and-sell-stock"
+    },
+    {
+      "id": "longest-repeating-character-replacement",
+      "title": "Longest Repeating Character Replacement",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-repeating-character-replacement"
+    },
+    {
+      "id": "permutation-in-string",
+      "title": "Permutation in String",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "permutation-in-string"
+    },
+    {
+      "id": "arithmetic-slices",
+      "title": "arithmetic Slices",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "arithmetic-slices"
+    },
+    {
+      "id": "count-subarrays-with-score-lessthan-k",
+      "title": "count Subarrays With Score Lessthan K",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-subarrays-with-score-lessthan-k"
+    },
+    {
+      "id": "max-consecutive-ones3",
+      "title": "max Consecutive Ones3",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-consecutive-ones3"
+    },
+    {
+      "id": "maximize-the-confusion-of-an-exam",
+      "title": "maximize The Confusion Of An Exam",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximize-the-confusion-of-an-exam"
+    },
+    {
+      "id": "maximum-number-of-vowels-in-a-substring-of-given-length",
+      "title": "maximum Number Of Vowels In A Substring Of Given Length",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-number-of-vowels-in-a-substring-of-given-length"
+    },
+    {
+      "id": "substring-with-concatenation-of-all-words",
+      "title": "substring With Concatenation Of All Words",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Medium",
+      "leetcodeSlug": "substring-with-concatenation-of-all-words"
+    },
+    {
+      "id": "minimum-window-substring",
+      "title": "Minimum Window Substring",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Hard",
+      "leetcodeSlug": "minimum-window-substring"
+    },
+    {
+      "id": "sliding-window-maximum",
+      "title": "Sliding Window Maximum",
+      "patternId": "sliding-window",
+      "phaseId": 1,
+      "difficulty": "Hard",
+      "leetcodeSlug": "sliding-window-maximum"
+    },
+    {
+      "id": "valid-parentheses",
+      "title": "Valid Parentheses",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Easy",
+      "leetcodeSlug": "valid-parentheses"
+    },
+    {
+      "id": "min-stack",
+      "title": "Min Stack",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "min-stack"
+    },
+    {
+      "id": "evaluate-reverse-polish-notation",
+      "title": "Evaluate Reverse Polish Notation",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "evaluate-reverse-polish-notation"
+    },
+    {
+      "id": "generate-parentheses",
+      "title": "Generate Parentheses",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "generate-parentheses"
+    },
+    {
+      "id": "daily-temperatures",
+      "title": "Daily Temperatures",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "daily-temperatures"
+    },
+    {
+      "id": "car-fleet",
+      "title": "Car Fleet",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "car-fleet"
+    },
+    {
+      "id": "132-pattern",
+      "title": "132 Pattern",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "132-pattern"
+    },
+    {
+      "id": "trap-rain-water",
+      "title": "Trap Rain Water",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "trap-rain-water"
+    },
+    {
+      "id": "daily-temperatures-o-r-next-higher-temperature",
+      "title": "daily Temperatures O R Next Higher Temperature",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "daily-temperatures-o-r-next-higher-temperature"
+    },
+    {
+      "id": "maximal-rectangle",
+      "title": "maximal Rectangle",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximal-rectangle"
+    },
+    {
+      "id": "minimum-number-of-incrementson-subarraysto-form-a-target-array",
+      "title": "minimum Number Of Incrementson Subarraysto Form A Target Array",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-number-of-incrementson-subarraysto-form-a-target-array"
+    },
+    {
+      "id": "next-greater-element",
+      "title": "next Greater Element",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "next-greater-element"
+    },
+    {
+      "id": "remove-duplicate-letters",
+      "title": "remove Duplicate Letters",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "remove-duplicate-letters"
+    },
+    {
+      "id": "sliding-window-maximum",
+      "title": "sliding Window Maximum",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "sliding-window-maximum"
+    },
+    {
+      "id": "stock-spanner",
+      "title": "stock Spanner",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "stock-spanner"
+    },
+    {
+      "id": "longest-valid-parantheses",
+      "title": "longest Valid Parantheses",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-valid-parantheses"
+    },
+    {
+      "id": "largest-rectangle-in-histogram",
+      "title": "Largest Rectangle in Histogram",
+      "patternId": "stack",
+      "phaseId": 2,
+      "difficulty": "Hard",
+      "leetcodeSlug": "largest-rectangle-in-histogram"
+    },
+    {
+      "id": "binary-search",
+      "title": "Binary Search",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Easy",
+      "leetcodeSlug": "binary-search"
+    },
+    {
+      "id": "search-a-2d-matrix",
+      "title": "Search a 2D Matrix",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "search-a-2d-matrix"
+    },
+    {
+      "id": "koko-eating-bananas",
+      "title": "Koko Eating Bananas",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "koko-eating-bananas"
+    },
+    {
+      "id": "find-minimum-in-rotated-sorted-array",
+      "title": "Find Minimum in Rotated Sorted Array",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-minimum-in-rotated-sorted-array"
+    },
+    {
+      "id": "search-in-rotated-sorted-array",
+      "title": "Search in Rotated Sorted Array",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "search-in-rotated-sorted-array"
+    },
+    {
+      "id": "time-based-key-value-store",
+      "title": "Time Based Key-Value Store",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "time-based-key-value-store"
+    },
+    {
+      "id": "number-of-matching-subsequences",
+      "title": "number Of Matching Subsequences",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-matching-subsequences"
+    },
+    {
+      "id": "find-the-longest-valid-obstacle-course-at-each-position",
+      "title": "find The Longest Valid Obstacle Course At Each Position",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-the-longest-valid-obstacle-course-at-each-position"
+    },
+    {
+      "id": "longest-increasing-subsequence",
+      "title": "longest Increasing Subsequence",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-increasing-subsequence"
+    },
+    {
+      "id": "russian-doll-envelopes",
+      "title": "russian Doll Envelopes",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "russian-doll-envelopes"
+    },
+    {
+      "id": "k-th-element-of-two-sorted-arrays",
+      "title": "k Th Element Of Two Sorted Arrays",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "k-th-element-of-two-sorted-arrays"
+    },
+    {
+      "id": "maximum-value-at-a-given-index-in-a-unbounded-array",
+      "title": "maximum Value At A Given Index In A Unbounded Array",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-value-at-a-given-index-in-a-unbounded-array"
+    },
+    {
+      "id": "split-array-largest-sum",
+      "title": "split Array Largest Sum",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "split-array-largest-sum"
+    },
+    {
+      "id": "minimum-in-rotated-sorted-array-with-duplicates",
+      "title": "Minimum In Rotated Sorted Array With Duplicates",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-in-rotated-sorted-array-with-duplicates"
+    },
+    {
+      "id": "search-a2-d-matrix2",
+      "title": "Search A2 D Matrix2",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "search-a2-d-matrix2"
+    },
+    {
+      "id": "search-in-rotated-sorted-array-with-duplicates",
+      "title": "Search In Rotated Sorted Array With Duplicates",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "search-in-rotated-sorted-array-with-duplicates"
+    },
+    {
+      "id": "find-peak-element",
+      "title": "find Peak Element",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-peak-element"
+    },
+    {
+      "id": "single-element-in-a-sorted-array",
+      "title": "single Element In A Sorted Array",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Medium",
+      "leetcodeSlug": "single-element-in-a-sorted-array"
+    },
+    {
+      "id": "median-of-two-sorted-arrays",
+      "title": "Median of Two Sorted Arrays",
+      "patternId": "binary-search",
+      "phaseId": 2,
+      "difficulty": "Hard",
+      "leetcodeSlug": "median-of-two-sorted-arrays"
+    },
+    {
+      "id": "reverse-linked-list",
+      "title": "Reverse Linked List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "reverse-linked-list"
+    },
+    {
+      "id": "merge-two-sorted-lists",
+      "title": "Merge Two Sorted Lists",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "merge-two-sorted-lists"
+    },
+    {
+      "id": "linked-list-cycle",
+      "title": "Linked List Cycle",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "linked-list-cycle"
+    },
+    {
+      "id": "reorder-list",
+      "title": "Reorder List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "reorder-list"
+    },
+    {
+      "id": "remove-nth-node-from-end-of-list",
+      "title": "Remove Nth Node From End of List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "remove-nth-node-from-end-of-list"
+    },
+    {
+      "id": "copy-list-with-random-pointer",
+      "title": "Copy List with Random Pointer",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "copy-list-with-random-pointer"
+    },
+    {
+      "id": "add-two-numbers",
+      "title": "Add Two Numbers",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "add-two-numbers"
+    },
+    {
+      "id": "find-the-duplicate-number",
+      "title": "Find the Duplicate Number",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-the-duplicate-number"
+    },
+    {
+      "id": "lru-cache",
+      "title": "LRU Cache",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "lru-cache"
+    },
+    {
+      "id": "add-two-numbers2",
+      "title": "Add Two Numbers2",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "add-two-numbers2"
+    },
+    {
+      "id": "delete-nth-node-from-last-recursive-and-two-pointer",
+      "title": "Delete Nth Node From Last- Recursive And Two Pointer",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "delete-nth-node-from-last-recursive-and-two-pointer"
+    },
+    {
+      "id": "l-f-u",
+      "title": "L F U",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "l-f-u"
+    },
+    {
+      "id": "closest-node-to-two-given-nodes",
+      "title": "closest Node To Two Given Nodes",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "closest-node-to-two-given-nodes"
+    },
+    {
+      "id": "convert-sorted-list-to-binary-search-tree",
+      "title": "convert Sorted List To Binary Search Tree",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "convert-sorted-list-to-binary-search-tree"
+    },
+    {
+      "id": "copy-random-list",
+      "title": "copy Random List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "copy-random-list"
+    },
+    {
+      "id": "delete-node",
+      "title": "delete Node",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "delete-node"
+    },
+    {
+      "id": "detect-cycle",
+      "title": "detect Cycle",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "detect-cycle"
+    },
+    {
+      "id": "intersection-of-two-linked-lists",
+      "title": "intersection Of Two Linked Lists",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "intersection-of-two-linked-lists"
+    },
+    {
+      "id": "linked-list-cycle2-starting-point-of-intersection",
+      "title": "linked List Cycle2 Starting Point Of Intersection",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "linked-list-cycle2-starting-point-of-intersection"
+    },
+    {
+      "id": "linked-list-is-palindrome",
+      "title": "linked List Is Palindrome",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "linked-list-is-palindrome"
+    },
+    {
+      "id": "linked-list-random-node",
+      "title": "linked List Random Node",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "linked-list-random-node"
+    },
+    {
+      "id": "maximum-twin-sum-of-a-linked-list",
+      "title": "maximum Twin Sum Of A Linked List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-twin-sum-of-a-linked-list"
+    },
+    {
+      "id": "odd-even-linked-list",
+      "title": "odd Even Linked List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "odd-even-linked-list"
+    },
+    {
+      "id": "partition-list",
+      "title": "partition List",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "partition-list"
+    },
+    {
+      "id": "rotate-right",
+      "title": "rotate Right",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "rotate-right"
+    },
+    {
+      "id": "merge-k-sorted-lists",
+      "title": "Merge k Sorted Lists",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Hard",
+      "leetcodeSlug": "merge-k-sorted-lists"
+    },
+    {
+      "id": "reverse-nodes-in-k-group",
+      "title": "Reverse Nodes in k-Group",
+      "patternId": "linked-list",
+      "phaseId": 3,
+      "difficulty": "Hard",
+      "leetcodeSlug": "reverse-nodes-in-k-group"
+    },
+    {
+      "id": "invert-binary-tree",
+      "title": "Invert Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "invert-binary-tree"
+    },
+    {
+      "id": "maximum-depth-of-binary-tree",
+      "title": "Maximum Depth of Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "maximum-depth-of-binary-tree"
+    },
+    {
+      "id": "diameter-of-binary-tree",
+      "title": "Diameter of Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "diameter-of-binary-tree"
+    },
+    {
+      "id": "balanced-binary-tree",
+      "title": "Balanced Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "balanced-binary-tree"
+    },
+    {
+      "id": "same-tree",
+      "title": "Same Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "same-tree"
+    },
+    {
+      "id": "subtree-of-another-tree",
+      "title": "Subtree of Another Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Easy",
+      "leetcodeSlug": "subtree-of-another-tree"
+    },
+    {
+      "id": "lowest-common-ancestor-of-a-binary-search-tree",
+      "title": "Lowest Common Ancestor of a BST",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "lowest-common-ancestor-of-a-binary-search-tree"
+    },
+    {
+      "id": "binary-tree-level-order-traversal",
+      "title": "Binary Tree Level Order Traversal",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "binary-tree-level-order-traversal"
+    },
+    {
+      "id": "binary-tree-right-side-view",
+      "title": "Binary Tree Right Side View",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "binary-tree-right-side-view"
+    },
+    {
+      "id": "count-good-nodes-in-binary-tree",
+      "title": "Count Good Nodes in Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-good-nodes-in-binary-tree"
+    },
+    {
+      "id": "validate-binary-search-tree",
+      "title": "Validate Binary Search Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "validate-binary-search-tree"
+    },
+    {
+      "id": "kth-smallest-element-in-a-bst",
+      "title": "Kth Smallest Element in a BST",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "kth-smallest-element-in-a-bst"
+    },
+    {
+      "id": "construct-binary-tree-from-preorder-and-inorder-traversal",
+      "title": "Construct Binary Tree from Preorder and Inorder Traversal",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "construct-binary-tree-from-preorder-and-inorder-traversal"
+    },
+    {
+      "id": "kth-smallest-element-in-b-s-t",
+      "title": "Kth Smallest Element In B S T",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "kth-smallest-element-in-b-s-t"
+    },
+    {
+      "id": "bst-iterator",
+      "title": "bst Iterator",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "bst-iterator"
+    },
+    {
+      "id": "bst-iterator-on-steroids-two-sum-b-s-t",
+      "title": "bst Iterator On Steroids_two Sum B S T",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "bst-iterator-on-steroids-two-sum-b-s-t"
+    },
+    {
+      "id": "max-sum-b-s-t-in-binary-tree",
+      "title": "max Sum B S T In Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-sum-b-s-t-in-binary-tree"
+    },
+    {
+      "id": "validate-binary-tree-nodes",
+      "title": "validate Binary Tree Nodes",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "validate-binary-tree-nodes"
+    },
+    {
+      "id": "all-nodes-distance-k-in-binary-array",
+      "title": "all Nodes Distance K In Binary Array",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "all-nodes-distance-k-in-binary-array"
+    },
+    {
+      "id": "binary-tree-from-pre-order-and-in-order",
+      "title": "binary Tree From Pre Order And In Order",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "binary-tree-from-pre-order-and-in-order"
+    },
+    {
+      "id": "check-completeness-of-a-binary-tree",
+      "title": "check Completeness Of A Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "check-completeness-of-a-binary-tree"
+    },
+    {
+      "id": "construct-b-s-t-from-pre-order-traversal",
+      "title": "construct B S T From Pre Order Traversal",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "construct-b-s-t-from-pre-order-traversal"
+    },
+    {
+      "id": "find-duplicate-subtrees",
+      "title": "find Duplicate Subtrees",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-duplicate-subtrees"
+    },
+    {
+      "id": "flattening-a-binary-tree",
+      "title": "flattening A Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "flattening-a-binary-tree"
+    },
+    {
+      "id": "get-directions-between-nodes",
+      "title": "get Directions Between Nodes",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "get-directions-between-nodes"
+    },
+    {
+      "id": "max-difference-between-node-and-ancestor",
+      "title": "max Difference Between Node And Ancestor",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-difference-between-node-and-ancestor"
+    },
+    {
+      "id": "max-path-sum",
+      "title": "max Path Sum",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-path-sum"
+    },
+    {
+      "id": "max-product-of-splitted-binary-tree",
+      "title": "max Product Of Splitted Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-product-of-splitted-binary-tree"
+    },
+    {
+      "id": "max-width-of-a-binary-tree",
+      "title": "max Width Of A Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-width-of-a-binary-tree"
+    },
+    {
+      "id": "minimum-fuel-cost-to-report-to-the-capital",
+      "title": "minimum Fuel Cost To Report To The Capital",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-fuel-cost-to-report-to-the-capital"
+    },
+    {
+      "id": "number-of-good-paths",
+      "title": "number Of Good Paths",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-good-paths"
+    },
+    {
+      "id": "populate-right-pointers-in-binary-tree",
+      "title": "populate Right Pointers In Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "populate-right-pointers-in-binary-tree"
+    },
+    {
+      "id": "sum-of-distances-in-tree",
+      "title": "sum Of Distances In Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "sum-of-distances-in-tree"
+    },
+    {
+      "id": "zigzag-level-order",
+      "title": "zigzag Level Order",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Medium",
+      "leetcodeSlug": "zigzag-level-order"
+    },
+    {
+      "id": "binary-tree-maximum-path-sum",
+      "title": "Binary Tree Maximum Path Sum",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Hard",
+      "leetcodeSlug": "binary-tree-maximum-path-sum"
+    },
+    {
+      "id": "serialize-and-deserialize-binary-tree",
+      "title": "Serialize and Deserialize Binary Tree",
+      "patternId": "trees",
+      "phaseId": 3,
+      "difficulty": "Hard",
+      "leetcodeSlug": "serialize-and-deserialize-binary-tree"
+    },
+    {
+      "id": "subsets",
+      "title": "Subsets",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "subsets"
+    },
+    {
+      "id": "combination-sum",
+      "title": "Combination Sum",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "combination-sum"
+    },
+    {
+      "id": "permutations",
+      "title": "Permutations",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "permutations"
+    },
+    {
+      "id": "subsets-ii",
+      "title": "Subsets II",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "subsets-ii"
+    },
+    {
+      "id": "combination-sum-ii",
+      "title": "Combination Sum II",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "combination-sum-ii"
+    },
+    {
+      "id": "word-search",
+      "title": "Word Search",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "word-search"
+    },
+    {
+      "id": "palindrome-partitioning",
+      "title": "Palindrome Partitioning",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "palindrome-partitioning"
+    },
+    {
+      "id": "letter-combinations-of-a-phone-number",
+      "title": "Letter Combinations of a Phone Number",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "letter-combinations-of-a-phone-number"
+    },
+    {
+      "id": "sudoku-solver",
+      "title": "sudoku Solver",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "sudoku-solver"
+    },
+    {
+      "id": "word-search-in-grid",
+      "title": "word Search In Grid",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "word-search-in-grid"
+    },
+    {
+      "id": "beautiful-arrangement",
+      "title": "beautiful Arrangement",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "beautiful-arrangement"
+    },
+    {
+      "id": "fair-distribution-of-cookies",
+      "title": "fair Distribution Of Cookies",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "fair-distribution-of-cookies"
+    },
+    {
+      "id": "maximum-operations-after-n-operations",
+      "title": "maximum Operations After N Operations",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-operations-after-n-operations"
+    },
+    {
+      "id": "minimum-number-of-work-sessions-to-finish-the-task",
+      "title": "minimum Number Of Work Sessions To Finish The Task",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-number-of-work-sessions-to-finish-the-task"
+    },
+    {
+      "id": "partition-to-k-equal-sum-subsets",
+      "title": "partition To K Equal Sum Subsets",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "partition-to-k-equal-sum-subsets"
+    },
+    {
+      "id": "number-of-valid-words-for-each-puzzle",
+      "title": "number Of Valid Words For Each Puzzle",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-valid-words-for-each-puzzle"
+    },
+    {
+      "id": "n-queens",
+      "title": "N-Queens",
+      "patternId": "backtracking",
+      "phaseId": 4,
+      "difficulty": "Hard",
+      "leetcodeSlug": "n-queens"
+    },
+    {
+      "id": "kth-largest-element-in-a-stream",
+      "title": "Kth Largest Element in a Stream",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Easy",
+      "leetcodeSlug": "kth-largest-element-in-a-stream"
+    },
+    {
+      "id": "last-stone-weight",
+      "title": "Last Stone Weight",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Easy",
+      "leetcodeSlug": "last-stone-weight"
+    },
+    {
+      "id": "k-closest-points-to-origin",
+      "title": "K Closest Points to Origin",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "k-closest-points-to-origin"
+    },
+    {
+      "id": "kth-largest-element-in-an-array",
+      "title": "Kth Largest Element in an Array",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "kth-largest-element-in-an-array"
+    },
+    {
+      "id": "task-scheduler",
+      "title": "Task Scheduler",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "task-scheduler"
+    },
+    {
+      "id": "design-twitter",
+      "title": "Design Twitter",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Medium",
+      "leetcodeSlug": "design-twitter"
+    },
+    {
+      "id": "find-median-from-data-stream",
+      "title": "Find Median from Data Stream",
+      "patternId": "heap",
+      "phaseId": 4,
+      "difficulty": "Hard",
+      "leetcodeSlug": "find-median-from-data-stream"
+    },
+    {
+      "id": "couple-holding-hands",
+      "title": "couple Holding Hands",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "couple-holding-hands"
+    },
+    {
+      "id": "find-all-people-with-secret",
+      "title": "find All People With Secret",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-all-people-with-secret"
+    },
+    {
+      "id": "last-day-where-you-can-still-cross",
+      "title": "last Day Where You Can Still Cross",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "last-day-where-you-can-still-cross"
+    },
+    {
+      "id": "num-islands",
+      "title": "num Islands",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "num-islands"
+    },
+    {
+      "id": "rank-transform-of-a-matrix",
+      "title": "rank Transform Of A Matrix",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "rank-transform-of-a-matrix"
+    },
+    {
+      "id": "redundant-connection2",
+      "title": "redundant Connection2",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "redundant-connection2"
+    },
+    {
+      "id": "remove-max-number-of-edges-to-keep-graph-fully-traversable",
+      "title": "remove Max Number Of Edges To Keep Graph Fully Traversable",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "remove-max-number-of-edges-to-keep-graph-fully-traversable"
+    },
+    {
+      "id": "similar-string-groups",
+      "title": "similar String Groups",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "similar-string-groups"
+    },
+    {
+      "id": "smallest-equivalent-string",
+      "title": "smallest Equivalent String",
+      "patternId": "graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "smallest-equivalent-string"
+    },
+    {
+      "id": "min-cost-to-connect-all-points",
+      "title": "Min Cost to Connect All Points",
+      "patternId": "advanced-graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "min-cost-to-connect-all-points"
+    },
+    {
+      "id": "network-delay-time",
+      "title": "Network Delay Time",
+      "patternId": "advanced-graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "network-delay-time"
+    },
+    {
+      "id": "cheapest-flights-within-k-stops",
+      "title": "Cheapest Flights Within K Stops",
+      "patternId": "advanced-graphs",
+      "phaseId": 5,
+      "difficulty": "Medium",
+      "leetcodeSlug": "cheapest-flights-within-k-stops"
+    },
+    {
+      "id": "reconstruct-itinerary",
+      "title": "Reconstruct Itinerary",
+      "patternId": "advanced-graphs",
+      "phaseId": 5,
+      "difficulty": "Hard",
+      "leetcodeSlug": "reconstruct-itinerary"
+    },
+    {
+      "id": "swim-in-rising-water",
+      "title": "Swim in Rising Water",
+      "patternId": "advanced-graphs",
+      "phaseId": 5,
+      "difficulty": "Hard",
+      "leetcodeSlug": "swim-in-rising-water"
+    },
+    {
+      "id": "alien-dictionary",
+      "title": "Alien Dictionary",
+      "patternId": "advanced-graphs",
+      "phaseId": 5,
+      "difficulty": "Hard",
+      "leetcodeSlug": "alien-dictionary"
+    },
+    {
+      "id": "climbing-stairs",
+      "title": "Climbing Stairs",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Easy",
+      "leetcodeSlug": "climbing-stairs"
+    },
+    {
+      "id": "min-cost-climbing-stairs",
+      "title": "Min Cost Climbing Stairs",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Easy",
+      "leetcodeSlug": "min-cost-climbing-stairs"
+    },
+    {
+      "id": "house-robber",
+      "title": "House Robber",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "house-robber"
+    },
+    {
+      "id": "house-robber-ii",
+      "title": "House Robber II",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "house-robber-ii"
+    },
+    {
+      "id": "longest-palindromic-substring",
+      "title": "Longest Palindromic Substring",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-palindromic-substring"
+    },
+    {
+      "id": "palindromic-substrings",
+      "title": "Palindromic Substrings",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "palindromic-substrings"
+    },
+    {
+      "id": "decode-ways",
+      "title": "Decode Ways",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "decode-ways"
+    },
+    {
+      "id": "coin-change",
+      "title": "Coin Change",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "coin-change"
+    },
+    {
+      "id": "maximum-product-subarray",
+      "title": "Maximum Product Subarray",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-product-subarray"
+    },
+    {
+      "id": "word-break",
+      "title": "Word Break",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "word-break"
+    },
+    {
+      "id": "longest-increasing-subsequence",
+      "title": "Longest Increasing Subsequence",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-increasing-subsequence"
+    },
+    {
+      "id": "partition-equal-subset-sum",
+      "title": "Partition Equal Subset Sum",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "partition-equal-subset-sum"
+    },
+    {
+      "id": "stock-buy-and-sell-d-p",
+      "title": "Stock Buy And Sell D P",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "stock-buy-and-sell-d-p"
+    },
+    {
+      "id": "best-team-with-no-conflicts",
+      "title": "best Team With No Conflicts",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "best-team-with-no-conflicts"
+    },
+    {
+      "id": "best-time-to-buy-and-sell-stock-with-transaction-fee",
+      "title": "best Time To Buy And Sell Stock With Transaction Fee",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "best-time-to-buy-and-sell-stock-with-transaction-fee"
+    },
+    {
+      "id": "build-array-where-you-can-find-the-maximum-exactly-k-comparisons",
+      "title": "build Array Where You Can Find The Maximum Exactly K Comparisons",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "build-array-where-you-can-find-the-maximum-exactly-k-comparisons"
+    },
+    {
+      "id": "cherry-pickup",
+      "title": "cherry Pickup",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "cherry-pickup"
+    },
+    {
+      "id": "cherry-pickup2",
+      "title": "cherry Pickup2",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "cherry-pickup2"
+    },
+    {
+      "id": "count-fertile-pyramids-in-a-land",
+      "title": "count Fertile Pyramids In A Land",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-fertile-pyramids-in-a-land"
+    },
+    {
+      "id": "count-number-of-teams",
+      "title": "count Number Of Teams",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-number-of-teams"
+    },
+    {
+      "id": "count-square-sub-matrices-with-all-ones",
+      "title": "count Square Sub Matrices With All Ones",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-square-sub-matrices-with-all-ones"
+    },
+    {
+      "id": "count-vowels-permutation",
+      "title": "count Vowels Permutation",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "count-vowels-permutation"
+    },
+    {
+      "id": "different-ways-to-add-paranthesis",
+      "title": "different Ways To Add Paranthesis",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "different-ways-to-add-paranthesis"
+    },
+    {
+      "id": "edit-distance",
+      "title": "edit Distance",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "edit-distance"
+    },
+    {
+      "id": "generate-paranthesis",
+      "title": "generate Paranthesis",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "generate-paranthesis"
+    },
+    {
+      "id": "knight-probability-in-chess-board",
+      "title": "knight Probability In Chess Board",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "knight-probability-in-chess-board"
+    },
+    {
+      "id": "longest-common-subsequence",
+      "title": "longest Common Subsequence",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-common-subsequence"
+    },
+    {
+      "id": "longest-increasing-path-in-a-matrix",
+      "title": "longest Increasing Path In A Matrix",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-increasing-path-in-a-matrix"
+    },
+    {
+      "id": "longest-palindrome",
+      "title": "longest Palindrome",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-palindrome"
+    },
+    {
+      "id": "longest-palindromic-subsequence",
+      "title": "longest Palindromic Subsequence",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-palindromic-subsequence"
+    },
+    {
+      "id": "longest-zigzag-path-in-a-binary-tree",
+      "title": "longest Zigzag Path In A Binary Tree",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-zigzag-path-in-a-binary-tree"
+    },
+    {
+      "id": "maximum-height-by-stacking-cuboids",
+      "title": "maximum Height By Stacking Cuboids",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-height-by-stacking-cuboids"
+    },
+    {
+      "id": "maximum-score-words-formed-by-letters",
+      "title": "maximum Score Words Formed By Letters",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-score-words-formed-by-letters"
+    },
+    {
+      "id": "min-delete-operations-for-two-strings",
+      "title": "min Delete Operations For Two Strings",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "min-delete-operations-for-two-strings"
+    },
+    {
+      "id": "min-falling-path-sum",
+      "title": "min Falling Path Sum",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "min-falling-path-sum"
+    },
+    {
+      "id": "min-falling-path-sum2",
+      "title": "min Falling Path Sum2",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "min-falling-path-sum2"
+    },
+    {
+      "id": "minimum-cost-for-tickets",
+      "title": "minimum Cost For Tickets",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-cost-for-tickets"
+    },
+    {
+      "id": "minimum-cost-tree-from-leaf-values",
+      "title": "minimum Cost Tree From Leaf Values",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-cost-tree-from-leaf-values"
+    },
+    {
+      "id": "minimum-insertions-steps-to-make-a-string-palindrome",
+      "title": "minimum Insertions Steps To Make A String Palindrome",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-insertions-steps-to-make-a-string-palindrome"
+    },
+    {
+      "id": "minimum-path-cost-in-a-grid",
+      "title": "minimum Path Cost In A Grid",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-path-cost-in-a-grid"
+    },
+    {
+      "id": "minimum-path-sum-in-a-matrix",
+      "title": "minimum Path Sum In A Matrix",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-path-sum-in-a-matrix"
+    },
+    {
+      "id": "number-of-increasing-paths-in-a-grid",
+      "title": "number Of Increasing Paths In A Grid",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-increasing-paths-in-a-grid"
+    },
+    {
+      "id": "number-of-music-playlists",
+      "title": "number Of Music Playlists",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-music-playlists"
+    },
+    {
+      "id": "number-of-ways-of-cutting-a-pizza",
+      "title": "number Of Ways Of Cutting A Pizza",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-ways-of-cutting-a-pizza"
+    },
+    {
+      "id": "number-of-ways-to-form-a-target-string-given-a-dictionary",
+      "title": "number Of Ways To Form A Target String Given A Dictionary",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-ways-to-form-a-target-string-given-a-dictionary"
+    },
+    {
+      "id": "number-of-ways-to-print-nx3-grid",
+      "title": "number Of Ways To Print Nx3 Grid",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-ways-to-print-nx3-grid"
+    },
+    {
+      "id": "number-of-ways-to-separate-numbers",
+      "title": "number Of Ways To Separate Numbers",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "number-of-ways-to-separate-numbers"
+    },
+    {
+      "id": "partition-array-for-maximum-sum",
+      "title": "partition Array For Maximum Sum",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "partition-array-for-maximum-sum"
+    },
+    {
+      "id": "perfect-squares",
+      "title": "perfect Squares",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "perfect-squares"
+    },
+    {
+      "id": "regular-expression-matching",
+      "title": "regular Expression Matching",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "regular-expression-matching"
+    },
+    {
+      "id": "restore-the-array",
+      "title": "restore The Array",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "restore-the-array"
+    },
+    {
+      "id": "selling-pieces-of-wood",
+      "title": "selling Pieces Of Wood",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "selling-pieces-of-wood"
+    },
+    {
+      "id": "sort-integers-by-the-power-values",
+      "title": "sort Integers By The Power Values",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "sort-integers-by-the-power-values"
+    },
+    {
+      "id": "stone-game3",
+      "title": "stone Game3",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "stone-game3"
+    },
+    {
+      "id": "stone-game5",
+      "title": "stone Game5",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "stone-game5"
+    },
+    {
+      "id": "tallest-billboard",
+      "title": "tallest Billboard",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "tallest-billboard"
+    },
+    {
+      "id": "ugly-number2",
+      "title": "ugly Number2",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "ugly-number2"
+    },
+    {
+      "id": "unique-binary-search-trees",
+      "title": "unique Binary Search Trees",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "unique-binary-search-trees"
+    },
+    {
+      "id": "unique-paths1",
+      "title": "unique Paths1",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "unique-paths1"
+    },
+    {
+      "id": "unique-paths-with-obstacles",
+      "title": "unique Paths With Obstacles",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "unique-paths-with-obstacles"
+    },
+    {
+      "id": "wildcard-matching",
+      "title": "wildcard Matching",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "wildcard-matching"
+    },
+    {
+      "id": "word-break2",
+      "title": "word Break2",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "word-break2"
+    },
+    {
+      "id": "maximum-value-of-k-coins-from-piles",
+      "title": "maximum Value Of K Coins From Piles",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-value-of-k-coins-from-piles"
+    },
+    {
+      "id": "burst-balloons",
+      "title": "burst Balloons",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "burst-balloons"
+    },
+    {
+      "id": "minimum-score-triangulation-of-polygon",
+      "title": "minimum Score Triangulation Of Polygon",
+      "patternId": "one-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "minimum-score-triangulation-of-polygon"
+    },
+    {
+      "id": "unique-paths",
+      "title": "Unique Paths",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "unique-paths"
+    },
+    {
+      "id": "longest-common-subsequence",
+      "title": "Longest Common Subsequence",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "longest-common-subsequence"
+    },
+    {
+      "id": "best-time-to-buy-and-sell-stock-with-cooldown",
+      "title": "Best Time to Buy and Sell Stock with Cooldown",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "best-time-to-buy-and-sell-stock-with-cooldown"
+    },
+    {
+      "id": "coin-change-ii",
+      "title": "Coin Change II",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "coin-change-ii"
+    },
+    {
+      "id": "target-sum",
+      "title": "Target Sum",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "target-sum"
+    },
+    {
+      "id": "interleaving-string",
+      "title": "Interleaving String",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "interleaving-string"
+    },
+    {
+      "id": "edit-distance",
+      "title": "Edit Distance",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "edit-distance"
+    },
+    {
+      "id": "01-matrix",
+      "title": "01 Matrix",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "01-matrix"
+    },
+    {
+      "id": "paths-in-matrix-whose-sum-is-divisible-by-k",
+      "title": "paths In Matrix Whose Sum Is Divisible By K",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "paths-in-matrix-whose-sum-is-divisible-by-k"
+    },
+    {
+      "id": "all-possible-full-binary-trees",
+      "title": "all Possible Full Binary Trees",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "all-possible-full-binary-trees"
+    },
+    {
+      "id": "unique-binary-search-trees2",
+      "title": "unique Binary Search Trees2",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Medium",
+      "leetcodeSlug": "unique-binary-search-trees2"
+    },
+    {
+      "id": "longest-increasing-path-in-a-matrix",
+      "title": "Longest Increasing Path in a Matrix",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Hard",
+      "leetcodeSlug": "longest-increasing-path-in-a-matrix"
+    },
+    {
+      "id": "distinct-subsequences",
+      "title": "Distinct Subsequences",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Hard",
+      "leetcodeSlug": "distinct-subsequences"
+    },
+    {
+      "id": "burst-balloons",
+      "title": "Burst Balloons",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Hard",
+      "leetcodeSlug": "burst-balloons"
+    },
+    {
+      "id": "regular-expression-matching",
+      "title": "Regular Expression Matching",
+      "patternId": "two-d-dp",
+      "phaseId": 6,
+      "difficulty": "Hard",
+      "leetcodeSlug": "regular-expression-matching"
+    },
+    {
+      "id": "maximum-subarray",
+      "title": "Maximum Subarray",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-subarray"
+    },
+    {
+      "id": "jump-game",
+      "title": "Jump Game",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "jump-game"
+    },
+    {
+      "id": "jump-game-ii",
+      "title": "Jump Game II",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "jump-game-ii"
+    },
+    {
+      "id": "gas-station",
+      "title": "Gas Station",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "gas-station"
+    },
+    {
+      "id": "hand-of-straights",
+      "title": "Hand of Straights",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "hand-of-straights"
+    },
+    {
+      "id": "merge-triplets-to-form-target-triplet",
+      "title": "Merge Triplets to Form Target Triplet",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "merge-triplets-to-form-target-triplet"
+    },
+    {
+      "id": "partition-labels",
+      "title": "Partition Labels",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "partition-labels"
+    },
+    {
+      "id": "valid-parenthesis-string",
+      "title": "Valid Parenthesis String",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "valid-parenthesis-string"
+    },
+    {
+      "id": "find-min-arrow-shots",
+      "title": "find Min Arrow Shots",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "find-min-arrow-shots"
+    },
+    {
+      "id": "frog-jump2",
+      "title": "frog Jump2",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "frog-jump2"
+    },
+    {
+      "id": "interval-list-intersections",
+      "title": "interval List Intersections",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "interval-list-intersections"
+    },
+    {
+      "id": "ipo",
+      "title": "ipo",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "ipo"
+    },
+    {
+      "id": "jump-game2",
+      "title": "jump Game2",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "jump-game2"
+    },
+    {
+      "id": "max-num-of-meetings",
+      "title": "max Num Of Meetings",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-num-of-meetings"
+    },
+    {
+      "id": "max-profit-in-unit-time-jobs",
+      "title": "max Profit In Unit Time Jobs",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "max-profit-in-unit-time-jobs"
+    },
+    {
+      "id": "maximum-ice-cream-bars",
+      "title": "maximum Ice Cream Bars",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "maximum-ice-cream-bars"
+    },
+    {
+      "id": "queue-reconstruction-from-height",
+      "title": "queue Reconstruction From Height",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "queue-reconstruction-from-height"
+    },
+    {
+      "id": "reducing-dishes",
+      "title": "reducing Dishes",
+      "patternId": "greedy",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "reducing-dishes"
+    },
+    {
+      "id": "insert-interval",
+      "title": "Insert Interval",
+      "patternId": "intervals",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "insert-interval"
+    },
+    {
+      "id": "merge-intervals",
+      "title": "Merge Intervals",
+      "patternId": "intervals",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "merge-intervals"
+    },
+    {
+      "id": "non-overlapping-intervals",
+      "title": "Non-overlapping Intervals",
+      "patternId": "intervals",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "non-overlapping-intervals"
+    },
+    {
+      "id": "meeting-rooms",
+      "title": "Meeting Rooms",
+      "patternId": "intervals",
+      "phaseId": 7,
+      "difficulty": "Easy",
+      "leetcodeSlug": "meeting-rooms"
+    },
+    {
+      "id": "meeting-rooms-ii",
+      "title": "Meeting Rooms II",
+      "patternId": "intervals",
+      "phaseId": 7,
+      "difficulty": "Medium",
+      "leetcodeSlug": "meeting-rooms-ii"
+    },
+    {
+      "id": "minimum-interval-to-include-each-query",
+      "title": "Minimum Interval to Include Each Query",
+      "patternId": "intervals",
+      "phaseId": 7,
+      "difficulty": "Hard",
+      "leetcodeSlug": "minimum-interval-to-include-each-query"
+    },
+    {
+      "id": "implement-trie-prefix-tree",
+      "title": "Implement Trie (Prefix Tree)",
+      "patternId": "tries",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "implement-trie-prefix-tree"
+    },
+    {
+      "id": "design-add-and-search-words-data-structure",
+      "title": "Design Add and Search Words Data Structure",
+      "patternId": "tries",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "design-add-and-search-words-data-structure"
+    },
+    {
+      "id": "word-search-ii",
+      "title": "Word Search II",
+      "patternId": "tries",
+      "phaseId": 8,
+      "difficulty": "Hard",
+      "leetcodeSlug": "word-search-ii"
+    },
+    {
+      "id": "rotate-image",
+      "title": "Rotate Image",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "rotate-image"
+    },
+    {
+      "id": "spiral-matrix",
+      "title": "Spiral Matrix",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "spiral-matrix"
+    },
+    {
+      "id": "set-matrix-zeroes",
+      "title": "Set Matrix Zeroes",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "set-matrix-zeroes"
+    },
+    {
+      "id": "happy-number",
+      "title": "Happy Number",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "happy-number"
+    },
+    {
+      "id": "plus-one",
+      "title": "Plus One",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "plus-one"
+    },
+    {
+      "id": "powx-n",
+      "title": "Pow(x, n)",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "powx-n"
+    },
+    {
+      "id": "multiply-strings",
+      "title": "Multiply Strings",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "multiply-strings"
+    },
+    {
+      "id": "detect-squares",
+      "title": "Detect Squares",
+      "patternId": "math-geometry",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "detect-squares"
+    },
+    {
+      "id": "single-number",
+      "title": "Single Number",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "single-number"
+    },
+    {
+      "id": "number-of-1-bits",
+      "title": "Number of 1 Bits",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "number-of-1-bits"
+    },
+    {
+      "id": "counting-bits",
+      "title": "Counting Bits",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "counting-bits"
+    },
+    {
+      "id": "reverse-bits",
+      "title": "Reverse Bits",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "reverse-bits"
+    },
+    {
+      "id": "missing-number",
+      "title": "Missing Number",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Easy",
+      "leetcodeSlug": "missing-number"
+    },
+    {
+      "id": "sum-of-two-integers",
+      "title": "Sum of Two Integers",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "sum-of-two-integers"
+    },
+    {
+      "id": "reverse-integer",
+      "title": "Reverse Integer",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "reverse-integer"
+    },
+    {
+      "id": "bit-manipulation-tricks",
+      "title": "bit Manipulation Tricks",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "bit-manipulation-tricks"
+    },
+    {
+      "id": "bitwise-and-of-numbers-range",
+      "title": "bitwise And Of Numbers Range",
+      "patternId": "bit-manipulation",
+      "phaseId": 8,
+      "difficulty": "Medium",
+      "leetcodeSlug": "bitwise-and-of-numbers-range"
+    }
+  ]
+}

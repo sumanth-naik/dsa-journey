@@ -1,0 +1,282 @@
+{
+  "id": "advanced-graphs",
+  "name": "Advanced Graphs",
+  "phaseId": 5,
+  "order": 2,
+  "tagline": "Shortest paths (Dijkstra/Bellman-Ford), MST, Eulerian paths.",
+  "concept": "## The idea\n\nYou've already done BFS/DFS, topo sort, and union-find. **Advanced graphs** means weighted edges and answering optimization questions: shortest path, minimum spanning tree, or reconstructing a path that uses every edge exactly once (Eulerian path).\n\n**Dijkstra** (with a min-heap) finds the shortest path from a source to all nodes when all edge weights are **non-negative**. Each iteration pulls the nearest unvisited node and relaxes its neighbors. **Bellman-Ford** is slower (O(VE)) but handles negative weights and can detect negative cycles. **Minimum spanning tree** (MST) connects all nodes with the lowest total edge weight — Prim's is Dijkstra-shaped (grow from one node), Kruskal's uses union-find (add edges by weight, skip cycles). **Eulerian path** visits every *edge* exactly once — you reconstruct the path backward using DFS and edge removal (Hierholzer's algorithm).\n\nThese aren't fundamentally new ideas — they're variations on greedy + heap (Dijkstra, Prim), DP on edges (Bellman-Ford), or union-find (Kruskal).\n\n## Python you'll pick up here\n\n- `import heapq` and `heapq.heappush(heap, (priority, node))`, `heapq.heappop(heap)` — Python's min-heap\n- `collections.defaultdict(list)` — adjacency lists that auto-create empty lists\n- `float('inf')` for initialization of distances\n- `(cost, node)` tuples — the heap compares by the first element (cost)\n- List comprehensions and `enumerate` for building graph structures\n- `.pop()` to remove the last element from a list (for Eulerian path reconstruction)",
+  "whenToUse": [
+    "You need the shortest path in a weighted graph (Dijkstra if no negative weights, Bellman-Ford otherwise)",
+    "You need to connect all nodes with minimum total edge weight (MST — Prim or Kruskal)",
+    "You need to detect negative cycles or relax edges repeatedly",
+    "You need to visit every edge exactly once (Eulerian path/circuit)"
+  ],
+  "problems": [
+    {
+      "id": "min-cost-to-connect-all-points",
+      "title": "Min Cost to Connect All Points",
+      "leetcodeSlug": "min-cost-to-connect-all-points",
+      "difficulty": "Medium",
+      "patternId": "advanced-graphs",
+      "tags": [
+        "graph",
+        "mst",
+        "prim",
+        "union-find"
+      ],
+      "video": {
+        "title": "NeetCode — Min Cost to Connect All Points (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Min+Cost+to+Connect+All+Points",
+        "lang": "python"
+      },
+      "keyIdeas": "A **minimum spanning tree (MST)** problem. You have *n* nodes (points) and need to connect all with minimum total edge weight (Manhattan distance). Prim's algorithm is Dijkstra-shaped: start from any node, greedily add the cheapest edge to an unvisited node, repeat until all nodes are connected. O(E log V) with a heap.",
+      "hints": [
+        "You need to connect all points with minimum total cost — that's the definition of a minimum spanning tree.",
+        "Prim's algorithm: start from any point, keep a min-heap of (cost, point) for edges to unvisited points, and greedily expand the tree.",
+        "Manhattan distance between (x1, y1) and (x2, y2) is `abs(x1 - x2) + abs(y1 - y2)`."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Prim's MST",
+          "keyIdea": "Start from any point, greedily add the cheapest edge to a new point using a min-heap.",
+          "code": "class Solution:\n    def minCostConnectPoints(self, points: list[list[int]]) -> int:\n        import heapq\n        n = len(points)\n        visited = set()\n        min_heap = [(0, 0)]  # (cost, point_index)\n        total_cost = 0\n        \n        while len(visited) < n:\n            cost, i = heapq.heappop(min_heap)\n            if i in visited:\n                continue\n            visited.add(i)\n            total_cost += cost\n            \n            # Add edges to all unvisited neighbors\n            for j in range(n):\n                if j not in visited:\n                    dist = abs(points[i][0] - points[j][0]) + abs(points[i][1] - points[j][1])\n                    heapq.heappush(min_heap, (dist, j))\n        \n        return total_cost",
+          "timeComplexity": "O(n^2 log n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Alternative — Kruskal's MST with union-find",
+          "keyIdea": "Sort all edges by weight, then greedily add edges that don't create a cycle using union-find. Reach for Kruskal's when you naturally have all edges upfront (vs. Prim's which grows the tree node-by-node), or when union-find fits your mental model better. Both are O(E log E) time, but Kruskal's is cleaner when E is manageable.",
+          "code": "class Solution:\n    def minCostConnectPoints(self, points: list[list[int]]) -> int:\n        n = len(points)\n        # Generate all edges with their costs\n        edges = []\n        for i in range(n):\n            for j in range(i + 1, n):\n                dist = abs(points[i][0] - points[j][0]) + abs(points[i][1] - points[j][1])\n                edges.append((dist, i, j))\n        \n        # Sort edges by cost\n        edges.sort()\n        \n        # Union-Find\n        parent = list(range(n))\n        def find(x):\n            if parent[x] != x:\n                parent[x] = find(parent[x])  # path compression\n            return parent[x]\n        \n        def union(x, y):\n            px, py = find(x), find(y)\n            if px == py:\n                return False  # already connected\n            parent[px] = py\n            return True\n        \n        # Kruskal's: add edges that don't create a cycle\n        total_cost = 0\n        edges_added = 0\n        for cost, u, v in edges:\n            if union(u, v):\n                total_cost += cost\n                edges_added += 1\n                if edges_added == n - 1:  # MST complete\n                    break\n        \n        return total_cost",
+          "timeComplexity": "O(n^2 log n)",
+          "spaceComplexity": "O(n^2)"
+        }
+      ],
+      "description": "You are given an array points representing integer coordinates of some points on a 2D-plane, where points[i] = [xi, yi].",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "mst"
+    },
+    {
+      "id": "network-delay-time",
+      "title": "Network Delay Time",
+      "leetcodeSlug": "network-delay-time",
+      "difficulty": "Medium",
+      "patternId": "advanced-graphs",
+      "tags": [
+        "graph",
+        "dijkstra",
+        "shortest-path"
+      ],
+      "video": {
+        "title": "NeetCode — Network Delay Time (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Network+Delay+Time",
+        "lang": "python"
+      },
+      "keyIdeas": "This is **Dijkstra's shortest path** — find the minimum time for a signal to reach all nodes from a source. Initialize all distances to infinity except the source (0). Use a min-heap to always process the nearest unvisited node, and relax its neighbors. If all nodes are reachable, return the max distance; otherwise -1.",
+      "hints": [
+        "You need the shortest time from source k to all other nodes — classic single-source shortest path.",
+        "Dijkstra: keep a min-heap of (time, node), always process the node with the smallest time, update neighbors if you find a shorter path.",
+        "After visiting all reachable nodes, the answer is the maximum distance in your distance array (or -1 if any node is unreachable)."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Dijkstra with min-heap",
+          "keyIdea": "Greedily expand from the nearest node, relaxing neighbors. Track distances and return the max.",
+          "code": "class Solution:\n    def networkDelayTime(self, times: list[list[int]], n: int, k: int) -> int:\n        import heapq\n        from collections import defaultdict\n        # Build adjacency list\n        graph = defaultdict(list)\n        for u, v, w in times:\n            graph[u].append((v, w))  # (neighbor, weight)\n        \n        # Dijkstra\n        dist = {i: float('inf') for i in range(1, n + 1)}\n        dist[k] = 0\n        min_heap = [(0, k)]  # (time, node)\n        \n        while min_heap:\n            time, node = heapq.heappop(min_heap)\n            if time > dist[node]:  # already found a better path\n                continue\n            for neighbor, weight in graph[node]:\n                new_time = time + weight\n                if new_time < dist[neighbor]:\n                    dist[neighbor] = new_time\n                    heapq.heappush(min_heap, (new_time, neighbor))\n        \n        max_time = max(dist.values())\n        return max_time if max_time < float('inf') else -1",
+          "timeComplexity": "O(E log V)",
+          "spaceComplexity": "O(V + E)"
+        },
+        {
+          "label": "Alternative — Bellman-Ford",
+          "keyIdea": "Relax all edges V-1 times to find shortest paths. Reach for Bellman-Ford when edges might be negative (not here, but it still works) or when you want a simpler implementation without a heap. Slower O(VE) vs Dijkstra's O(E log V), but handles negative weights and easier to understand.",
+          "code": "class Solution:\n    def networkDelayTime(self, times: list[list[int]], n: int, k: int) -> int:\n        # Initialize distances\n        dist = [float('inf')] * (n + 1)\n        dist[k] = 0\n        \n        # Relax all edges n-1 times\n        for _ in range(n - 1):\n            for u, v, w in times:\n                if dist[u] != float('inf') and dist[u] + w < dist[v]:\n                    dist[v] = dist[u] + w\n        \n        # Find max distance (excluding index 0)\n        max_time = max(dist[1:])\n        return max_time if max_time < float('inf') else -1",
+          "timeComplexity": "O(V * E)",
+          "spaceComplexity": "O(V)"
+        }
+      ],
+      "description": "You are given a network of n nodes, labeled from 1 to n. You are also given times, a list of travel times as directed edges times[i] = (ui, vi, wi), where ui is the source node, vi is the target node, and wi is the time it takes for a signal to travel from source to target.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "shortest-path"
+    },
+    {
+      "id": "cheapest-flights-within-k-stops",
+      "title": "Cheapest Flights Within K Stops",
+      "leetcodeSlug": "cheapest-flights-within-k-stops",
+      "difficulty": "Medium",
+      "patternId": "advanced-graphs",
+      "tags": [
+        "graph",
+        "dijkstra",
+        "bellman-ford",
+        "bfs"
+      ],
+      "video": {
+        "title": "NeetCode — Cheapest Flights Within K Stops (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Cheapest+Flights+Within+K+Stops",
+        "lang": "python"
+      },
+      "keyIdeas": "This is **Dijkstra with a twist**: you can't always skip a node once visited, because a longer path (more stops) might unlock a cheaper route later. Store `(cost, node, stops)` in the heap, and track the minimum cost to reach each node *for each stop count*. Alternatively, use **Bellman-Ford** (relax edges k+1 times) — simpler but slower.",
+      "hints": [
+        "Standard Dijkstra won't work because you need to track both cost and number of stops — a cheaper path might use too many stops.",
+        "Modified Dijkstra: push (cost, node, stops) into the heap. Track the best cost to each node for each stop count.",
+        "Alternatively, Bellman-Ford: relax all edges k+1 times (each iteration allows one more stop)."
+      ],
+      "solutions": [
+        {
+          "label": "Better — Bellman-Ford (simpler)",
+          "keyIdea": "Relax all edges k+1 times. After i iterations, you have the cheapest path using at most i stops.",
+          "code": "class Solution:\n    def findCheapestPrice(self, n: int, flights: list[list[int]], src: int, dst: int, k: int) -> int:\n        # Initialize distances\n        dist = [float('inf')] * n\n        dist[src] = 0\n        \n        # Relax edges k+1 times (k stops = k+1 edges)\n        for _ in range(k + 1):\n            temp = dist[:]\n            for u, v, price in flights:\n                if dist[u] != float('inf'):\n                    temp[v] = min(temp[v], dist[u] + price)\n            dist = temp\n        \n        return dist[dst] if dist[dst] != float('inf') else -1",
+          "timeComplexity": "O(k * E)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Optimal — Modified Dijkstra",
+          "keyIdea": "Heap stores (cost, node, stops). Only process if this path might improve future routes. Reach for this when you need the absolute best performance and can track state per (node, stops) — faster than Bellman-Ford when k is large.",
+          "code": "class Solution:\n    def findCheapestPrice(self, n: int, flights: list[list[int]], src: int, dst: int, k: int) -> int:\n        import heapq\n        from collections import defaultdict\n        # Build adjacency list\n        graph = defaultdict(list)\n        for u, v, price in flights:\n            graph[u].append((v, price))\n        \n        # (cost, node, stops_used)\n        min_heap = [(0, src, 0)]\n        # Track best cost to reach each node with at most s stops\n        best = {}\n        \n        while min_heap:\n            cost, node, stops = heapq.heappop(min_heap)\n            if node == dst:\n                return cost\n            if stops > k:  # exceeded stop limit\n                continue\n            if (node, stops) in best and best[(node, stops)] <= cost:\n                continue  # already found a better path with same stops\n            best[(node, stops)] = cost\n            \n            for neighbor, price in graph[node]:\n                heapq.heappush(min_heap, (cost + price, neighbor, stops + 1))\n        \n        return -1",
+          "timeComplexity": "O(E log V)",
+          "spaceComplexity": "O(V * k)"
+        },
+        {
+          "label": "Alternative — BFS with levels",
+          "keyIdea": "BFS naturally tracks levels (stops), so process the graph level-by-level, updating the minimum cost to each node. Reach for BFS when the stop constraint dominates the problem and you want the simplest code — it's intuitive (each BFS level = one more stop) but slower O(k * E) than Dijkstra.",
+          "code": "class Solution:\n    def findCheapestPrice(self, n: int, flights: list[list[int]], src: int, dst: int, k: int) -> int:\n        from collections import defaultdict, deque\n        # Build adjacency list\n        graph = defaultdict(list)\n        for u, v, price in flights:\n            graph[u].append((v, price))\n        \n        # BFS with levels (each level = one stop)\n        queue = deque([(src, 0)])  # (node, cost)\n        min_cost = [float('inf')] * n\n        min_cost[src] = 0\n        stops = 0\n        \n        while queue and stops <= k:\n            size = len(queue)\n            for _ in range(size):\n                node, cost = queue.popleft()\n                for neighbor, price in graph[node]:\n                    new_cost = cost + price\n                    # Only explore if this is a better cost to this neighbor\n                    if new_cost < min_cost[neighbor]:\n                        min_cost[neighbor] = new_cost\n                        queue.append((neighbor, new_cost))\n            stops += 1\n        \n        return min_cost[dst] if min_cost[dst] != float('inf') else -1",
+          "timeComplexity": "O(k * E)",
+          "spaceComplexity": "O(V + E)"
+        }
+      ],
+      "description": "There are n cities connected by some number of flights. You are given an array flights where flights[i] = [fromi, toi, pricei] indicates that there is a flight from city fromi to city toi with cost pricei.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "shortest-path"
+    },
+    {
+      "id": "reconstruct-itinerary",
+      "title": "Reconstruct Itinerary",
+      "leetcodeSlug": "reconstruct-itinerary",
+      "difficulty": "Hard",
+      "patternId": "advanced-graphs",
+      "tags": [
+        "graph",
+        "dfs",
+        "eulerian-path"
+      ],
+      "video": {
+        "title": "NeetCode — Reconstruct Itinerary (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Reconstruct+Itinerary",
+        "lang": "python"
+      },
+      "keyIdeas": "This is an **Eulerian path** problem — visit every flight (edge) exactly once. Build an adjacency list sorted lexicographically, then use DFS to consume edges. The trick: you reconstruct the path **backward** (postorder), because Hierholzer's algorithm adds a node to the result *after* exhausting all its outgoing edges.",
+      "hints": [
+        "You're asked to use every ticket exactly once — that's visiting every *edge* once, not every node. Think Eulerian path.",
+        "Build a graph where each airport maps to a sorted list of destinations. DFS from 'JFK', consuming edges as you go.",
+        "Hierholzer's algorithm: recursively visit all neighbors first, then add the current node to the result. Reverse the result at the end to get the forward path."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Eulerian path (Hierholzer)",
+          "keyIdea": "Use DFS with edge removal and postorder insertion. The path is built backward, then reversed.",
+          "code": "class Solution:\n    def findItinerary(self, tickets: list[list[str]]) -> list[str]:\n        from collections import defaultdict\n        # Build adjacency list, sorted for lexicographical order\n        graph = defaultdict(list)\n        for src, dst in sorted(tickets, reverse=True):\n            graph[src].append(dst)\n        \n        route = []\n        def dfs(airport):\n            while graph[airport]:\n                next_dest = graph[airport].pop()  # remove edge\n                dfs(next_dest)\n            route.append(airport)  # postorder — add after exhausting edges\n        \n        dfs('JFK')\n        return route[::-1]  # reverse to get forward path",
+          "timeComplexity": "O(E log E)",
+          "spaceComplexity": "O(E)"
+        }
+      ],
+      "description": "You are given a list of airline tickets where tickets[i] = [fromi, toi] represent the departure and the arrival airports of one flight. Reconstruct the itinerary in order and return it.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "euler-path"
+    },
+    {
+      "id": "swim-in-rising-water",
+      "title": "Swim in Rising Water",
+      "leetcodeSlug": "swim-in-rising-water",
+      "difficulty": "Hard",
+      "patternId": "advanced-graphs",
+      "tags": [
+        "graph",
+        "dijkstra",
+        "binary-search"
+      ],
+      "video": {
+        "title": "NeetCode — Swim in Rising Water (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Swim+in+Rising+Water",
+        "lang": "python"
+      },
+      "keyIdeas": "This is a **modified Dijkstra** where the 'cost' is the maximum elevation along the path (not the sum). At each step, expand to the neighbor with the smallest elevation you haven't visited yet. Use a min-heap to always pick the lowest-elevation next cell. The answer is the elevation you had to wait for to reach the bottom-right.",
+      "hints": [
+        "You want the path where the maximum elevation along it is as small as possible — this is a shortest-path problem with a twist.",
+        "Use Dijkstra, but instead of summing weights, track the maximum elevation seen so far on the path.",
+        "Start from (0, 0) with the elevation grid[0][0], and greedily expand to the lowest available neighbor."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Modified Dijkstra",
+          "keyIdea": "Use a min-heap to always expand to the cell with the smallest max-elevation-so-far.",
+          "code": "class Solution:\n    def swimInWater(self, grid: list[list[int]]) -> int:\n        import heapq\n        n = len(grid)\n        visited = set()\n        min_heap = [(grid[0][0], 0, 0)]  # (max_elevation, row, col)\n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        \n        while min_heap:\n            max_elev, r, c = heapq.heappop(min_heap)\n            if (r, c) in visited:\n                continue\n            visited.add((r, c))\n            \n            if r == n - 1 and c == n - 1:  # reached bottom-right\n                return max_elev\n            \n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < n and 0 <= nc < n and (nr, nc) not in visited:\n                    heapq.heappush(min_heap, (max(max_elev, grid[nr][nc]), nr, nc))\n        \n        return -1  # should never reach here",
+          "timeComplexity": "O(n^2 log n)",
+          "spaceComplexity": "O(n^2)"
+        },
+        {
+          "label": "Alternative — Binary search + DFS",
+          "keyIdea": "Binary search on the answer (the time T we wait), then for each candidate T, check if a path exists using only cells with elevation ≤ T via DFS. Reach for this when the problem asks 'minimize the maximum' and you can verify a candidate answer quickly. Same O(n^2 log n) complexity but conceptually different — search the answer space instead of path-finding.",
+          "code": "class Solution:\n    def swimInWater(self, grid: list[list[int]]) -> int:\n        n = len(grid)\n        \n        def can_reach(time):\n            # DFS to check if we can reach bottom-right with max elevation <= time\n            if grid[0][0] > time:\n                return False\n            visited = set()\n            stack = [(0, 0)]\n            directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n            \n            while stack:\n                r, c = stack.pop()\n                if (r, c) in visited:\n                    continue\n                visited.add((r, c))\n                \n                if r == n - 1 and c == n - 1:\n                    return True\n                \n                for dr, dc in directions:\n                    nr, nc = r + dr, c + dc\n                    if 0 <= nr < n and 0 <= nc < n and (nr, nc) not in visited and grid[nr][nc] <= time:\n                        stack.append((nr, nc))\n            \n            return False\n        \n        # Binary search on the time\n        left, right = grid[0][0], n * n - 1\n        while left < right:\n            mid = (left + right) // 2\n            if can_reach(mid):\n                right = mid\n            else:\n                left = mid + 1\n        \n        return left",
+          "timeComplexity": "O(n^2 log n)",
+          "spaceComplexity": "O(n^2)"
+        },
+        {
+          "label": "Alternative — Union-Find",
+          "keyIdea": "Sort cells by elevation, then union adjacent cells in increasing order until start and end are connected. Reach for union-find when the problem is about connectivity and you can process elements in a favorable order. Elegant but less intuitive for this problem — most would reach for Dijkstra or binary search first.",
+          "code": "class Solution:\n    def swimInWater(self, grid: list[list[int]]) -> int:\n        n = len(grid)\n        # Create list of (elevation, row, col)\n        cells = []\n        for r in range(n):\n            for c in range(n):\n                cells.append((grid[r][c], r, c))\n        cells.sort()  # process cells in increasing elevation order\n        \n        # Union-Find\n        parent = {}\n        def find(x):\n            if x not in parent:\n                parent[x] = x\n            if parent[x] != x:\n                parent[x] = find(parent[x])\n            return parent[x]\n        \n        def union(x, y):\n            px, py = find(x), find(y)\n            if px != py:\n                parent[px] = py\n        \n        directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]\n        for elev, r, c in cells:\n            # Union this cell with adjacent cells that have been processed\n            for dr, dc in directions:\n                nr, nc = r + dr, c + dc\n                if 0 <= nr < n and 0 <= nc < n and (nr, nc) in parent:\n                    union((r, c), (nr, nc))\n            \n            # Check if start and end are connected\n            if find((0, 0)) == find((n - 1, n - 1)):\n                return elev\n        \n        return -1",
+          "timeComplexity": "O(n^2 log n)",
+          "spaceComplexity": "O(n^2)"
+        }
+      ],
+      "description": "You are given an n x n integer matrix grid where each value grid[i][j] represents the elevation at that point (i, j).",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "shortest-path"
+    },
+    {
+      "id": "alien-dictionary",
+      "title": "Alien Dictionary",
+      "leetcodeSlug": "alien-dictionary",
+      "difficulty": "Hard",
+      "patternId": "advanced-graphs",
+      "tags": [
+        "graph",
+        "topological-sort",
+        "dfs"
+      ],
+      "video": {
+        "title": "NeetCode — Alien Dictionary (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Alien+Dictionary",
+        "lang": "python"
+      },
+      "keyIdeas": "Extract ordering constraints by comparing adjacent words pairwise (the first differing character gives an edge). Build a graph and run **topological sort** (DFS with postorder) to get the character order. Detect cycles (impossible ordering). This is a graph problem disguised as a string problem — the trick is extracting the edges correctly.",
+      "hints": [
+        "Compare each pair of adjacent words. The first position where they differ tells you one character comes before another — that's a directed edge.",
+        "Build a graph of characters and their ordering constraints, then do a topological sort to find a valid order.",
+        "Use DFS-based topo sort with a postorder stack. If you find a cycle (revisit a node in the current path), return '' — the ordering is impossible."
+      ],
+      "solutions": [
+        {
+          "label": "Optimal — Topological sort (DFS)",
+          "keyIdea": "Extract edges from adjacent words, build a graph, then DFS-based topo sort with cycle detection.",
+          "code": "class Solution:\n    def alienOrder(self, words: list[str]) -> str:\n        from collections import defaultdict\n        # Initialize graph with all unique characters\n        graph = {c: set() for word in words for c in word}\n        \n        # Build edges from adjacent word pairs\n        for i in range(len(words) - 1):\n            w1, w2 = words[i], words[i + 1]\n            min_len = min(len(w1), len(w2))\n            # Edge case: if w1 is a prefix and longer, invalid\n            if len(w1) > len(w2) and w1[:min_len] == w2[:min_len]:\n                return ''\n            for j in range(min_len):\n                if w1[j] != w2[j]:\n                    graph[w1[j]].add(w2[j])\n                    break\n        \n        # DFS-based topological sort with cycle detection\n        visited = {}  # False = visiting, True = visited\n        result = []\n        \n        def dfs(char):\n            if char in visited:\n                return visited[char]  # True if already done, False if cycle\n            visited[char] = False  # mark as visiting\n            for neighbor in graph[char]:\n                if not dfs(neighbor):  # cycle detected\n                    return False\n            visited[char] = True  # mark as visited\n            result.append(char)  # postorder\n            return True\n        \n        for char in graph:\n            if not dfs(char):\n                return ''  # cycle detected\n        \n        return ''.join(result[::-1])  # reverse postorder for topo sort",
+          "timeComplexity": "O(C)",
+          "spaceComplexity": "O(C)"
+        },
+        {
+          "label": "Alternative — Topological sort (BFS/Kahn's)",
+          "keyIdea": "Build a graph with in-degrees, then repeatedly remove nodes with in-degree 0 and decrement their neighbors' in-degrees. Reach for BFS topo sort (Kahn's algorithm) when you prefer iterative code or need to process nodes in a specific order as they become available. Same O(C) complexity as DFS, but more explicit about the order.",
+          "code": "class Solution:\n    def alienOrder(self, words: list[str]) -> str:\n        from collections import defaultdict, deque\n        # Initialize graph and in-degrees\n        graph = {c: set() for word in words for c in word}\n        in_degree = {c: 0 for word in words for c in word}\n        \n        # Build edges from adjacent word pairs\n        for i in range(len(words) - 1):\n            w1, w2 = words[i], words[i + 1]\n            min_len = min(len(w1), len(w2))\n            # Edge case: if w1 is a prefix and longer, invalid\n            if len(w1) > len(w2) and w1[:min_len] == w2[:min_len]:\n                return ''\n            for j in range(min_len):\n                if w1[j] != w2[j]:\n                    if w2[j] not in graph[w1[j]]:  # avoid duplicate edges\n                        graph[w1[j]].add(w2[j])\n                        in_degree[w2[j]] += 1\n                    break\n        \n        # BFS topological sort (Kahn's algorithm)\n        queue = deque([c for c in in_degree if in_degree[c] == 0])\n        result = []\n        \n        while queue:\n            char = queue.popleft()\n            result.append(char)\n            for neighbor in graph[char]:\n                in_degree[neighbor] -= 1\n                if in_degree[neighbor] == 0:\n                    queue.append(neighbor)\n        \n        # If not all characters processed, there's a cycle\n        if len(result) != len(in_degree):\n            return ''\n        \n        return ''.join(result)",
+          "timeComplexity": "O(C)",
+          "spaceComplexity": "O(C)"
+        }
+      ],
+      "phaseId": 2,
+      "important": false,
+      "subcategory": "topological-sort"
+    }
+  ]
+}

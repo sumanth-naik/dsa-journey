@@ -1,0 +1,282 @@
+{
+  "id": "graphs",
+  "name": "Graphs",
+  "phaseId": 5,
+  "order": 1,
+  "tagline": "Grid & adjacency traversal, topo sort, union-find.",
+  "concept": "## The idea\n\nGraphs are just relationships — nodes connected by edges. You've worked with them conceptually at Goldman; now we make them concrete in code.\n\nThree representations matter here:\n\n1. **Grid graphs** — a 2D array where each cell is a node; edges go to 4-directional neighbors. Classic DFS/BFS territory.\n2. **Adjacency list** — a dict mapping each node to its neighbors: `graph[node] = [neighbor1, neighbor2, ...]`. The standard for explicit graphs.\n3. **Union-Find (Disjoint Set)** — tracks connected components with near-constant-time union and find. Great when you're merging clusters or detecting cycles.\n\nCore operations:\n\n- **DFS (depth-first)**: recursive or stack-based; goes deep before wide. Natural for exploring all reachable nodes or marking regions.\n- **BFS (breadth-first)**: queue-based; explores level-by-level. Perfect for shortest paths in unweighted graphs.\n- **Topological sort**: linear ordering of a DAG (directed acyclic graph) where all edges point forward. Two algorithms: Kahn's (BFS with in-degrees) and DFS with post-order.\n\n## Python you'll pick up here\n\n- `collections.deque` — the queue for BFS: `queue = deque([start])`, `queue.popleft()`, `queue.append(node)`\n- `collections.defaultdict(list)` — auto-initializing dict for adjacency lists\n- `set()` for visited tracking (O(1) lookups)\n- Grid traversal: `for dr, dc in [(0,1), (0,-1), (1,0), (-1,0)]:` for 4 directions\n- Nested functions (DFS helpers) to close over the grid/graph",
+  "whenToUse": [
+    "The problem mentions islands, regions, connected components, or reachability",
+    "You need shortest path in an unweighted graph (BFS)",
+    "There's a dependency structure or prerequisite chain (topological sort)",
+    "You're merging or querying connected sets dynamically (union-find)"
+  ],
+  "problems": [
+    {
+      "id": "couple-holding-hands",
+      "title": "couple Holding Hands",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-advanced",
+      "leetcodeSlug": "couple-holding-hands",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class UnionFind:\n    def __init__(self, n) -> None:\n        self.parent = [i for i in range(n)]\n        self.size = [1 for _ in range(n)]\n    \n    def findParent(self, node):\n        if self.parent[node]!=node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def union(self, node1, node2):\n        parent1 = self.findParent(node1)\n        parent2 = self.findParent(node2)\n        if parent1!=parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1] \n    \n\nclass Solution:\n    def minSwapsCouples(self, row):\n        unionFind = UnionFind(len(row))\n        for i in range(0, len(row), 2):\n            unionFind.union(row[i], row[i+1])\n            unionFind.union(i, i+1)\n        \n        parentToSizeMap = {}\n        for i in range(len(row)):\n            parent = unionFind.findParent(i)\n            if not parent in parentToSizeMap:\n                parentToSizeMap[parent] = unionFind.size[parent]    \n        \n        return sum((num//2)-1 for num in parentToSizeMap.values())\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 5
+    },
+    {
+      "id": "find-all-people-with-secret",
+      "title": "find All People With Secret",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-advanced",
+      "leetcodeSlug": "find-all-people-with-secret",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class UnionFind:\n    def __init__(self) -> None:\n        self.parent = {}\n        self.size = {}\n    \n    def findParent(self, node):\n        if self.parent[node] != node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def addNode(self, node):\n        if node not in self.parent:\n            self.parent[node] = node\n            self.size[node] = 1\n\n    def union(self, node1, node2):\n        self.addNode(node1)\n        self.addNode(node2)\n        parent1 = self.findParent(node1) \n        parent2 = self.findParent(node2) \n        if parent1!=parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1]\n\n    def belongsToSameComponent(self, node1, node2):\n        return self.findParent(node1) == self.findParent(node2)\n\n    def getParentToNodesInComponentMap(self):\n        parentsToNodesInComponentMap = defaultdict(list)\n        for node in self.parent:\n            parent = self.findParent(node)\n            parentsToNodesInComponentMap[parent].append(node)\n        return parentsToNodesInComponentMap\n\n\n\nclass Solution:\n    def findAllPeople(self, n: int, meetings, firstPerson: int):\n        timeToPersonsWithMeetingsMap = defaultdict(list)\n        for person1, person2, time in meetings:\n            timeToPersonsWithMeetingsMap[time].append((person1, person2))\n        \n        secretKnowingPeopleSet = {0, firstPerson}\n        for time in sorted(timeToPersonsWithMeetingsMap.keys()):\n            unionFind = UnionFind()\n            for person1, person2 in timeToPersonsWithMeetingsMap[time]:\n                unionFind.union(person1, person2)\n            parentsKnowingSecretsSet = set()\n            for person1, person2 in timeToPersonsWithMeetingsMap[time]:\n                if person1 in secretKnowingPeopleSet or person2 in secretKnowingPeopleSet:\n                    parentsKnowingSecretsSet.add(unionFind.findParent(person1))\n            for parent, nodes in unionFind.getParentToNodesInComponentMap().items():\n                if parent in parentsKnowingSecretsSet:\n                    secretKnowingPeopleSet.update(nodes)\n                \n        return secretKnowingPeopleSet",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given an integer n indicating there are n people numbered from 0 to n - 1. You are also given a 0-indexed 2D integer array meetings where meetings[i] = [xi, yi, timei] indicates that person xi and person yi have a meeting at timei. A person may attend multiple meetings at the same time. Finally, you are given an integer firstPerson.",
+      "phaseId": 5
+    },
+    {
+      "id": "last-day-where-you-can-still-cross",
+      "title": "last Day Where You Can Still Cross",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-advanced",
+      "leetcodeSlug": "last-day-where-you-can-still-cross",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class UnionFind:\n    def __init__(self, row, col):\n        self.parent = defaultdict(int)\n        self.size = defaultdict(int)\n        self.row = row\n        self.col = col\n\n    def addNode(self, node):\n        if not node in self.parent:\n            self.parent[node] = node\n            self.size[node] = 1\n    \n    def findParent(self, node):\n        if self.parent[node]!=node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def union(self, node1, node2):\n        self.addNode(node1)\n        self.addNode(node2)\n        parent1 = self.findParent(node1)\n        parent2 = self.findParent(node2)\n        if parent1!=parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1]\n\n    def hasVerticalPath(self):\n        return self.findParent((0,0))==self.findParent((self.row+1,0))\n\n    def hasHorizontalPath(self):\n        return self.findParent((1,0))==self.findParent((1, self.col+1))\n    \nclass Solution:\n    def latestDayToCross(self, row: int, col: int, cells: List[List[int]]) -> int:\n\n        unionFind = UnionFind(row, col) # land as components\n        unionFind.addNode((0, 0))\n        unionFind.addNode((row+1, 0))\n\n        cellsSet = set(tuple([i,j]) for i,j in cells)\n\n\n        def addCellToUnionFind(i,j):\n            nonlocal unionFind\n            for di, dj in [[0, 1], [1, 0], [0, -1], [-1, 0]]:\n                neighI, neighJ = i+di, j+dj\n                if 1<=neighI<=row and 1<=neighJ<=col:\n                    if (neighI, neighJ) not in cellsSet or (neighI, neighJ) in unionFind.parent:\n                        unionFind.union((i,j), (neighI, neighJ))\n                if neighI==0 and 1<=neighJ<=col:\n                    unionFind.union((i,j), (0, 0))\n                if neighI==row+1 and 1<=neighJ<=col:\n                    unionFind.union((i,j), (row+1, 0))\n\n        for i in range(1, row+1):\n            for j in range(1, col+1):\n                if (i, j) not in cellsSet:\n                    addCellToUnionFind(i, j)\n\n        index = len(cells)-1\n        while True:\n            if unionFind.hasVerticalPath(): return index+1\n            unionFind.addNode((cells[index][0], cells[index][1]))\n            addCellToUnionFind(cells[index][0], cells[index][1])\n            index -= 1\n\n\n\n\n\nclass Solution:\n    def latestDayToCross(self, row: int, col: int, cells: List[List[int]]) -> int:\n        unionFind = UnionFind(row, col) # water as components\n\n        for i in range(1, row): \n            unionFind.union((i,0),(i+1,0))\n            unionFind.union((i,col+1),(i+1,col+1))\n\n        for index, (i,j) in enumerate(cells):\n            unionFind.addNode((i,j))\n            for di, dj in [(0,1),(1,0),(-1,0),(0,-1),(1,-1),(-1,1),(-1,-1),(1,1)]:\n                neighI, neighJ = i+di, j+dj\n                if 0<=neighI<=row+1 and 0<=neighJ<=col+1:\n                    if (neighI, neighJ) in unionFind.parent:\n                        unionFind.union((i,j), (neighI, neighJ))\n            if unionFind.hasHorizontalPath(): return index\n            \n        return len(cells)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "There is a 1-based binary matrix where 0 represents land and 1 represents water. You are given integers row and col representing the number of rows and columns in the matrix, respectively.",
+      "phaseId": 6
+    },
+    {
+      "id": "num-islands",
+      "title": "num Islands",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-components",
+      "leetcodeSlug": "num-islands",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "grid = [\n  [\"1\",\"1\",\"0\",\"0\",\"0\"],\n  [\"1\",\"1\",\"0\",\"0\",\"0\"],\n  [\"0\",\"0\",\"1\",\"0\",\"0\"],\n  [\"0\",\"0\",\"0\",\"1\",\"1\"]\n]\n\n\nclass UnionFind:\n    def __init__(self):\n        self.size = {}\n        self.parent = {}\n    \n    def findParent(self, node):\n        if not node==self.parent[node]:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def addNode(self, node):\n        if not node in self.parent:\n            self.parent[node] = node\n            self.size[node] = 1\n\n    def attachNodes(self, node1, node2):\n        self.parent[node2] = node1\n        self.size[node1] += self.size[node2]\n\n    def union(self, node1, node2):\n        parent1 = self.findParent(node1)\n        parent2 = self.findParent(node2)\n        if parent1==parent2:\n            return\n        if self.size[parent1]>self.size[parent2]:\n            self.attachNodes(parent1, parent2)\n        else:\n            self.attachNodes(parent2, parent1)\n\n    def numDistinctComponents(self):\n        count = 0\n        for node in self.parent:\n            if node==self.parent[node]:\n                count += 1\n        return count\n    \n    def numDistinctIslands(self, grid):\n        count = 0\n        for node in self.parent:\n            if node==self.parent[node] and grid[node[0]][node[1]]==\"1\":\n                count += 1    \n        return count   \n\n    def debug(self, m, n,grid):\n        parentSet = set()\n        for i in range(m):\n            for j in range(n):\n                parentSet.add(self.findParent((i,j)))\n        for parent in parentSet:\n            print(\"parent: \", parent)\n            print(\"parent value in grid:\",grid[parent[0]][parent[1]])\n            print(\"parent size\",self.size[parent])\n        print(\"numDistinctComponents: \",self.numDistinctComponents())\n        print(\"numDistinctIslands: \",self.numDistinctIslands(grid))\n            \n        \ndef numIslands(grid):\n    m = len(grid)\n    n = len(grid[0])\n    unionFind = UnionFind()\n    for i in range(m):\n        for j in range(n):\n            unionFind.addNode((i,j))\n            for point in [(i+1,j), (i, j+1)]:\n                if point[0]<m and point[1]<n and point[0]>=0 and point[1]>=0:\n                    unionFind.addNode(point)\n                    if grid[i][j]==grid[point[0]][point[1]]:\n                        unionFind.union((i,j),point)\n                \n\n    unionFind.debug(m,n,grid)\n    return unionFind.numDistinctIslands(grid)\n\nprint(numIslands(grid))\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 6
+    },
+    {
+      "id": "rank-transform-of-a-matrix",
+      "title": "rank Transform Of A Matrix",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-components",
+      "leetcodeSlug": "rank-transform-of-a-matrix",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "sorting wont work as if there are multiple same numbers, we dont know which to pick first to decide, we will have to do a BFS starting from index with max(max(lastRankInRowArr[i], lastRankInColArr[j])) which is basically topo sort, we could do it from beginning itself class Solution: def matrixRankTransform(self, matrix):",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "sorting wont work as if there are multiple same numbers, we dont know which to pick first to decide, we will have to do a BFS starting from index with max(max(lastRankInRowArr[i], lastRankInColArr[j])) which is basically topo sort, we could do it from beginning itself class Solution: def matrixRankTransform(self, matrix):",
+          "code": "# sorting wont work as if there are multiple same numbers, we dont know which to pick first\n# to decide, we will have to do a BFS starting from index with max(max(lastRankInRowArr[i], lastRankInColArr[j]))\n# which is basically topo sort, we could do it from beginning itself\n# class Solution:\n#     def matrixRankTransform(self, matrix):\n#         m, n = len(matrix), len(matrix[0])\n\n#         sortedList = sorted([(matrix[i][j], i, j) for i in range(m) for j in range(n)])\n\n#         lastSeenRowArr, lastSeenColArr, lastRankInRowArr, lastRankInColArr = [float('inf')] * m, [float('inf')] * n, [0] * m, [0] * n\n#         rankMatrix = [[0 for _ in range(n)] for _ in range(m)]\n\n#         prevVal, sameValElements = float('inf')\n#         for val, i, j in sortedList:\n#             if val==prevVal:\n#                 sameValElements.append(( lastRankInRowArr[i] + lastRankInColArr[j], i, j))\n\n#             if lastSeenRowArr[i]!=val:\n#                 lastSeenRowArr[i] = val\n#                 lastRankInRowArr[i] += 1\n#             if lastSeenColArr[j]!=val:\n#                 lastSeenColArr[j] = val\n#                 lastRankInColArr[j] += 1\n\n#             rankMatrix[i][j] = lastRankInRowArr[i] = lastRankInColArr[j] = max(lastRankInRowArr[i], lastRankInColArr[j])\n        \n#         return rankMatrix\n    \n\n# [-37,-50,-3,44],\n# [-37,46,13,-32],\n# [47,-42,-3,-40],\n# [-17,-22,-39,24]\n\n# [2,1,3,6],\n# [2,6,5,4],\n# [5,2,4,3],\n# [4,3,1,5]\n\n# [2,1,4,6],\n# [2,6,5,4],\n# [5,2,4,3],\n# [4,3,1,5]\n\n\n# topo sort with a twist O(mn(m+n)) \n# sameValIndegreeZeroNodesMap, sameValNonIndegreeZeroNodesMap help to decide if we want to add or not to arr used in Kahn's algo\n# class Solution:\n#     def matrixRankTransform(self, matrix):\n#         m, n = len(matrix), len(matrix[0])\n#         indegreeArr = [[0 for _ in range(n)] for _ in range(m)]\n\n#         rankMatrix, rank = [[0 for _ in range(n)] for _ in range(m)], 1\n\n#         adjList, sameValAdjList = defaultdict(list), defaultdict(list)\n#         for i in range(m):\n#             for j in range(n):\n#                 for sameRowElemJIndex in range(j+1, n):\n#                     if matrix[i][j]>matrix[i][sameRowElemJIndex]:\n#                         indegreeArr[i][j] += 1\n#                         adjList[(i, sameRowElemJIndex)].append((i,j))\n#                     elif matrix[i][j]<matrix[i][sameRowElemJIndex]:\n#                         indegreeArr[i][sameRowElemJIndex] += 1\n#                         adjList[(i,j)].append((i, sameRowElemJIndex))\n#                     else:\n#                         sameValAdjList[(i,j)].append((i,sameRowElemJIndex))\n#                         sameValAdjList[(i,sameRowElemJIndex)].append((i,j))\n#                 for sameColElemIIndex in range(i+1, m):\n#                     if matrix[i][j]>matrix[sameColElemIIndex][j]:\n#                         indegreeArr[i][j] += 1\n#                         adjList[(sameColElemIIndex,j)].append((i, j))\n#                     elif matrix[i][j]<matrix[sameColElemIIndex][j]:\n#                         indegreeArr[sameColElemIIndex][j] += 1\n#                         adjList[(i,j)].append((sameColElemIIndex, j))\n#                     else:\n#                         sameValAdjList[(i,j)].append((sameColElemIIndex,j))\n#                         sameValAdjList[(sameColElemIIndex,j)].append((i,j))\n\n\n\n#         # map of node to set of nodes in that component where node is present\n#         sameValIndegreeZeroNodesMap, sameValNonIndegreeZeroNodesMap = {}, {}\n#         visited = set()\n#         def dfs(node, indegreeZeroSet, nonIndegreeZeroSet):\n#             visited.add(node)\n#             if indegreeArr[node[0]][node[1]]==0:\n#                 indegreeZeroSet.add(node)\n#             else:\n#                 nonIndegreeZeroSet.add(node)\n#             for neigh in sameValAdjList[node]:\n#                 if neigh not in indegreeZeroSet and neigh not in nonIndegreeZeroSet:\n#                     dfs(neigh, indegreeZeroSet, nonIndegreeZeroSet)\n#             return indegreeZeroSet, nonIndegreeZeroSet\n\n#         componentParentMap = {}\n#         for node in sameValAdjList:\n#             if node not in visited:\n#                 indegreeZeroSet, nonIndegreeZeroSet = dfs(node, set(), set())\n#                 sameValIndegreeZeroNodesMap[node] = indegreeZeroSet\n#                 sameValNonIndegreeZeroNodesMap[node] = nonIndegreeZeroSet\n#                 for componentNode in indegreeZeroSet | nonIndegreeZeroSet:\n#                     componentParentMap[componentNode] = node\n\n\n#         zeroIndegreeIndicesList = [(i,j) for i in range(m) for j in range(n) if indegreeArr[i][j]==0 and (i,j) not in visited]\n#         for parent in sameValNonIndegreeZeroNodesMap.keys():\n#             if len(sameValNonIndegreeZeroNodesMap[parent])==0:\n#                 zeroIndegreeIndicesList.extend(sameValIndegreeZeroNodesMap[parent])\n\n\n#         while zeroIndegreeIndicesList:\n#             nextIterationZeroIndegreeIndicesList = []\n#             for i, j in zeroIndegreeIndicesList:\n#                 rankMatrix[i][j] = rank\n#                 for neighI, neighJ in adjList[(i,j)]:\n#                     indegreeArr[neighI][neighJ] -= 1\n#                     if indegreeArr[neighI][neighJ]==0:\n#                         if (neighI, neighJ) in componentParentMap:\n#                             parent = componentParentMap[(neighI, neighJ)]\n#                             sameValNonIndegreeZeroNodesMap[parent].remove((neighI, neighJ))\n#                             sameValIndegreeZeroNodesMap[parent].add((neighI, neighJ))\n#                             if len(sameValNonIndegreeZeroNodesMap[parent])==0:\n#                                 nextIterationZeroIndegreeIndicesList.extend(sameValIndegreeZeroNodesMap[parent])\n#                         else:\n#                             nextIterationZeroIndegreeIndicesList.append((neighI, neighJ))\n#             rank += 1\n#             zeroIndegreeIndicesList = nextIterationZeroIndegreeIndicesList\n\n#         return rankMatrix\n\n\n\n\nclass UnionFind:\n    def __init__(self) -> None:\n        self.parent = {}\n        self.size = {}\n\n    def addNode(self, node):\n        if node not in self.parent:\n            self.parent[node] = node\n            self.size[node] = 0\n    \n    def findParent(self, node):\n        if self.parent[node]!=node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def union(self, node1, node2):\n        self.addNode(node1)\n        self.addNode(node2)\n        parent1 = self.findParent(node1)\n        parent2 = self.findParent(node2)\n        if parent1!=parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1]\n\nclass Solution:\n    def matrixRankTransform(self, matrix):\n        m, n = len(matrix), len(matrix[0])\n        rankMatrix = [[0 for _ in range(n)] for _ in range(m)]\n        rowRanksArr, colRanksArr = [0 for _ in range(m)], [0 for _ in range(n)]\n        valToIndicesMap = defaultdict(list)\n        for i in range(m):\n            for j in range(n):\n                valToIndicesMap[matrix[i][j]].append((i,j))\n\n        for val in sorted(valToIndicesMap.keys()):\n            unionFind = UnionFind()\n            for i, j in valToIndicesMap[val]:\n                unionFind.union(i,~j)\n\n            parentToMaxRankFoundMap = defaultdict(int)\n            for i, j in valToIndicesMap[val]:\n                parentToMaxRankFoundMap[unionFind.findParent(i)] = max(parentToMaxRankFoundMap[unionFind.findParent(i)], max(rowRanksArr[i], colRanksArr[j]))\n\n            for i, j in valToIndicesMap[val]:\n                rankMatrix[i][j] = rowRanksArr[i] = colRanksArr[j] = parentToMaxRankFoundMap[unionFind.findParent(i)] + 1\n\n        return rankMatrix\n            \n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an m x n matrix, return a new matrix answer where answer[row][col] is the rank of matrix[row][col].",
+      "phaseId": 6
+    },
+    {
+      "id": "redundant-connection2",
+      "title": "redundant Connection2",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-components",
+      "leetcodeSlug": "redundant-connection2",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "# if indegreeZeroNode is None and indegreeTwoNode is not None:         #     for edge in reversed(edges):         #         if edge[1] == indegreeTwoNode:         #             return edge",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "# if indegreeZeroNode is None and indegreeTwoNode is not None:         #     for edge in reversed(edges):         #         if edge[1] == indegreeTwoNode:         #             return edge",
+          "code": "\n\nclass UnionFind:\n    def __init__(self) -> None:\n        self.parent = {}\n        self.size = {}\n\n    def addNode(self, node):\n        if not node in self.parent:\n            self.parent[node] = node\n            self.size[node] = 1\n\n    def findParent(self, node):\n        if not self.parent[node]==node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n\n    def union(self, node1, node2):\n        parent1 = self.findParent(node1)\n        parent2 = self.findParent(node2)\n        if not parent1==parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1]\n\n    def belongToSameComponent(self, node1, node2):\n        return self.findParent(node1)==self.findParent(node2)\n\nclass Solution:\n    def findRedundantDirectedConnection(self, edges):\n        indegreeArr = [0 for _ in range(len(edges)+1)]\n        indegreeArr[0] = -1\n\n        for edge in edges:\n            indegreeArr[edge[1]] += 1\n\n        indegreeZeroNode, indegreeTwoNode = None, None\n        for index, indegree in enumerate(indegreeArr):\n            if indegree==0:\n                indegreeZeroNode = index\n            elif indegree==2:\n                indegreeTwoNode = index\n\n        if indegreeZeroNode is None and indegreeTwoNode is None:\n            unionFind = UnionFind()\n            for edge in edges:\n                unionFind.addNode(edge[0])\n                unionFind.addNode(edge[1])\n                if unionFind.belongToSameComponent(edge[0], edge[1]):\n                    return edge\n                else:\n                    unionFind.union(edge[0], edge[1])\n\n        # if indegreeZeroNode is None and indegreeTwoNode is not None:\n        #     for edge in reversed(edges):\n        #         if edge[1] == indegreeTwoNode:\n        #             return edge\n        \n        if indegreeZeroNode is not None and indegreeTwoNode is not None:\n\n            adjList = [[] for _ in range(len(edges)+1)]\n            for edge in edges:\n                adjList[edge[0]].append(edge[1])\n\n            visited, found = set(), None\n            def dfs(node):\n                visited.add(node)\n                for neigh in adjList[node]:\n                    if neigh not in visited:\n                        dfs(neigh)\n                    else:\n                        nonlocal found\n                        found = [node, neigh]\n\n            dfs(indegreeTwoNode)\n            if found:\n                return found\n\n        for edge in reversed(edges):\n            if edge[1] == indegreeTwoNode:\n                return edge\n\n\n\nclass Solution:\n    def findRedundantDirectedConnection(self, edges):\n        indegreeArr = [0 for _ in range(len(edges)+1)]\n        indegreeArr[0] = -1\n        adjList = [[] for _ in range(len(edges)+1)]\n        indegreeTwoNode = None\n\n        for edge in edges:\n            indegreeArr[edge[1]] += 1\n            adjList[edge[0]].append(edge[1])\n            if indegreeArr[edge[1]]==2:\n                indegreeTwoNode = edge[1]\n      \n        visitedInDfs, found = set(), None\n        def dfs(node):\n            visitedInDfs.add(node)\n            for neigh in adjList[node]:\n                if neigh not in visitedInDfs:\n                    dfs(neigh)\n                else:\n                    nonlocal found\n                    found = [node, neigh]\n\n        if indegreeTwoNode is not None:\n            dfs(indegreeTwoNode)\n            if found:\n                return found\n            for edge in reversed(edges):\n                if edge[1] == indegreeTwoNode:\n                    return edge\n        else:\n            visitedNodes = set()\n            for edge in reversed(edges):    \n                if edge[1] not in visitedNodes:\n                    dfs(edge[1])\n                    if found:\n                        return edge\n                    visitedInDfs = set()\n                    visitedNodes = visitedNodes.union(visitedInDfs)\n                    \n                    \n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 6
+    },
+    {
+      "id": "remove-max-number-of-edges-to-keep-graph-fully-traversable",
+      "title": "remove Max Number Of Edges To Keep Graph Fully Traversable",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-components",
+      "leetcodeSlug": "remove-max-number-of-edges-to-keep-graph-fully-traversable",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class UnionFind:\n    def __init__(self, n) -> None:\n        self.parent = [i for i in range(n)]\n        self.size = [1 for _ in range(n)]\n    \n    def findParent(self, node):\n        if self.parent[node] != node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n\n    def union(self, node1, node2):\n        parent1 = self.findParent(node1) \n        parent2 = self.findParent(node2) \n        if parent1!=parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1]\n\n    def belongsToSameComponent(self, node1, node2):\n        return self.findParent(node1) == self.findParent(node2)\n\n\nclass Solution:\n    def maxNumEdgesToRemove(self, n: int, edges):\n        unionFindOfAlice, unionFindOfBob = UnionFind(n), UnionFind(n)\n        aliceTraversableEdges, bobTraversableEdges, bothTraversableEdges = [], [], []\n        for edge in edges:\n            if edge[0]==1:\n                aliceTraversableEdges.append((edge[1]-1, edge[2]-1))\n            elif edge[0]==2:\n                bobTraversableEdges.append((edge[1]-1, edge[2]-1))\n            else:\n                bothTraversableEdges.append((edge[1]-1, edge[2]-1))\n\n        numEdgesAddedInBoth = 0\n        for edge in bothTraversableEdges:\n            if numEdgesAddedInBoth==n-1:\n                break\n            if not unionFindOfAlice.belongsToSameComponent(edge[0], edge[1]):\n                unionFindOfAlice.union(edge[0],edge[1])\n                unionFindOfBob.union(edge[0],edge[1])\n                numEdgesAddedInBoth += 1\n\n\n        numEdgesAddedInAliceOnly = 0\n        for edge in aliceTraversableEdges:\n            if numEdgesAddedInBoth + numEdgesAddedInAliceOnly==n-1:\n                break\n            if not unionFindOfAlice.belongsToSameComponent(edge[0], edge[1]):\n                unionFindOfAlice.union(edge[0],edge[1])\n                numEdgesAddedInAliceOnly += 1  \n\n             \n        numEdgesAddedInBobOnly = 0\n        for edge in bobTraversableEdges:\n            if numEdgesAddedInBoth + numEdgesAddedInBobOnly==n-1:\n                break\n            if not unionFindOfBob.belongsToSameComponent(edge[0], edge[1]):\n                unionFindOfBob.union(edge[0],edge[1])\n                numEdgesAddedInBobOnly += 1 \n\n        if not (numEdgesAddedInAliceOnly + numEdgesAddedInBoth == n-1 == numEdgesAddedInBobOnly + numEdgesAddedInBoth):\n            return -1\n        else:\n            return len(edges) - (numEdgesAddedInAliceOnly + numEdgesAddedInBoth + numEdgesAddedInBobOnly)\n        \n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Alice and Bob have an undirected graph of n nodes and three types of edges:",
+      "phaseId": 6
+    },
+    {
+      "id": "similar-string-groups",
+      "title": "similar String Groups",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-advanced",
+      "leetcodeSlug": "similar-string-groups",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "from typing import List\nclass UnionFind:\n    def __init__(self):\n        self.parent = {}\n        self.size = {}\n\n    def addNode(self, node):\n        if node not in self.parent:\n            self.parent[node] = node\n            self.size[node] = 1\n    \n    def findParent(self, node):\n        if self.parent[node]!=node:\n            self.parent[node] = self.findParent(self.parent[node])\n        return self.parent[node]\n    \n    def union(self, node1, node2):\n        self.addNode(node1)\n        self.addNode(node2)\n        parent1 = self.findParent(node1)\n        parent2 = self.findParent(node2)\n        if parent1!=parent2:\n            if self.size[parent1]>self.size[parent2]:\n                self.parent[parent2] = parent1\n                self.size[parent1] += self.size[parent2]\n            else:\n                self.parent[parent1] = parent2\n                self.size[parent2] += self.size[parent1]\n            \n    def getNumComponents(self):\n        parentsSet = set()\n        for node in self.parent:\n            parentsSet.add(self.findParent(node))\n        return len(parentsSet)\n\n\nclass Solution:\n    def numSimilarGroups(self, strs: List[str]) -> int:\n\n        def isSimilar(str1, str2):\n            numDiffs = 0\n            for char1, char2 in zip(str1, str2):\n                if char1!=char2: numDiffs+=1\n                if numDiffs>2: return False\n            return numDiffs<=2\n        \n        unionFind = UnionFind()\n        for str1 in strs:\n            for str2 in strs:\n                if isSimilar(str1, str2): unionFind.union(str1, str2)\n\n        return unionFind.getNumComponents()",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Two strings, X and Y, are considered similar if either they are identical or we can make them equivalent by swapping at most two letters (in distinct positions) within the string X.",
+      "phaseId": 7
+    },
+    {
+      "id": "smallest-equivalent-string",
+      "title": "smallest Equivalent String",
+      "difficulty": "Medium",
+      "patternId": "graphs",
+      "subcategory": "union-find-advanced",
+      "leetcodeSlug": "smallest-equivalent-string",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "\nclass UnionFind:\n\n    def __init__(self):\n        self.parent = {}\n\n    def findParent(self, char):\n        if self.parent[char]!=char:\n            self.parent[char] = self.findParent(self.parent[char])\n        return self.parent[char]\n\n    def addCharIfNotPresent(self, char):\n        if not char in self.parent:\n            self.parent[char] = char\n\n    def union(self, char1, char2):\n        self.addCharIfNotPresent(char1)\n        self.addCharIfNotPresent(char2)\n        parent1 = self.findParent(char1)\n        parent2 = self.findParent(char2)\n        if not parent1==parent2:\n            if parent1<parent2:\n                self.parent[parent2] = parent1\n            else:\n                self.parent[parent1] = parent2\n        \n\nclass Solution:\n    def smallestEquivalentString(self, s1: str, s2: str, baseStr: str):\n        unionFind = UnionFind()\n\n        for i in range(len(s1)):\n            unionFind.union(s1[i], s2[i])\n\n        ansArr = []\n        for char in baseStr:\n            if char in unionFind.parent:\n                ansArr.append(unionFind.findParent(char))\n            else:\n                ansArr.append(char)\n        return ''.join(ansArr)",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 7
+    }
+  ]
+}

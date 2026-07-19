@@ -1,0 +1,12 @@
+{
+  "name": "dsa-journey",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "test": "bun test",
+    "test:watch": "bun test --watch"
+  },
+  "devDependencies": {
+    "glob": "^13.0.6"
+  }
+}

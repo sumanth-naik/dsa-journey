@@ -1,0 +1,604 @@
+{
+  "id": "backtracking",
+  "name": "Backtracking",
+  "phaseId": 4,
+  "order": 1,
+  "tagline": "Try a choice, recurse, undo it — explore all possibilities.",
+  "concept": "## The idea\n\nBacktracking is **DFS with a choice tree**. The pattern: at each step, try a decision, recurse to explore all consequences, then **undo the decision** (backtrack) so you can try the next possibility clean.\n\nThe template is always **choose → recurse → undo**:\n```python\ndef backtrack(state):\n    if base_case(state):\n        collect(state)    # found a valid solution\n        return\n    for choice in choices(state):\n        make(choice)       # choose\n        backtrack(new_state)  # recurse\n        undo(choice)       # undo (the actual backtracking)\n```\n\nYou'll use it for **generating all combinations** (subsets, permutations, partitions) or **searching grids/boards** for valid paths (Word Search, N-Queens). The key insight: the undo step restores the previous state so the next iteration sees a clean slate — that's what makes it complete and correct.\n\n## Python you'll pick up here\n\n- `list.append(x)` and `list.pop()` — the undo pair for building paths\n- Copying a list before collecting: `result.append(path[:])` or `result.append(path.copy())`\n- Slicing `nums[i:]` to pass remaining candidates to the next level\n- `set()` for fast membership checks (visited, used columns, diagonals in N-Queens)\n- Nested functions for backtracking helpers — captures outer variables naturally",
+  "whenToUse": [
+    "You need to generate **all** subsets, permutations, combinations, or partitions",
+    "The problem asks for all ways to do something (not just one solution)",
+    "You're exploring a grid/board where you need to try paths and retreat (Word Search, N-Queens)",
+    "Greedy and DP won't work — you need exhaustive search with pruning"
+  ],
+  "problems": [
+    {
+      "id": "subsets",
+      "title": "Subsets",
+      "leetcodeSlug": "subsets",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking",
+        "bit-manipulation"
+      ],
+      "video": {
+        "title": "NeetCode — Subsets (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Subsets",
+        "lang": "python"
+      },
+      "keyIdeas": "Generate all subsets by deciding at each index: **include the number or skip it**. Each path from root to leaf in the decision tree is one subset. The base case is when you've considered all elements. This is the purest backtracking warm-up — the choose/recurse/undo pattern in its simplest form.",
+      "hints": [
+        "Think of a decision tree: at each number, you either take it or leave it. How many leaves will that tree have?",
+        "Build a helper that tracks the current subset and the index you're considering. Recurse twice: once including nums[i], once skipping it.",
+        "After the recursive call that included nums[i], remove it (pop) so the next branch starts clean."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking",
+          "keyIdea": "At each index, branch twice: include the element (append, recurse, pop) or skip it (just recurse). Reach for this when you need the clearest conceptual model or must generate subsets as part of a larger backtracking problem.",
+          "code": "class Solution:\n    def subsets(self, nums: list[int]) -> list[list[int]]:\n        result = []\n        subset = []\n        \n        def backtrack(i):\n            if i == len(nums):\n                result.append(subset[:])\n                return\n            # include nums[i]\n            subset.append(nums[i])\n            backtrack(i + 1)\n            subset.pop()  # undo\n            # exclude nums[i]\n            backtrack(i + 1)\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(n * 2^n)",
+          "spaceComplexity": "O(n) recursion depth (output space not counted)"
+        },
+        {
+          "label": "Alternative — iterative cascading",
+          "keyIdea": "Start with the empty subset, then for each number, create new subsets by adding that number to all existing subsets. Reach for this when you want to avoid recursion or when the iterative flow is easier to visualize (each iteration grows the power set one element at a time).",
+          "code": "class Solution:\n    def subsets(self, nums: list[int]) -> list[list[int]]:\n        result = [[]]\n        \n        for num in nums:\n            # for each existing subset, add a new one with num appended\n            result += [subset + [num] for subset in result]\n        \n        return result",
+          "timeComplexity": "O(n * 2^n)",
+          "spaceComplexity": "O(1) extra space (output space not counted)"
+        },
+        {
+          "label": "Alternative — bitmask enumeration",
+          "keyIdea": "Each subset corresponds to a binary number from 0 to 2^n - 1; bit i indicates whether nums[i] is included. Reach for this when you want O(1) extra space or need to enumerate subsets by index (useful in some DP problems or when you need a specific subset ordering).",
+          "code": "class Solution:\n    def subsets(self, nums: list[int]) -> list[list[int]]:\n        n = len(nums)\n        result = []\n        \n        # iterate through all 2^n possible subsets\n        for mask in range(1 << n):  # 0 to 2^n - 1\n            subset = []\n            for i in range(n):\n                if mask & (1 << i):  # check if i-th bit is set\n                    subset.append(nums[i])\n            result.append(subset)\n        \n        return result",
+          "timeComplexity": "O(n * 2^n)",
+          "spaceComplexity": "O(1) extra space (output space not counted)"
+        }
+      ],
+      "description": "Given an integer array nums of unique elements, return all possible subsets (the power set).",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "subsets"
+    },
+    {
+      "id": "combination-sum",
+      "title": "Combination Sum",
+      "leetcodeSlug": "combination-sum",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Combination Sum (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Combination+Sum",
+        "lang": "python"
+      },
+      "keyIdeas": "You can reuse the same number multiple times, so after including `candidates[i]`, recurse **starting at i again** (not i+1). Stop the branch early if the current sum exceeds target (pruning). Collect when sum equals target exactly.",
+      "hints": [
+        "Unlike subsets, you can pick the same number repeatedly. What does that mean for the recursive call after you pick candidates[i]?",
+        "Pass the remaining target down. If it goes negative, that branch is dead — backtrack.",
+        "Start each level at index i (not i+1) to allow reuse, but pass i+1 when you skip to avoid infinite loops."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking with reuse",
+          "keyIdea": "Pick candidates[i] repeatedly by recursing with the same index; skip by advancing the index.",
+          "code": "class Solution:\n    def combinationSum(self, candidates: list[int], target: int) -> list[list[int]]:\n        result = []\n        combo = []\n        \n        def backtrack(i, total):\n            if total == target:\n                result.append(combo[:])\n                return\n            if i >= len(candidates) or total > target:\n                return\n            \n            # include candidates[i]\n            combo.append(candidates[i])\n            backtrack(i, total + candidates[i])  # same i to allow reuse\n            combo.pop()\n            \n            # skip candidates[i]\n            backtrack(i + 1, total)\n        \n        backtrack(0, 0)\n        return result",
+          "timeComplexity": "O(2^target) — worst case when candidates=[1]",
+          "spaceComplexity": "O(target) recursion depth"
+        }
+      ],
+      "description": "Given an array of distinct integers candidates and a target integer target, return a list of all unique combinations of candidates where the chosen numbers sum to target. You may return the combinations in any order.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "combinations"
+    },
+    {
+      "id": "permutations",
+      "title": "Permutations",
+      "leetcodeSlug": "permutations",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Permutations (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Permutations",
+        "lang": "python"
+      },
+      "keyIdeas": "Generate all orderings by trying each unused number at the current position. Track which numbers you've used (a set or boolean array). When the permutation length equals n, you've built one full permutation. This is the classic **try every choice, mark used, recurse, unmark** pattern.",
+      "hints": [
+        "Unlike subsets/combinations, order matters. You need to try every number at every position.",
+        "Keep a set of used indices. For each recursive level, loop through all numbers; if not used, add it, recurse, then remove it.",
+        "Base case: when the current permutation has all n numbers, add it to results."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking with a used set",
+          "keyIdea": "At each level, try every number that isn't already in the current permutation. Mark it used, recurse, unmark. Reach for this when you need to leave the input array untouched or when you're building permutations from a subset of elements.",
+          "code": "class Solution:\n    def permute(self, nums: list[int]) -> list[list[int]]:\n        result = []\n        perm = []\n        used = set()\n        \n        def backtrack():\n            if len(perm) == len(nums):\n                result.append(perm[:])\n                return\n            \n            for i in range(len(nums)):\n                if i in used:\n                    continue\n                \n                perm.append(nums[i])\n                used.add(i)\n                backtrack()\n                perm.pop()\n                used.remove(i)\n        \n        backtrack()\n        return result",
+          "timeComplexity": "O(n! * n)",
+          "spaceComplexity": "O(n) recursion depth + used set"
+        },
+        {
+          "label": "Alternative — backtracking with swap",
+          "keyIdea": "Swap nums[i] to the current position, recurse on the rest, then swap back. This generates permutations in-place by treating index i as the boundary: everything before i is fixed, everything from i onward is still being permuted. Reach for this when you can mutate the input and want O(1) extra space (no used set needed).",
+          "code": "class Solution:\n    def permute(self, nums: list[int]) -> list[list[int]]:\n        result = []\n        \n        def backtrack(start):\n            if start == len(nums):\n                result.append(nums[:])\n                return\n            \n            for i in range(start, len(nums)):\n                # swap nums[start] with nums[i]\n                nums[start], nums[i] = nums[i], nums[start]\n                backtrack(start + 1)\n                # backtrack: swap back\n                nums[start], nums[i] = nums[i], nums[start]\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(n! * n)",
+          "spaceComplexity": "O(n) recursion depth only (no extra used tracking)"
+        },
+        {
+          "label": "Alternative — itertools insight",
+          "keyIdea": "Python's itertools.permutations generates all permutations directly using a C-optimized implementation. In an interview, mention this exists but write out the backtracking approach to show you understand the algorithm. Reach for itertools in production code or when the interviewer says 'use any library'.",
+          "code": "class Solution:\n    def permute(self, nums: list[int]) -> list[list[int]]:\n        from itertools import permutations\n        # permutations returns tuples, convert to lists\n        return [list(p) for p in permutations(nums)]",
+          "timeComplexity": "O(n! * n)",
+          "spaceComplexity": "O(n) for each permutation tuple"
+        }
+      ],
+      "description": "Given an array nums of distinct integers, return all the possible permutations. You can return the answer in any order.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "permutations"
+    },
+    {
+      "id": "subsets-ii",
+      "title": "Subsets II",
+      "leetcodeSlug": "subsets-ii",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Subsets II (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Subsets+II",
+        "lang": "python"
+      },
+      "keyIdeas": "The array has duplicates, so **sort first** then skip duplicate values at the same decision level to avoid duplicate subsets. The pattern: after trying `nums[i]`, skip all `nums[j] == nums[i]` for the 'exclude' branch at this level. Sorting makes duplicates adjacent so you can detect them with `nums[i] == nums[i-1]`.",
+      "hints": [
+        "Sort the array so duplicates sit together. That makes it easy to skip them.",
+        "When you loop through choices at a given level, if nums[i] == nums[i-1] and you didn't take i-1, skip i — otherwise you'll generate the same subset twice.",
+        "The structure is like Subsets, but with a 'continue' guard to skip duplicates."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking with duplicate skipping",
+          "keyIdea": "Sort first. At each level, skip nums[i] if it equals nums[i-1] and you're not in the 'include' branch from i-1.",
+          "code": "class Solution:\n    def subsetsWithDup(self, nums: list[int]) -> list[list[int]]:\n        nums.sort()  # sort to group duplicates\n        result = []\n        subset = []\n        \n        def backtrack(i):\n            if i == len(nums):\n                result.append(subset[:])\n                return\n            \n            # include nums[i]\n            subset.append(nums[i])\n            backtrack(i + 1)\n            subset.pop()\n            \n            # skip nums[i] and all duplicates\n            while i + 1 < len(nums) and nums[i] == nums[i + 1]:\n                i += 1\n            backtrack(i + 1)\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(n * 2^n)",
+          "spaceComplexity": "O(n) recursion depth"
+        }
+      ],
+      "description": "Given an integer array nums that may contain duplicates, return all possible subsets (the power set).",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "subsets"
+    },
+    {
+      "id": "combination-sum-ii",
+      "title": "Combination Sum II",
+      "leetcodeSlug": "combination-sum-ii",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Combination Sum II (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Combination+Sum+II",
+        "lang": "python"
+      },
+      "keyIdeas": "Like Combination Sum but each number is used **at most once** and there are duplicates in the input. Sort first, then at each level skip `candidates[i]` if it equals `candidates[i-1]` and you're exploring parallel branches (not the first pick). This avoids both reusing the same element and generating duplicate combinations.",
+      "hints": [
+        "Sort the array. Unlike Combination Sum I, you can't reuse the same index, so the next recursive call is at i+1.",
+        "To avoid duplicate combinations, skip candidates[i] if it's the same as candidates[i-1] and you're not in the 'include i-1' branch.",
+        "Pass the remaining target down and prune when it goes negative."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking with duplicate skip",
+          "keyIdea": "Sort, then loop from i onward; skip duplicates at the same recursion level to avoid duplicate combos.",
+          "code": "class Solution:\n    def combinationSum2(self, candidates: list[int], target: int) -> list[list[int]]:\n        candidates.sort()\n        result = []\n        combo = []\n        \n        def backtrack(i, total):\n            if total == target:\n                result.append(combo[:])\n                return\n            if total > target:\n                return\n            \n            for j in range(i, len(candidates)):\n                if j > i and candidates[j] == candidates[j - 1]:\n                    continue  # skip duplicates at this level\n                combo.append(candidates[j])\n                backtrack(j + 1, total + candidates[j])  # j+1: no reuse\n                combo.pop()\n        \n        backtrack(0, 0)\n        return result",
+          "timeComplexity": "O(2^n)",
+          "spaceComplexity": "O(n) recursion depth"
+        }
+      ],
+      "description": "Given a collection of candidate numbers (candidates) and a target number (target), find all unique combinations in candidates where the candidate numbers sum to target.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "combinations"
+    },
+    {
+      "id": "word-search",
+      "title": "Word Search",
+      "leetcodeSlug": "word-search",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking",
+        "matrix"
+      ],
+      "video": {
+        "title": "NeetCode — Word Search (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Word+Search",
+        "lang": "python"
+      },
+      "keyIdeas": "DFS from every cell; at each step, mark the cell visited (set it to '#' or use a set), try all four neighbors, then **unmark it** (backtrack) so other paths can use it. The moment you match the whole word, return True immediately (short-circuit). The grid itself acts as your state that you modify and restore.",
+      "hints": [
+        "Try starting the search from every cell. Use DFS to explore the four directions.",
+        "Mark the current cell as visited before recursing (e.g., save the char and overwrite with '#'), then restore it after the recursive calls return.",
+        "Base case: if you've matched all characters of word, return True. If you hit a mismatch or boundary, return False."
+      ],
+      "solutions": [
+        {
+          "label": "DFS with in-place marking",
+          "keyIdea": "From each cell, DFS in four directions. Mark visited by overwriting, recurse, then restore (backtrack).",
+          "code": "class Solution:\n    def exist(self, board: list[list[str]], word: str) -> bool:\n        rows, cols = len(board), len(board[0])\n        \n        def backtrack(r, c, i):\n            if i == len(word):\n                return True\n            if r < 0 or r >= rows or c < 0 or c >= cols or board[r][c] != word[i]:\n                return False\n            \n            # mark visited\n            temp = board[r][c]\n            board[r][c] = '#'\n            \n            # explore 4 directions\n            found = (backtrack(r + 1, c, i + 1) or\n                     backtrack(r - 1, c, i + 1) or\n                     backtrack(r, c + 1, i + 1) or\n                     backtrack(r, c - 1, i + 1))\n            \n            # backtrack\n            board[r][c] = temp\n            return found\n        \n        for r in range(rows):\n            for c in range(cols):\n                if backtrack(r, c, 0):\n                    return True\n        return False",
+          "timeComplexity": "O(m * n * 4^L) where L = len(word)",
+          "spaceComplexity": "O(L) recursion depth"
+        }
+      ],
+      "description": "Given an m x n grid of characters board and a string word, return true if word exists in the grid.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "grid-backtracking"
+    },
+    {
+      "id": "palindrome-partitioning",
+      "title": "Palindrome Partitioning",
+      "leetcodeSlug": "palindrome-partitioning",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "string",
+        "backtracking",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Palindrome Partitioning (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Palindrome+Partitioning",
+        "lang": "python"
+      },
+      "keyIdeas": "Generate all ways to partition the string into palindromic substrings. At each index, try every possible end position; if `s[start:end]` is a palindrome, add it to the current partition, recurse from `end`, then pop it (backtrack). A helper function or slicing with `== [::-1]` checks palindromes.",
+      "hints": [
+        "At each position, try cutting at every possible length. Check if the substring is a palindrome.",
+        "If it is, add it to the current partition and recurse on the rest of the string.",
+        "When you've consumed the entire string (start == len(s)), you've found one valid partitioning."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking with palindrome check",
+          "keyIdea": "Loop over all possible next cuts; if substring is a palindrome, include it and recurse on the remainder. Reach for this when n is small (≤ 16) or when the string has few palindromic substrings (natural pruning).",
+          "code": "class Solution:\n    def partition(self, s: str) -> list[list[str]]:\n        result = []\n        partition = []\n        \n        def is_palindrome(sub):\n            return sub == sub[::-1]\n        \n        def backtrack(start):\n            if start == len(s):\n                result.append(partition[:])\n                return\n            \n            for end in range(start + 1, len(s) + 1):\n                substring = s[start:end]\n                if is_palindrome(substring):\n                    partition.append(substring)\n                    backtrack(end)\n                    partition.pop()\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(n * 2^n) — 2^n partitions, each O(n) to build",
+          "spaceComplexity": "O(n) recursion depth"
+        },
+        {
+          "label": "Better — backtracking with DP memoization",
+          "keyIdea": "Precompute which substrings are palindromes using a DP table (O(n^2) time, O(n^2) space). Then backtrack as before, but palindrome checks become O(1) lookups. Reach for this when n is larger (≤ 20) and the string has many palindromic substrings, so the O(n^2) preprocessing pays off by avoiding repeated palindrome checks during backtracking.",
+          "code": "class Solution:\n    def partition(self, s: str) -> list[list[str]]:\n        n = len(s)\n        # DP table: is_palindrome[i][j] = True if s[i:j+1] is a palindrome\n        is_palindrome = [[False] * n for _ in range(n)]\n        \n        # every single character is a palindrome\n        for i in range(n):\n            is_palindrome[i][i] = True\n        \n        # check for length 2\n        for i in range(n - 1):\n            if s[i] == s[i + 1]:\n                is_palindrome[i][i + 1] = True\n        \n        # check for lengths 3 to n\n        for length in range(3, n + 1):\n            for i in range(n - length + 1):\n                j = i + length - 1\n                if s[i] == s[j] and is_palindrome[i + 1][j - 1]:\n                    is_palindrome[i][j] = True\n        \n        result = []\n        partition = []\n        \n        def backtrack(start):\n            if start == n:\n                result.append(partition[:])\n                return\n            \n            for end in range(start, n):\n                if is_palindrome[start][end]:\n                    partition.append(s[start:end + 1])\n                    backtrack(end + 1)\n                    partition.pop()\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(n^2 + n * 2^n) — O(n^2) DP preprocessing + O(n * 2^n) backtracking",
+          "spaceComplexity": "O(n^2) DP table + O(n) recursion depth"
+        }
+      ],
+      "description": "Given a string s, partition s such that every substring of the partition is a palindrome. Return all possible palindrome partitioning of s.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "partitioning"
+    },
+    {
+      "id": "letter-combinations-of-a-phone-number",
+      "title": "Letter Combinations of a Phone Number",
+      "leetcodeSlug": "letter-combinations-of-a-phone-number",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "tags": [
+        "string",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Letter Combinations of a Phone Number (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Letter+Combinations+of+a+Phone+Number",
+        "lang": "python"
+      },
+      "keyIdeas": "Map each digit to its letters. At each digit, try appending each of its letters to the current combination, recurse to the next digit, then pop (backtrack). Base case: when you've processed all digits, collect the current string. This is a clean multi-way branch backtracking problem.",
+      "hints": [
+        "Build a dictionary mapping each digit ('2' -> 'abc', '3' -> 'def', ...). Loop through the string.",
+        "At each digit, loop over its possible letters. Append one, recurse to the next digit, pop.",
+        "When you've built a string of length len(digits), add it to results."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking",
+          "keyIdea": "Map digits to letters; at each digit, branch on every possible letter, recurse, then backtrack.",
+          "code": "class Solution:\n    def letterCombinations(self, digits: str) -> list[str]:\n        if not digits:\n            return []\n        \n        phone = {\n            '2': 'abc', '3': 'def', '4': 'ghi', '5': 'jkl',\n            '6': 'mno', '7': 'pqrs', '8': 'tuv', '9': 'wxyz'\n        }\n        result = []\n        combo = []\n        \n        def backtrack(i):\n            if i == len(digits):\n                result.append(''.join(combo))\n                return\n            \n            for letter in phone[digits[i]]:\n                combo.append(letter)\n                backtrack(i + 1)\n                combo.pop()\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(4^n * n) — up to 4 letters per digit, n digits",
+          "spaceComplexity": "O(n) recursion depth"
+        }
+      ],
+      "description": "Given a string containing digits from 2-9 inclusive, return all possible letter combinations that the number could represent. Return the answer in any order.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "combinations"
+    },
+    {
+      "id": "sudoku-solver",
+      "title": "sudoku Solver",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "leetcodeSlug": "sudoku-solver",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: Use blockRow, blockCol = (i//3)*3, (j//3)*3 Key Idea 2: Use any() Key Idea: use rowVisited, colVisited, blockVisited for faster checking",
+      "hints": [
+        "TODO: Add hints"
+      ],
+      "solutions": [
+        {
+          "label": "Optimal",
+          "keyIdea": "Key Idea 1: Use blockRow, blockCol = (i//3)*3, (j//3)*3 Key Idea 2: Use any() Key Idea: use rowVisited, colVisited, blockVisited for faster checking",
+          "code": "# Key Idea 1: Use blockRow, blockCol = (i//3)*3, (j//3)*3\n# Key Idea 2: Use any()\n\nclass Solution:\n    def solveSudoku(self, board: List[List[str]]) -> None:\n        emptyPlaces = [(i,j) for i in range(9) for j in range(9) if board[i][j]==\".\"]    \n             \n        def isValidMove(i, j, num):\n            if any(board[i][col]==num for col in range(9)): return False #check row\n            if any(board[row][j]==num for row in range(9)): return False #check col\n            blockRow, blockCol = (i//3)*3, (j//3)*3 #check block of num\n            if any(board[row][col]==num for row in range(blockRow, blockRow+3) for col in range(blockCol, blockCol+3)): return False\n            return True\n\n        def sudokuSolver(index):\n            if index==len(emptyPlaces): return True\n            i, j = emptyPlaces[index]  \n            for num in range(1, 10):\n                if isValidMove(i, j, str(num)):\n                    board[i][j] = str(num)\n                    if sudokuSolver(index + 1): return True\n                    board[i][j] = \".\"\n            return False\n\n        sudokuSolver(0)\n\n\n# Key Idea: use rowVisited, colVisited, blockVisited for faster checking\n\nclass Solution:\n    def solveSudoku(self, board: List[List[str]]) -> None:\n        emptyPlaces, rowVisited, colVisited, blockVisited = [], defaultdict(set), defaultdict(set), defaultdict(set)\n        for i in range(9):\n            for j in range(9):\n                if board[i][j]==\".\": emptyPlaces.append((i,j))\n                else: \n                    rowVisited[i].add(board[i][j])             \n                    colVisited[j].add(board[i][j])             \n                    blockVisited[((i//3)*3, (j//3)*3)].add(board[i][j])\n\n        def sudokuSolver(index):\n            if index==len(emptyPlaces): return True\n            i, j = emptyPlaces[index]  \n            for num in range(1, 10):\n                num = str(num)\n                if num not in rowVisited[i] and num not in colVisited[j] and num not in blockVisited[((i//3)*3, (j//3)*3)]:\n                    board[i][j] = num\n                    rowVisited[i].add(num)\n                    colVisited[j].add(num)\n                    blockVisited[((i//3)*3, (j//3)*3)].add(num)\n                    if sudokuSolver(index + 1): return True\n                    board[i][j] = \".\"\n                    rowVisited[i].remove(num)\n                    colVisited[j].remove(num)\n                    blockVisited[((i//3)*3, (j//3)*3)].remove(num)\n            return False\n\n        sudokuSolver(0)\n   ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Write a program to solve a Sudoku puzzle by filling the empty cells.",
+      "phaseId": 3,
+      "subcategory": "basics"
+    },
+    {
+      "id": "word-search-in-grid",
+      "title": "word Search In Grid",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "basics",
+      "leetcodeSlug": "word-search-in-grid",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Use the two prunings         # prune 1 -> not enough chars         # prune 2 -> if prefix is longer than suffix, reverse (Ex: aaaaabcc)",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Use the two prunings         # prune 1 -> not enough chars         # prune 2 -> if prefix is longer than suffix, reverse (Ex: aaaaabcc)",
+          "code": "# Key Idea: Use the two prunings\n\nclass Solution:\n    def exist(self, board: List[List[str]], word: str) -> bool:\n        lenOfWord, m, n = len(word), len(board), len(board[0])\n        charToIndicesMap = defaultdict(list)\n        for i in range(m):\n            for j in range(n):\n                charToIndicesMap[board[i][j]].append((i,j))\n\n        # prune 1 -> not enough chars\n        counter = Counter(word)\n        if any(char not in charToIndicesMap or len(charToIndicesMap[char])<counter[char] for char in counter): \n            return False\n\n        # prune 2 -> if prefix is longer than suffix, reverse (Ex: aaaaabcc)\n        prefixIndex, suffixIndex = 0, lenOfWord-1\n        while prefixIndex<lenOfWord and word[prefixIndex]==word[0]: prefixIndex += 1\n        while suffixIndex>=0 and word[suffixIndex]==word[lenOfWord-1]: suffixIndex -= 1\n        if lenOfWord-1-suffixIndex<prefixIndex: \n            word = word[::-1]\n                    \n        def findWord(i, j, wordIndex, visited):\n            if wordIndex==lenOfWord: return True\n            for di, dj in [[1,0],[0,1],[0,-1],[-1,0]]:\n                newI, newJ = i+di, j+dj\n                if 0<=newI<m and 0<=newJ<n and board[newI][newJ]==word[wordIndex] and (newI, newJ) not in visited:\n                    visited.add((newI, newJ))\n                    if findWord(newI, newJ, wordIndex+1, visited):\n                        return True\n                    visited.remove((newI, newJ))    \n            return False\n\n        if any(findWord(i, j, 1, set([(i, j)])) for i,j in charToIndicesMap[word[0]]): return True\n        return False\n        \n    ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "beautiful-arrangement",
+      "title": "beautiful Arrangement",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "bitmask-dp",
+      "leetcodeSlug": "beautiful-arrangement",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Permutation -> Brute force -> Back tracking or Bitmasking. Overlapping subproblems -> Bitmasking DP Optimisation: Start from right to left as there will be less numbers that can fill higher indices                 # number'th position is not set and number is div or mult of numberToSetNext",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Permutation -> Brute force -> Back tracking or Bitmasking. Overlapping subproblems -> Bitmasking DP Optimisation: Start from right to left as there will be less numbers that can fill higher indices                 # number'th position is not set and number is div or mult of numberToSetNext",
+          "code": "# Key Idea: Permutation -> Brute force -> Back tracking or Bitmasking. Overlapping subproblems -> Bitmasking DP\n\n# Optimisation: Start from right to left as there will be less numbers that can fill higher indices\n\nclass Solution:\n    def countArrangement(self, n: int) -> int:\n\n        @lru_cache(None)\n        def bitmaskingDP(bitmask, indexToSetNext):\n            if indexToSetNext==0: return 1\n            possibilities = 0\n            for number in range(1, n+1):\n                # number'th position is not set and number is div or mult of numberToSetNext\n                if not (bitmask & 1<<number) and (number%indexToSetNext==0 or indexToSetNext%number==0):\n                    possibilities += bitmaskingDP(bitmask | 1<<number, indexToSetNext-1)\n            return possibilities\n\n        return bitmaskingDP(0, n) # Optimisation",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Suppose you have n integers labeled 1 through n. A permutation of those n integers perm (1-indexed) is considered a beautiful arrangement if for every i (1 <= i <= n), either of the following is true:",
+      "phaseId": 3
+    },
+    {
+      "id": "fair-distribution-of-cookies",
+      "title": "fair Distribution Of Cookies",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "bitmask-dp",
+      "leetcodeSlug": "fair-distribution-of-cookies",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Combinations -> Brute force only -> Backtracking with exit(for combinations) or Bitmasking DP Key Idea 1: Which bag should I add this current cookie? (try all) Note: Exit to get combinations and not permutations TC - (k^n / k!) * n Key Idea 1: Loop on bags instead of cookies. In current bag, which all cookies should I add?",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Combinations -> Brute force only -> Backtracking with exit(for combinations) or Bitmasking DP Key Idea 1: Which bag should I add this current cookie? (try all) Note: Exit to get combinations and not permutations TC - (k^n / k!) * n Key Idea 1: Loop on bags instead of cookies. In current bag, which all cookies should I add?",
+          "code": "# Combinations -> Brute force only -> Backtracking with exit(for combinations) or Bitmasking DP\n\n\n\n# Key Idea 1: Which bag should I add this current cookie? (try all)\n# Note: Exit to get combinations and not permutations\n# TC - (k^n / k!) * n\n\nclass Solution:\n    def distributeCookies(self, cookies, k: int) -> int:\n        minUnfairness, bags = 1e9, [0]*k\n\n        def backTracking(indexToAddNext):\n            nonlocal minUnfairness\n            if indexToAddNext==len(cookies): \n                minUnfairness = min(minUnfairness, max(bags))\n            else:\n                for bagsIndex in range(len(bags)):\n                    bags[bagsIndex] += cookies[indexToAddNext]\n                    backTracking(indexToAddNext+1)\n                    bags[bagsIndex] -= cookies[indexToAddNext]\n                    if not bags[bagsIndex]: break  # Note\n\n        backTracking(0)\n        return minUnfairness\n    \n\n\n\n# Key Idea 1: Loop on bags instead of cookies. In current bag, which all cookies should I add?\n#             Recursion: f(mask, bagNum) = min(max(sum(subset), f(subset^mask, bagNum - 1)) for subset in getAllSubsets(mask)) \n\n# Optimisation 1: Use subset enumeration to optimise        - getAllSubsets(mask)  - 3^n \n# Optimisation 2: Prepopulate sumOfSetBitMasks to optimise  - sum(subset)          - n * 2^n\n\n# Bottom up with space optimization version\n# TC - n * 2^n + k * 3^n \n\nclass Solution:\n    def distributeCookies(self, cookies, k: int) -> int:\n\n        n = len(cookies)\n        sumOfSetBitMasks = list(map(lambda mask: sum(cookies[i] for i in range(n) if mask&(1<<i)), range(1<<n)))\n\n        dpPrev = [1e9] * (1<<n)\n        dpPrev[0] = 0\n        for _ in range(k):\n            dpCurr = [1e9] * (1<<n)\n            for mask in range(1<<n):\n                subsetMask = mask\n                while subsetMask:\n                    dpCurr[mask] = min(dpCurr[mask], max(sumOfSetBitMasks[subsetMask], dpPrev[subsetMask^mask]))\n                    subsetMask = (subsetMask-1) & mask\n            dpPrev = dpCurr\n        return dpPrev[-1]\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given an integer array cookies, where cookies[i] denotes the number of cookies in the ith bag. You are also given an integer k that denotes the number of children to distribute all the bags of cookies to. All the cookies in the same bag must go to the same child and cannot be split up.",
+      "phaseId": 3
+    },
+    {
+      "id": "maximum-operations-after-n-operations",
+      "title": "maximum Operations After N Operations",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "bitmask-dp",
+      "leetcodeSlug": "maximum-operations-after-n-operations",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Subsets. no greedy -> DP possible? -> Yes -> brute force backtracking not needed Note: There is no need to maintain indexOfNums in state. we can actually figure it out from mask.",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Subsets. no greedy -> DP possible? -> Yes -> brute force backtracking not needed Note: There is no need to maintain indexOfNums in state. we can actually figure it out from mask.",
+          "code": "# Key Idea: Subsets. no greedy -> DP possible? -> Yes -> brute force backtracking not needed\n\n# Note: There is no need to maintain indexOfNums in state. we can actually figure it out from mask.\n\nclass Solution:\n    def maxScore(self, nums: List[int]) -> int:\n\n        @cache\n        def gcd(x, y): return math.gcd(x, y)\n\n        @cache\n        def bitmaskingDp(unusedBitMask, indexInNums):\n            maxSeen = 0\n            for xIndex in range(len(nums)):\n                if not (unusedBitMask & (1<<xIndex)): continue\n                for yIndex in range(xIndex+1, len(nums)):\n                    if not (unusedBitMask & (1<<yIndex)): continue\n                    maxSeen = max(maxSeen, (indexInNums+1)*gcd(nums[xIndex], nums[yIndex]) + \\\n                                           bitmaskingDp(unusedBitMask&~(1<<xIndex)&~(1<<yIndex), indexInNums+1))\n            return maxSeen\n\n        return bitmaskingDp((1<<len(nums))-1, 0)\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "minimum-number-of-work-sessions-to-finish-the-task",
+      "title": "minimum Number Of Work Sessions To Finish The Task",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "bitmask-dp",
+      "leetcodeSlug": "minimum-number-of-work-sessions-to-finish-the-task",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: For each task, which session can I add it to? TC: O(n!) but with pruning -> Cant really give an estimate easily Key Idea: In this session, what all tasks can I add? TC : O(2**n * sessionTime * n) Key Idea: If the mask has what all tasks needs to be done, whats the best way to achieve it",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: For each task, which session can I add it to? TC: O(n!) but with pruning -> Cant really give an estimate easily Key Idea: In this session, what all tasks can I add? TC : O(2**n * sessionTime * n) Key Idea: If the mask has what all tasks needs to be done, whats the best way to achieve it",
+          "code": "# Key Idea: For each task, which session can I add it to?\n# TC: O(n!) but with pruning -> Cant really give an estimate easily\n\nclass Solution:\n    def minSessions(self, tasks: List[int], sessionTime: int) -> int:\n        n, sessions, minSessions = len(tasks), [0], len(tasks)\n\n        def dfs(index):\n            if index==n: \n                nonlocal minSessions\n                minSessions = min(minSessions, len(sessions))\n                return\n\n            if len(sessions) >= minSessions:\n                return\n\n            for sessionIndex in range(len(sessions)):\n                if tasks[index]+sessions[sessionIndex] <= sessionTime:\n                    sessions[sessionIndex] += tasks[index]\n                    dfs(index+1)\n                    sessions[sessionIndex] -= tasks[index]\n                \n            sessions.append(tasks[index])\n            dfs(index+1)\n            sessions.pop()\n        \n        dfs(0)\n        tasks.sort(reverse=True)\n        return minSessions\n            \n            \n            \n# Key Idea: In this session, what all tasks can I add?\n# TC : O(2**n * sessionTime * n)\n\nclass Solution:\n    def minSessions(self, tasks: List[int], sessionTime: int) -> int:\n        n = len(tasks)\n        finalMask = (1<<n)-1\n\n        @lru_cache(None)\n        def bitmaskingDp(usedMask, timeLeftInCurrentSession):\n            if usedMask==finalMask: return 0\n            \n            minSessionsNeeded = n\n            for index in range(n):\n                if not (usedMask & (1<<index)):\n                    if tasks[index]<=timeLeftInCurrentSession:\n                        minSessionsNeeded = min(minSessionsNeeded, bitmaskingDp(usedMask | (1<<index), timeLeftInCurrentSession-tasks[index]))\n                    else:\n                        minSessionsNeeded = min(minSessionsNeeded, 1 + bitmaskingDp(usedMask | (1<<index), sessionTime-tasks[index]))\n\n            return minSessionsNeeded\n\n        return 1 + bitmaskingDp(0, sessionTime)\n\n\n\n            \n# Key Idea: If the mask has what all tasks needs to be done, whats the best way to achieve it            \n# TC: O(2**n * n)\n\nclass Solution:\n    def minSessions(self, tasks: List[int], sessionTime: int) -> int:\n        n = len(tasks)\n\n        @cache\n        def dp(mask): # returns (minSessionsNeeded, timeLeftInLastSession)\n            if not mask: return (0, 0)\n            \n            bestSessions, bestTime = n, 0\n            for index in range(n):\n                if mask & (1<<index):\n                    minSessions, timeLeft = dp(mask & ~(1<<index))\n                    if timeLeft<tasks[index]:\n                        minSessions += 1\n                        timeLeft = sessionTime\n                    timeLeft -= tasks[index]\n                    bestSessions, bestTime = min((bestSessions, bestTime), (minSessions, timeLeft), key = lambda x: (x[0], -x[1]))\n            return bestSessions, bestTime\n\n        return dp((1<<n)-1)[0]\n\n\n\n\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "partition-to-k-equal-sum-subsets",
+      "title": "partition To K Equal Sum Subsets",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "bitmask-dp",
+      "leetcodeSlug": "partition-to-k-equal-sum-subsets",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea 1: In this bucket, which all numbers should I put? -> Need sumLeftInCurrBucket, maskOfUsedNums, indexInNums as state Key Idea 2: Push looping on nums to dp impl -> Need sumLeftInCurrBucket, maskOfUsedNums Easy/useful to memoise - we take advantage of the fact that we only need to look at current bucket's status and what all nums are used Unlike in backtracking, here we dont need to know what other bucket's states are.  Optimisation 1: Sort to fill the big ones first which create less branches at the top",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea 1: In this bucket, which all numbers should I put? -> Need sumLeftInCurrBucket, maskOfUsedNums, indexInNums as state Key Idea 2: Push looping on nums to dp impl -> Need sumLeftInCurrBucket, maskOfUsedNums Easy/useful to memoise - we take advantage of the fact that we only need to look at current bucket's status and what all nums are used Unlike in backtracking, here we dont need to know what other bucket's states are.  Optimisation 1: Sort to fill the big ones first which create less branches at the top",
+          "code": "# Key Idea 1: In this bucket, which all numbers should I put? -> Need sumLeftInCurrBucket, maskOfUsedNums, indexInNums as state\n# Key Idea 2: Push looping on nums to dp impl -> Need sumLeftInCurrBucket, maskOfUsedNums\n\n# Easy/useful to memoise - we take advantage of the fact that we only need to look at current bucket's status and what all nums are used\n# Unlike in backtracking, here we dont need to know what other bucket's states are. \n\n# Optimisation 1: Sort to fill the big ones first which create less branches at the top\n# Optimisation 2: Exit in case we know answer will be False. (1) Not divisible case (2) a num cant fit in bucket\n# TC : min(2^n, sum(nums)//k) * 2^n * n \n\nclass Solution:\n    def canPartitionKSubsets(self, nums, k: int) -> bool:\n        nums.sort(reverse=True) # Optimisation 1\n        total, n = sum(nums), len(nums)\n        sumInBucket, allUsedMask = total//k, (1<<n) - 1\n        \n        if total%k or nums[0]>sumInBucket: # Optimisation 2\n            return False \n\n        @cache\n        def bitMaskDp(sumLeft, maskOfUsedNums):\n            if sumLeft==0: \n                sumLeft = sumInBucket\n            if maskOfUsedNums==allUsedMask: \n                return sumLeft==sumInBucket\n            for index in range(n):\n                if not (maskOfUsedNums & (1<<index)) and sumLeft>=nums[index]:\n                    if bitMaskDp(sumLeft-nums[index], maskOfUsedNums | (1<<index)):\n                        return True\n        \n        return bitMaskDp(sumInBucket, 0)\n\n\n\n# Key Idea 1: In which bucket should I put the current number?  -> Backtrack with index \n\n# hard/useless to memoise since we need to store EACH BUCKET's state.\n\n# TC without Optimization3: k^n -> TLE\n# Optimization 3: Stop creating permutations wrt buckets\n#               if kBuckets[bucketNum] == sum(nums)//k, then every bucket on the right is also empty. \n#               We will be repeating same assignments again but starting with next bucket instead of this one.\n#               [2] [] []\n#               when kBuckets[bucketNum] == sum(nums)//k on first bucket\n#               [] [] []\n#               Not stopping will add 2 in second bucket\n#               [] [2] [] <- useless for us, as this is same as above one\n# TC with Optimization 3: (k^n) / (k!)     <- Better than bitmasking DP\n\nclass Solution:\n    def canPartitionKSubsets(self, nums, k: int) -> bool:\n        nums.sort(reverse=True) # Optimisation 1\n        total, n = sum(nums), len(nums)\n        sumInBucket = total//k\n\n        if total%k or nums[0]>sumInBucket: # Optimisation 2\n            return False \n        \n        kBuckets = [sumInBucket] * k\n        \n        def backtrackingToFillBuckets(indexInNums):\n            nonlocal kBuckets\n            if indexInNums==n: return sum(kBuckets)==0\n            for bucketNum in range(k):\n                if kBuckets[bucketNum]>=nums[indexInNums]:\n                    kBuckets[bucketNum] -= nums[indexInNums]\n                    if backtrackingToFillBuckets(indexInNums+1): return True      \n                    kBuckets[bucketNum] += nums[indexInNums]\n                    if kBuckets[bucketNum] == sumInBucket: break # Optimization 3\n            return False\n        return backtrackingToFillBuckets(0)\n\n\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an integer array nums and an integer k, return true if it is possible to divide this array into k non-empty subsets whose sums are all equal.",
+      "phaseId": 4
+    },
+    {
+      "id": "number-of-valid-words-for-each-puzzle",
+      "title": "number Of Valid Words For Each Puzzle",
+      "difficulty": "Medium",
+      "patternId": "backtracking",
+      "subcategory": "combinations",
+      "leetcodeSlug": "number-of-valid-words-for-each-puzzle",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Key Idea: Create subsets of all combinations of last six chars of puzzle. Or with the first and check the counter Note: dont forget to include only first count Key Idea: Use trie with insertion storing count. In search, use strictly take for first char, for other chars, both take/not-take",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Key Idea: Create subsets of all combinations of last six chars of puzzle. Or with the first and check the counter Note: dont forget to include only first count Key Idea: Use trie with insertion storing count. In search, use strictly take for first char, for other chars, both take/not-take",
+          "code": "# Key Idea: Create subsets of all combinations of last six chars of puzzle. Or with the first and check the counter\n# Note: dont forget to include only first count\n\nclass Solution:\n    def findNumOfValidWords(self, words: List[str], puzzles: List[str]) -> List[int]:\n\n        @cache\n        def bitMap(word):\n            return reduce(lambda acc, char: acc | (1<<(ord(char)-ord('a'))), word, 0)\n\n        @cache\n        def solve(puzzle):\n            onlyFirst, countWithLastSix = bitMap(puzzle[0]), 0\n            subsetOfLastSix = lastSix = bitMap(puzzle[1:])\n            while subsetOfLastSix:\n                countWithLastSix += wordsCounter[onlyFirst | subsetOfLastSix]\n                subsetOfLastSix = (subsetOfLastSix - 1) & lastSix\n            return wordsCounter[onlyFirst] + countWithLastSix # Note\n        \n        wordsCounter = Counter(bitMap(word) for word in words)\n        return list(map(solve, puzzles))\n\n\n\n\n'''Other Idea'''\n# Key Idea: Use trie with insertion storing count. In search, use strictly take for first char, for other chars, both take/not-take\n\nclass Trie:\n    def __init__(self):\n        self.children = defaultdict(Trie)\n        self.count = 0\n    \n    def insert(self, word):\n        node = self\n        for char in word:\n            node = node.children[char]\n        node.count += 1\n    \n    def search(self, node, word, index, firstChar):\n        if index == len(word): return node.count\n        count = 0\n        if word[index] in node.children: # take\n            count += self.search(node.children[word[index]], word, index+1, firstChar)\n        if word[index]!=firstChar: # not take\n            count += self.search(node, word, index+1, firstChar)\n        return count\n    \nclass Solution:\n    def findNumOfValidWords(self, words: List[str], puzzles: List[str]) -> List[int]:\n        trie = Trie()\n        for word in words: \n            trie.insert(sorted(set(word)))\n        return [trie.search(trie, sorted(puzzle), 0, puzzle[0]) for puzzle in puzzles]\n\n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 4
+    },
+    {
+      "id": "n-queens",
+      "title": "N-Queens",
+      "leetcodeSlug": "n-queens",
+      "difficulty": "Hard",
+      "patternId": "backtracking",
+      "tags": [
+        "array",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — N-Queens (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+N+Queens",
+        "lang": "python"
+      },
+      "keyIdeas": "Place one queen per row; for each row, try every column. Before placing, check if any previous queen attacks this cell (same column, diagonal, or anti-diagonal). Track attacked columns and diagonals in sets for O(1) lookup. When you place all n queens, you've found one solution — convert the board to the required format. Backtrack by removing the queen and its constraints.",
+      "hints": [
+        "Place queens row by row. In row r, try each column c. Check if (r, c) is safe given the queens already placed.",
+        "Use three sets: cols, diagonals (r - c), anti-diagonals (r + c). These give O(1) conflict checks.",
+        "After placing a queen, add c, r - c, and r + c to the sets, recurse to the next row, then remove them (backtrack)."
+      ],
+      "solutions": [
+        {
+          "label": "Backtracking with sets",
+          "keyIdea": "Track attacked columns and diagonals in sets. Try each column in the current row; if safe, place queen, recurse, undo.",
+          "code": "class Solution:\n    def solveNQueens(self, n: int) -> list[list[str]]:\n        result = []\n        board = [['.'] * n for _ in range(n)]\n        cols = set()\n        diags = set()       # r - c\n        anti_diags = set()  # r + c\n        \n        def backtrack(row):\n            if row == n:\n                result.append([''.join(r) for r in board])\n                return\n            \n            for col in range(n):\n                if col in cols or (row - col) in diags or (row + col) in anti_diags:\n                    continue\n                \n                # place queen\n                board[row][col] = 'Q'\n                cols.add(col)\n                diags.add(row - col)\n                anti_diags.add(row + col)\n                \n                backtrack(row + 1)\n                \n                # backtrack\n                board[row][col] = '.'\n                cols.remove(col)\n                diags.remove(row - col)\n                anti_diags.remove(row + col)\n        \n        backtrack(0)\n        return result",
+          "timeComplexity": "O(n!)",
+          "spaceComplexity": "O(n^2) for the board + O(n) recursion depth"
+        }
+      ],
+      "description": "The n-queens puzzle is the problem of placing n queens on an n x n chessboard such that no two queens attack each other.",
+      "phaseId": 4,
+      "important": true,
+      "subcategory": "board-games"
+    }
+  ]
+}

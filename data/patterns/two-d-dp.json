@@ -1,0 +1,631 @@
+{
+  "id": "two-d-dp",
+  "name": "2-D Dynamic Programming",
+  "phaseId": 6,
+  "order": 2,
+  "tagline": "Grids and two-string DP tables.",
+  "concept": "## The idea\n\nYou already know 1-D DP: breaking a problem over one sequence (array, string) into subproblems indexed by a single variable. **2-D DP** extends that to problems over **two sequences** (e.g. two strings) or **a grid** — the state is now indexed by two variables, so you build a **table** `dp[i][j]`.\n\nCommon shapes:\n\n1. **Two-string problems** (LCS, edit distance, interleaving): `dp[i][j]` = answer for the first `i` characters of string A and the first `j` of string B. Build row-by-row or column-by-column.\n2. **Grid traversal** (unique paths, longest increasing path): `dp[i][j]` = answer ending at cell `(i, j)`. Recurrence comes from neighbors.\n3. **State-machine DP** (buy/sell stock with cooldown): `dp[i][state]` = best answer at day `i` in a given state (holding, sold, cooldown).\n\nThe pattern: start with recursive top-down + memoization (cache results in a dict or 2-D list), then — if needed — convert to bottom-up tabulation. Many problems here can be space-optimized to O(n) by keeping only the current and previous row.\n\n## Python you'll pick up here\n\n- **2-D list initialization**: `dp = [[0] * n for _ in range(m)]` — the `for _` creates *independent* rows (never `[[0]*n]*m`, which aliases rows!).\n- **Iterating with `range(len(...))`** and **double loops**: `for i in range(m): for j in range(n):`.\n- `max(dp[i-1][j], dp[i][j-1])` and boundary checks: `if i > 0` to avoid negative indices.\n- `enumerate(s)` to get both index and character: `for i, char in enumerate(s):`.\n- **Memoization with `@lru_cache`** (from `functools`) for top-down recursion, or manual `dict` caching.",
+  "whenToUse": [
+    "The problem involves two strings or sequences and asks for a subsequence/alignment/transformation between them",
+    "You're navigating a grid and the answer at each cell depends on its neighbors",
+    "The brute-force recursion naturally has two parameters (i, j) and overlapping subproblems",
+    "You see words like 'longest common', 'edit distance', 'interleaving', 'paths in a matrix', or multiple states per position"
+  ],
+  "problems": [
+    {
+      "id": "unique-paths",
+      "title": "Unique Paths",
+      "leetcodeSlug": "unique-paths",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "array",
+        "dynamic-programming",
+        "math",
+        "combinatorics"
+      ],
+      "video": {
+        "title": "NeetCode — Unique Paths (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Unique+Paths",
+        "lang": "python"
+      },
+      "keyIdeas": "The gentlest 2-D DP intro. You can only move right or down, so `dp[i][j]` = ways to reach `(i,j)` = `dp[i-1][j] + dp[i][j-1]`. The top row and left column are all 1 (only one way to reach them). Build the table row-by-row.",
+      "hints": [
+        "How many ways can you reach the top-left corner? (Answer: 1, you're already there.) How about any cell in the first row or column?",
+        "For any other cell (i, j), you can only arrive from the cell above or the cell to the left. Can you express dp[i][j] in terms of those two?",
+        "Initialize a 2-D list with dp[0][j] = 1 for all j, and dp[i][0] = 1 for all i. Then fill the rest using dp[i][j] = dp[i-1][j] + dp[i][j-1]."
+      ],
+      "solutions": [
+        {
+          "label": "Top-down with memoization",
+          "keyIdea": "Recursive exploration from (0,0) to (m-1,n-1), caching results. Natural way to think about the problem before learning tabulation. Reach for it when the recurrence is easier to see top-down or when you don't need to fill the entire table.",
+          "code": "class Solution:\n    def uniquePaths(self, m: int, n: int) -> int:\n        from functools import lru_cache\n        \n        @lru_cache(None)\n        def dp(i, j):\n            # Base case: reached destination\n            if i == m - 1 and j == n - 1:\n                return 1\n            # Out of bounds\n            if i >= m or j >= n:\n                return 0\n            # Sum paths going right and down\n            return dp(i + 1, j) + dp(i, j + 1)\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Better — bottom-up 2-D table",
+          "keyIdea": "Build an m×n table where dp[i][j] is the number of paths to reach (i,j). Each cell is the sum of the cell above and the cell to the left. Use this when you want clarity and can afford O(mn) space.",
+          "code": "class Solution:\n    def uniquePaths(self, m: int, n: int) -> int:\n        # Initialize m x n grid\n        dp = [[1] * n for _ in range(m)]  # first row and column already 1\n        \n        for i in range(1, m):\n            for j in range(1, n):\n                dp[i][j] = dp[i-1][j] + dp[i][j-1]\n        \n        return dp[m-1][n-1]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Optimal — 1-D space",
+          "keyIdea": "Only need the previous row to compute the current row. Use a single array and update in-place. Reach for this when m or n is large and you need to optimize space.",
+          "code": "class Solution:\n    def uniquePaths(self, m: int, n: int) -> int:\n        # Only store one row at a time\n        prev = [1] * n\n        \n        for i in range(1, m):\n            curr = [1] * n  # left edge is always 1\n            for j in range(1, n):\n                curr[j] = curr[j-1] + prev[j]  # left + above\n            prev = curr\n        \n        return prev[n-1]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(n)"
+        },
+        {
+          "label": "Alternative — math (combinatorics)",
+          "keyIdea": "The number of unique paths is the number of ways to arrange (m-1) down moves and (n-1) right moves, which is C(m+n-2, m-1). Reach for this when constraints are small enough to avoid overflow and you want O(min(m,n)) time. For large m,n, stick with DP to avoid BigInteger or precision issues.",
+          "code": "class Solution:\n    def uniquePaths(self, m: int, n: int) -> int:\n        from math import comb\n        # Total moves: (m-1) down + (n-1) right = m+n-2\n        # Choose (m-1) positions for down moves\n        return comb(m + n - 2, m - 1)",
+          "timeComplexity": "O(min(m, n))",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "There is a robot on an m x n grid. The robot is initially located at the top-left corner (i.e., grid[0][0]). The robot tries to move to the bottom-right corner (i.e., grid[m - 1][n - 1]). The robot can only move either down or right at any point in time.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "grids"
+    },
+    {
+      "id": "longest-common-subsequence",
+      "title": "Longest Common Subsequence",
+      "leetcodeSlug": "longest-common-subsequence",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "string",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Longest Common Subsequence (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Longest+Common+Subsequence",
+        "lang": "python"
+      },
+      "keyIdeas": "Classic two-string DP. `dp[i][j]` = LCS length of `text1[:i]` and `text2[:j]`. If characters match, take 1 + the diagonal; otherwise take the max of skipping one character from either string (left or above). This is the template for all two-string DP.",
+      "hints": [
+        "Think recursively first: if text1[i] == text2[j], they both contribute to the LCS. Otherwise, try skipping one of them.",
+        "Build a table where dp[i][j] represents the LCS of text1[0..i-1] and text2[0..j-1]. The answer is in dp[len(text1)][len(text2)].",
+        "Recurrence: if text1[i-1] == text2[j-1], dp[i][j] = 1 + dp[i-1][j-1]. Else dp[i][j] = max(dp[i-1][j], dp[i][j-1])."
+      ],
+      "solutions": [
+        {
+          "label": "Top-down with memoization",
+          "keyIdea": "Recursive exploration with caching. Naturally mirrors the problem: if chars match, include both and recurse; else try skipping from either string. Reach for this when the recurrence is clearer top-down or when you don't need the full table.",
+          "code": "class Solution:\n    def longestCommonSubsequence(self, text1: str, text2: str) -> int:\n        from functools import lru_cache\n        \n        @lru_cache(None)\n        def dp(i, j):\n            # Base case: exhausted one string\n            if i == len(text1) or j == len(text2):\n                return 0\n            # Match: include both characters\n            if text1[i] == text2[j]:\n                return 1 + dp(i + 1, j + 1)\n            # No match: try skipping from either string\n            return max(dp(i + 1, j), dp(i, j + 1))\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Better — bottom-up 2-D table",
+          "keyIdea": "Build a (len1+1) × (len2+1) table. Match → take diagonal + 1. No match → max of skipping either character. The standard two-string DP template. Use when you want clarity and can afford O(mn) space.",
+          "code": "class Solution:\n    def longestCommonSubsequence(self, text1: str, text2: str) -> int:\n        m, n = len(text1), len(text2)\n        # dp[i][j] = LCS of text1[:i] and text2[:j]\n        dp = [[0] * (n + 1) for _ in range(m + 1)]\n        \n        for i in range(1, m + 1):\n            for j in range(1, n + 1):\n                if text1[i - 1] == text2[j - 1]:\n                    dp[i][j] = 1 + dp[i - 1][j - 1]  # match: take diagonal\n                else:\n                    dp[i][j] = max(dp[i - 1][j], dp[i][j - 1])  # skip one\n        \n        return dp[m][n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Optimal — 1-D space",
+          "keyIdea": "Only need previous row. Keep a 'prev' variable for the diagonal value. Reach for this when strings are long and you need to optimize space.",
+          "code": "class Solution:\n    def longestCommonSubsequence(self, text1: str, text2: str) -> int:\n        m, n = len(text1), len(text2)\n        prev = [0] * (n + 1)\n        \n        for i in range(1, m + 1):\n            curr = [0] * (n + 1)\n            for j in range(1, n + 1):\n                if text1[i - 1] == text2[j - 1]:\n                    curr[j] = 1 + prev[j - 1]\n                else:\n                    curr[j] = max(prev[j], curr[j - 1])\n            prev = curr\n        \n        return prev[n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given two strings text1 and text2, return the length of their longest common subsequence. If there is no common subsequence, return 0.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "strings"
+    },
+    {
+      "id": "best-time-to-buy-and-sell-stock-with-cooldown",
+      "title": "Best Time to Buy and Sell Stock with Cooldown",
+      "leetcodeSlug": "best-time-to-buy-and-sell-stock-with-cooldown",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "array",
+        "dynamic-programming",
+        "state-machine"
+      ],
+      "video": {
+        "title": "NeetCode — Best Time to Buy and Sell Stock with Cooldown (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Best+Time+to+Buy+and+Sell+Stock+with+Cooldown",
+        "lang": "python"
+      },
+      "keyIdeas": "State-machine DP. At each day you're in one of three states: holding a stock, just sold (cooldown next day), or resting. Track max profit for each state. Transitions: buy from rest, sell from holding, cooldown after selling. The second dimension here is the state, not a second array.",
+      "hints": [
+        "You can't buy immediately after selling (cooldown). Think about the states you can be in on any given day.",
+        "Track three states: (1) holding a stock, (2) resting (can buy), (3) just sold (must cooldown). Compute max profit for each state at each day.",
+        "Transitions: buy = rest - price. sell = hold + price. rest = max(rest, prev_sold). sold = hold + price."
+      ],
+      "solutions": [
+        {
+          "label": "State-machine DP",
+          "keyIdea": "Maintain three states for each day: holding, sold (cooldown), resting. Update each based on valid transitions.",
+          "code": "class Solution:\n    def maxProfit(self, prices: list[int]) -> int:\n        # States: hold (own stock), sold (just sold, cooldown), rest (can buy)\n        hold, sold, rest = float('-inf'), 0, 0\n        \n        for price in prices:\n            prev_hold, prev_sold, prev_rest = hold, sold, rest\n            \n            hold = max(prev_hold, prev_rest - price)  # keep holding or buy\n            sold = prev_hold + price                   # sell today\n            rest = max(prev_rest, prev_sold)           # rest or exit cooldown\n        \n        return max(sold, rest)  # can't end holding a stock for max profit",
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
+        }
+      ],
+      "description": "You are given an array prices where prices[i] is the price of a given stock on the ith day.",
+      "phaseId": 1,
+      "important": true,
+      "subcategory": "state-machine"
+    },
+    {
+      "id": "coin-change-ii",
+      "title": "Coin Change II",
+      "leetcodeSlug": "coin-change-ii",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "array",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Coin Change II (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Coin+Change+II",
+        "lang": "python"
+      },
+      "keyIdeas": "Unbounded knapsack variant. `dp[i][a]` = number of ways to make amount `a` using the first `i` coin types. For each coin, either skip it or use it (and stay at the same coin type since you can reuse). This avoids counting duplicates by processing coins in order.",
+      "hints": [
+        "This is like Coin Change (min coins), but now you're counting the number of distinct combinations.",
+        "Define dp[a] = number of ways to make amount a. For each coin, update all amounts >= coin by adding dp[amount - coin].",
+        "Process coins one at a time to avoid counting [1,2] and [2,1] as different combinations."
+      ],
+      "solutions": [
+        {
+          "label": "Bottom-up 2-D DP",
+          "keyIdea": "Build dp[i][a] = ways to make amount a using first i coin types. For each coin, either skip it or use it (staying at the same coin type since unbounded). Easier to see the logic before compressing to 1D.",
+          "code": "class Solution:\n    def change(self, amount: int, coins: list[int]) -> int:\n        n = len(coins)\n        # dp[i][a] = ways to make amount a using first i coins\n        dp = [[0] * (amount + 1) for _ in range(n + 1)]\n        \n        # Base case: one way to make 0 (use no coins)\n        for i in range(n + 1):\n            dp[i][0] = 1\n        \n        for i in range(1, n + 1):\n            for a in range(amount + 1):\n                # Skip this coin\n                dp[i][a] = dp[i - 1][a]\n                # Use this coin (if possible)\n                if a >= coins[i - 1]:\n                    dp[i][a] += dp[i][a - coins[i - 1]]\n        \n        return dp[n][amount]",
+          "timeComplexity": "O(amount × len(coins))",
+          "spaceComplexity": "O(amount × len(coins))"
+        },
+        {
+          "label": "Optimal — 1-D DP",
+          "keyIdea": "For each coin, update all reachable amounts. Processing coins in order ensures we count combinations, not permutations. Reach for this to save space — it's the standard unbounded knapsack pattern.",
+          "code": "class Solution:\n    def change(self, amount: int, coins: list[int]) -> int:\n        # dp[a] = number of ways to make amount a\n        dp = [0] * (amount + 1)\n        dp[0] = 1  # one way to make 0: use no coins\n        \n        for coin in coins:\n            for a in range(coin, amount + 1):\n                dp[a] += dp[a - coin]  # use this coin\n        \n        return dp[amount]",
+          "timeComplexity": "O(amount × len(coins))",
+          "spaceComplexity": "O(amount)"
+        }
+      ],
+      "description": "You are given an integer array coins representing coins of different denominations and an integer amount representing a total amount of money.",
+      "phaseId": 2,
+      "subcategory": "coin-change"
+    },
+    {
+      "id": "target-sum",
+      "title": "Target Sum",
+      "leetcodeSlug": "target-sum",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "array",
+        "dynamic-programming",
+        "backtracking"
+      ],
+      "video": {
+        "title": "NeetCode — Target Sum (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Target+Sum",
+        "lang": "python"
+      },
+      "keyIdeas": "Looks like backtracking, but it's DP. Key insight: assigning +/− to numbers is equivalent to partitioning them into two subsets with a specific difference. Reduces to a subset-sum counting problem. `dp[i][s]` = number of ways to reach sum `s` using the first `i` numbers.",
+      "hints": [
+        "Brute force: try +num or -num at each step — that's 2^n. Can you cache (index, currentSum)?",
+        "Mathematical insight: if subset P gets + and subset N gets −, then sum(P) - sum(N) = target and sum(P) + sum(N) = total. Solve for sum(P).",
+        "It becomes: count subsets with sum = (total + target) / 2. Use 1-D DP for subset sum counting."
+      ],
+      "solutions": [
+        {
+          "label": "Brute force — top-down memoization",
+          "keyIdea": "Recursively try +num and -num, cache results by (index, current_sum). Natural starting point that directly models the problem. Reach for this when the sum range is manageable and you want the clearest logic.",
+          "code": "class Solution:\n    def findTargetSumWays(self, nums: list[int], target: int) -> int:\n        from functools import lru_cache\n        \n        @lru_cache(None)\n        def dp(i, total):\n            if i == len(nums):\n                return 1 if total == target else 0\n            # try both + and -\n            return dp(i + 1, total + nums[i]) + dp(i + 1, total - nums[i])\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(n × sum_range), where sum_range is the range of possible sums",
+          "spaceComplexity": "O(n × sum_range)"
+        },
+        {
+          "label": "Better — bottom-up 2-D DP",
+          "keyIdea": "Build dp[i][s] = ways to reach sum s using first i numbers. Offset indices to handle negative sums. Clearer structure than memoization but still O(n × sum_range) space.",
+          "code": "class Solution:\n    def findTargetSumWays(self, nums: list[int], target: int) -> int:\n        total = sum(nums)\n        # Check if target is reachable\n        if abs(target) > total:\n            return 0\n        \n        # Offset to handle negative sums: index = sum + total\n        offset = total\n        dp = [[0] * (2 * total + 1) for _ in range(len(nums) + 1)]\n        dp[0][offset] = 1  # 0 sum with 0 nums\n        \n        for i in range(1, len(nums) + 1):\n            for s in range(-total, total + 1):\n                if dp[i - 1][s + offset] > 0:\n                    # Add current number\n                    dp[i][s + nums[i - 1] + offset] += dp[i - 1][s + offset]\n                    # Subtract current number\n                    dp[i][s - nums[i - 1] + offset] += dp[i - 1][s + offset]\n        \n        return dp[len(nums)][target + offset]",
+          "timeComplexity": "O(n × sum_range)",
+          "spaceComplexity": "O(n × sum_range)"
+        },
+        {
+          "label": "Optimal — subset sum transformation",
+          "keyIdea": "Convert to: count subsets with sum = (total + target) / 2. Use 1-D DP for counting. Reach for this when you recognize the partition insight — it's both faster and uses less space. Best choice for interviews.",
+          "code": "class Solution:\n    def findTargetSumWays(self, nums: list[int], target: int) -> int:\n        total = sum(nums)\n        # If target is out of range or (total + target) is odd, no solution\n        if abs(target) > total or (total + target) % 2 != 0:\n            return 0\n        \n        subset_sum = (total + target) // 2\n        \n        # Count subsets with sum = subset_sum\n        dp = [0] * (subset_sum + 1)\n        dp[0] = 1  # one way to make 0: choose nothing\n        \n        for num in nums:\n            # Traverse backwards to avoid using the same element multiple times\n            for s in range(subset_sum, num - 1, -1):\n                dp[s] += dp[s - num]\n        \n        return dp[subset_sum]",
+          "timeComplexity": "O(n × subset_sum)",
+          "spaceComplexity": "O(subset_sum)"
+        }
+      ],
+      "description": "You are given an integer array nums and an integer target.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "subset-sum"
+    },
+    {
+      "id": "interleaving-string",
+      "title": "Interleaving String",
+      "leetcodeSlug": "interleaving-string",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "string",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Interleaving String (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Interleaving+String",
+        "lang": "python"
+      },
+      "keyIdeas": "Two-string DP. `dp[i][j]` = True if `s3[:i+j]` can be formed by interleaving `s1[:i]` and `s2[:j]`. At each step, check if the next character of s3 matches the current character of s1 (and dp[i-1][j] is True) or s2 (and dp[i][j-1] is True).",
+      "hints": [
+        "Think recursively: to form s3, you either take the next char from s1 or from s2. The order must be preserved.",
+        "Build a table dp[i][j]: can we form the first i+j chars of s3 using the first i of s1 and first j of s2?",
+        "Base case: dp[0][0] = True. Recurrence: dp[i][j] = (s1[i-1] == s3[i+j-1] and dp[i-1][j]) or (s2[j-1] == s3[i+j-1] and dp[i][j-1])."
+      ],
+      "solutions": [
+        {
+          "label": "Top-down with memoization",
+          "keyIdea": "Recursively try taking from s1 or s2 to match s3, cache by (i, j) indices. Natural way to explore the problem before learning tabulation. Reach for this when the recurrence is clearer top-down.",
+          "code": "class Solution:\n    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:\n        from functools import lru_cache\n        \n        if len(s1) + len(s2) != len(s3):\n            return False\n        \n        @lru_cache(None)\n        def dp(i, j):\n            # Base case: consumed all strings\n            if i + j == len(s3):\n                return True\n            \n            # Try taking from s1\n            if i < len(s1) and s1[i] == s3[i + j]:\n                if dp(i + 1, j):\n                    return True\n            \n            # Try taking from s2\n            if j < len(s2) and s2[j] == s3[i + j]:\n                if dp(i, j + 1):\n                    return True\n            \n            return False\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Better — bottom-up 2-D table",
+          "keyIdea": "Build a table where dp[i][j] tracks if s3[:i+j] can be formed. Check both s1 and s2 as sources for the next character. Standard two-string DP approach.",
+          "code": "class Solution:\n    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:\n        m, n = len(s1), len(s2)\n        if m + n != len(s3):\n            return False\n        \n        # dp[i][j] = can form s3[:i+j] from s1[:i] and s2[:j]\n        dp = [[False] * (n + 1) for _ in range(m + 1)]\n        dp[0][0] = True\n        \n        # Fill first column (only using s1)\n        for i in range(1, m + 1):\n            dp[i][0] = dp[i - 1][0] and s1[i - 1] == s3[i - 1]\n        \n        # Fill first row (only using s2)\n        for j in range(1, n + 1):\n            dp[0][j] = dp[0][j - 1] and s2[j - 1] == s3[j - 1]\n        \n        # Fill the rest\n        for i in range(1, m + 1):\n            for j in range(1, n + 1):\n                # Check if we can take from s1 or s2\n                dp[i][j] = (\n                    (dp[i - 1][j] and s1[i - 1] == s3[i + j - 1]) or\n                    (dp[i][j - 1] and s2[j - 1] == s3[i + j - 1])\n                )\n        \n        return dp[m][n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Optimal — 1-D space",
+          "keyIdea": "Only need previous row to compute current row. Use a single array and update in-place. Reach for this when strings are long and you need to optimize space.",
+          "code": "class Solution:\n    def isInterleave(self, s1: str, s2: str, s3: str) -> bool:\n        m, n = len(s1), len(s2)\n        if m + n != len(s3):\n            return False\n        \n        # Use 1-D array for previous row\n        prev = [False] * (n + 1)\n        prev[0] = True\n        \n        # Fill first row (only using s2)\n        for j in range(1, n + 1):\n            prev[j] = prev[j - 1] and s2[j - 1] == s3[j - 1]\n        \n        # Process remaining rows\n        for i in range(1, m + 1):\n            curr = [False] * (n + 1)\n            # First column (only using s1)\n            curr[0] = prev[0] and s1[i - 1] == s3[i - 1]\n            \n            for j in range(1, n + 1):\n                curr[j] = (\n                    (prev[j] and s1[i - 1] == s3[i + j - 1]) or\n                    (curr[j - 1] and s2[j - 1] == s3[i + j - 1])\n                )\n            prev = curr\n        \n        return prev[n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given strings s1, s2, and s3, find whether s3 is formed by an interleaving of s1 and s2.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "strings"
+    },
+    {
+      "id": "edit-distance",
+      "title": "Edit Distance",
+      "leetcodeSlug": "edit-distance",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "tags": [
+        "string",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Edit Distance (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Edit+Distance",
+        "lang": "python"
+      },
+      "keyIdeas": "Classic two-string DP (Levenshtein distance). `dp[i][j]` = min edits to transform `word1[:i]` into `word2[:j]`. If characters match, take diagonal (no edit). Otherwise, take 1 + min of three operations: insert (left), delete (above), replace (diagonal).",
+      "hints": [
+        "Think of the three operations: insert a character into word1, delete from word1, or replace a character in word1.",
+        "Build a table dp[i][j] = min edits to convert word1[:i] to word2[:j]. Base cases: dp[i][0] = i (delete all), dp[0][j] = j (insert all).",
+        "If word1[i-1] == word2[j-1], dp[i][j] = dp[i-1][j-1]. Else dp[i][j] = 1 + min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1])."
+      ],
+      "solutions": [
+        {
+          "label": "Top-down with memoization",
+          "keyIdea": "Recursively try the three operations (insert, delete, replace) and cache results. Natural way to explore before learning tabulation. Reach for this when the recurrence logic is clearer recursively.",
+          "code": "class Solution:\n    def minDistance(self, word1: str, word2: str) -> int:\n        from functools import lru_cache\n        \n        @lru_cache(None)\n        def dp(i, j):\n            # Base cases\n            if i == len(word1):\n                return len(word2) - j  # insert remaining chars\n            if j == len(word2):\n                return len(word1) - i  # delete remaining chars\n            \n            # Characters match: no edit needed\n            if word1[i] == word2[j]:\n                return dp(i + 1, j + 1)\n            \n            # Try all three operations\n            insert_op = dp(i, j + 1)      # insert word2[j]\n            delete_op = dp(i + 1, j)      # delete word1[i]\n            replace_op = dp(i + 1, j + 1)  # replace word1[i] with word2[j]\n            \n            return 1 + min(insert_op, delete_op, replace_op)\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Better — bottom-up 2-D table",
+          "keyIdea": "Build a (m+1)×(n+1) table. Match → no cost, take diagonal. No match → 1 + min(insert, delete, replace). Classic Levenshtein distance algorithm.",
+          "code": "class Solution:\n    def minDistance(self, word1: str, word2: str) -> int:\n        m, n = len(word1), len(word2)\n        # dp[i][j] = min edits to convert word1[:i] to word2[:j]\n        dp = [[0] * (n + 1) for _ in range(m + 1)]\n        \n        # Base cases\n        for i in range(m + 1):\n            dp[i][0] = i  # delete all i characters\n        for j in range(n + 1):\n            dp[0][j] = j  # insert all j characters\n        \n        for i in range(1, m + 1):\n            for j in range(1, n + 1):\n                if word1[i - 1] == word2[j - 1]:\n                    dp[i][j] = dp[i - 1][j - 1]  # no edit needed\n                else:\n                    dp[i][j] = 1 + min(\n                        dp[i - 1][j],      # delete from word1\n                        dp[i][j - 1],      # insert into word1\n                        dp[i - 1][j - 1]   # replace\n                    )\n        \n        return dp[m][n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Optimal — 1-D space",
+          "keyIdea": "Only need previous row. Keep a temp variable for the diagonal. Reach for this when words are long and you need to optimize space.",
+          "code": "class Solution:\n    def minDistance(self, word1: str, word2: str) -> int:\n        m, n = len(word1), len(word2)\n        prev = list(range(n + 1))  # base case for row 0\n        \n        for i in range(1, m + 1):\n            curr = [i] + [0] * n  # base case for column 0\n            for j in range(1, n + 1):\n                if word1[i - 1] == word2[j - 1]:\n                    curr[j] = prev[j - 1]\n                else:\n                    curr[j] = 1 + min(prev[j], curr[j - 1], prev[j - 1])\n            prev = curr\n        \n        return prev[n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given two strings word1 and word2, return the minimum number of operations required to convert word1 to word2.",
+      "phaseId": 2,
+      "important": true,
+      "subcategory": "strings"
+    },
+    {
+      "id": "01-matrix",
+      "title": "01 Matrix",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "subcategory": "grids",
+      "leetcodeSlug": "01-matrix",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def updateMatrix(self, mat: List[List[int]]) -> List[List[int]]:\n        m, n = len(mat), len(mat[0])\n        outputMatrix = [[1e9 for _ in range(n)] for _ in range(m)]\n        queue = deque((i, j, 0) for i in range(m) for j in range(n) if mat[i][j]==0)\n        visited = set((i, j) for i in range(m) for j in range(n) if mat[i][j]==0)\n\n        while queue:\n            i, j, dist = queue.popleft()\n            outputMatrix[i][j] = dist\n            for di, dj in [(1, 0), (-1, 0), (0, 1), (0, -1)]:\n                newI, newJ = i+di, j+dj\n                if 0<=newI<m and 0<=newJ<n and (newI, newJ) not in visited:\n                    visited.add((newI,newJ))\n                    queue.append((newI, newJ, dist+1))\n        return outputMatrix\n\nclass Solution:\n    def updateMatrix(self, mat: List[List[int]]) -> List[List[int]]:\n        m, n = len(mat), len(mat[0])\n        outputMatrix = [[1e9 for _ in range(n)] for _ in range(m)]\n        queue = deque((i, j, 0) for i in range(m) for j in range(n) if mat[i][j]==0) \n        while queue:\n            i, j, dist = queue.popleft()\n            outputMatrix[i][j] = dist\n            for di, dj in [(1, 0), (-1, 0), (0, 1), (0, -1)]:\n                newI, newJ = i+di, j+dj\n                if 0<=newI<m and 0<=newJ<n and (newI, newJ) and mat[newI][newJ]!=0 and outputMatrix[newI][newJ]==1e9:\n                    outputMatrix[newI][newJ] = -1\n                    queue.append((newI, newJ, dist+1))\n        return outputMatrix\n\n\nclass Solution:\n    def updateMatrix(self, mat: List[List[int]]) -> List[List[int]]:\n        m, n = len(mat), len(mat[0])\n        for i in range(m):\n            for j in range(n):\n                if mat[i][j]!=0: mat[i][j] = min(mat[i-1][j] if 0<=i-1<m else 1e9, mat[i][j-1] if 0<=j-1<n else 1e9)+1\n        for i in range(m)[::-1]:\n            for j in range(n)[::-1]:\n                if mat[i][j]!=0: mat[i][j] = min(mat[i][j], mat[i+1][j]+1 if 0<=i+1<m else 1e9, mat[i][j+1]+1 if 0<=j+1<n else 1e9)\n        return mat\n        ",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an m x n binary matrix mat, return the distance of the nearest 0 for each cell.",
+      "phaseId": 3
+    },
+    {
+      "id": "paths-in-matrix-whose-sum-is-divisible-by-k",
+      "title": "paths In Matrix Whose Sum Is Divisible By K",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "subcategory": "grids",
+      "leetcodeSlug": "paths-in-matrix-whose-sum-is-divisible-by-k",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "TODO: Add key ideas",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "TODO: Add key ideas",
+          "code": "class Solution:\n    def numberOfPaths(self, grid: List[List[int]], k: int) -> int:\n        m, n, MOD = len(grid), len(grid[0]), 10**9+7\n        dp = [[defaultdict(int) for _ in range(n+1)] for _ in range(m+1)]\n        dp[m-1][n][0] = 1\n        for i in range(m-1, -1, -1):\n            for j in range(n-1, -1, -1):\n                for key in dp[i][j+1]:\n                    dp[i][j][(key+grid[i][j])%k] = dp[i][j+1][key]\n                for key in dp[i+1][j]:\n                    dp[i][j][(key+grid[i][j])%k] += dp[i+1][j][key]\n                    dp[i][j][(key+grid[i][j])%k] %= MOD\n        return dp[0][0][0]",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "You are given a 0-indexed m x n integer matrix grid and an integer k. You are currently at position (0, 0) and you want to reach position (m - 1, n - 1) moving only down or right.",
+      "phaseId": 3
+    },
+    {
+      "id": "all-possible-full-binary-trees",
+      "title": "all Possible Full Binary Trees",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "subcategory": "trees",
+      "leetcodeSlug": "all-possible-full-binary-trees",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for a binary tree node.         # tabulation         # tabulation",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for a binary tree node.         # tabulation         # tabulation",
+          "code": "# Definition for a binary tree node.\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\nclass Solution:\n    def allPossibleFBT(self, n: int):\n        if not n&1: return []\n        \n        def recursion(n):\n            if n==1: return [TreeNode()]\n            ansArr = []\n            for i in range(1, n, 2):\n                leftSubTreePossibilities = recursion(i)\n                rightSubTreePossibilities = recursion(n-i-1)\n                for left in leftSubTreePossibilities:\n                    for right in rightSubTreePossibilities:\n                        root = TreeNode()\n                        root.left = left\n                        root.right = right\n                        ansArr.append(root)\n            return ansArr\n\n        return recursion(n)\n    \nclass Solution:\n    def allPossibleFBT(self, n: int):\n        if not n&1: return []\n        \n        memo = {1:[TreeNode(0)]}\n        def memoization(n):\n            nonlocal memo\n            if n in memo: return memo[n]\n            ansArr = []\n            for i in range(1, n, 2):\n                leftSubTreePossibilities = memoization(i)\n                rightSubTreePossibilities = memoization(n-i-1)\n                for left in leftSubTreePossibilities:\n                    for right in rightSubTreePossibilities:\n                        root = TreeNode()\n                        root.left = left\n                        root.right = right\n                        ansArr.append(root)\n            memo[n] = ansArr\n            return memo[n]\n\n        return memoization(n)\n    \n    \nclass Solution:\n    def allPossibleFBT(self, n: int):\n        if not n&1: return []\n        \n        dp = [[] for _ in range(n+1)]\n        dp[1] = [TreeNode()]\n        # tabulation\n        for numNodes in range(1, n+1, 2):\n            for i in range(1, numNodes, 2):\n                leftSubTreePossibilities = dp[i]\n                rightSubTreePossibilities = dp[numNodes-i-1]\n                for left in leftSubTreePossibilities:\n                    for right in rightSubTreePossibilities:\n                        root = TreeNode()\n                        root.left = left\n                        root.right = right\n                        dp[numNodes].append(root)\n\n        return dp[n]\n\nclass Solution:\n    def allPossibleFBT(self, n: int):\n        if not n&1: return []\n        \n        @lru_cache(None)\n        def recursion(n):\n            if n==1: return [TreeNode()]\n            ansArr = []\n            for i in range(1, n, 2): \n                for leftTree in recursion(i):\n                    for rightTree in recursion(n-i-1):\n                        ansArr.append(TreeNode(0, leftTree, rightTree))\n            return ansArr\n\n        return recursion(n)\n    \n    \n    \nclass Solution:\n    def allPossibleFBT(self, n: int):\n        if not n&1: return []\n        \n        dp = [[] for _ in range(n+1)]\n        dp[1] = [TreeNode()]\n        # tabulation\n        for numNodes in range(1, n+1, 2):\n            for i in range(1, numNodes, 2): \n                for leftTree in dp[i]:\n                    for rightTree in dp[numNodes-i-1]:\n                        dp[numNodes].append(TreeNode(0, leftTree, rightTree))\n        return dp[n]",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "description": "Given an integer n, return a list of all possible full binary trees with n nodes. Each node of each tree in the answer must have Node.val == 0.",
+      "phaseId": 3
+    },
+    {
+      "id": "unique-binary-search-trees2",
+      "title": "unique Binary Search Trees2",
+      "difficulty": "Medium",
+      "patternId": "two-d-dp",
+      "subcategory": "trees",
+      "leetcodeSlug": "unique-binary-search-trees2",
+      "tags": [],
+      "video": {
+        "title": "",
+        "url": "",
+        "lang": "python"
+      },
+      "keyIdeas": "Definition for a binary tree node. class TreeNode: def __init__(self, val=0, left=None, right=None): self.val = val self.left = left",
+      "hints": [
+        "Consider the constraints",
+        "Think about the optimal approach"
+      ],
+      "solutions": [
+        {
+          "label": "Solution from repo",
+          "keyIdea": "Definition for a binary tree node. class TreeNode: def __init__(self, val=0, left=None, right=None): self.val = val self.left = left",
+          "code": "# Definition for a binary tree node.\n# class TreeNode:\n#     def __init__(self, val=0, left=None, right=None):\n#         self.val = val\n#         self.left = left\n#         self.right = right\nclass Solution:\n    def generateTrees(self, n: int) -> List[Optional[TreeNode]]:\n\n        @lru_cache(None)\n        def dp(numsTuple):\n            if len(numsTuple)==0: return [None]\n            bstList = []\n            for index, num in enumerate(numsTuple):\n                for leftTree in dp(numsTuple[:index]):\n                    for rightTree in dp(numsTuple[index+1:]):\n                        bstList.append(TreeNode(num, leftTree, rightTree))\n            return bstList\n\n        return dp(tuple(range(1, n+1)))\n    \n",
+          "timeComplexity": "O(?)",
+          "spaceComplexity": "O(?)"
+        }
+      ],
+      "phaseId": 3
+    },
+    {
+      "id": "longest-increasing-path-in-a-matrix",
+      "title": "Longest Increasing Path in a Matrix",
+      "leetcodeSlug": "longest-increasing-path-in-a-matrix",
+      "difficulty": "Hard",
+      "patternId": "two-d-dp",
+      "tags": [
+        "array",
+        "dynamic-programming",
+        "depth-first-search",
+        "memoization"
+      ],
+      "video": {
+        "title": "NeetCode — Longest Increasing Path in a Matrix (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Longest+Increasing+Path+in+a+Matrix",
+        "lang": "python"
+      },
+      "keyIdeas": "DFS + memoization on a grid. `dp[i][j]` = length of the longest increasing path starting at `(i,j)`. For each cell, recursively check all four neighbors (only if they're greater), and cache the result. Try all cells as starting points.",
+      "hints": [
+        "Brute force: DFS from every cell, exploring all increasing paths. That's expensive without caching.",
+        "For each cell, the longest path starting there is 1 + max(longest path from any valid neighbor).",
+        "Use a 2-D cache (or @lru_cache on a DFS function) to avoid recomputing paths from the same cell."
+      ],
+      "solutions": [
+        {
+          "label": "DFS with memoization",
+          "keyIdea": "For each cell, DFS to all increasing neighbors and cache the result. The answer is the max over all starting cells.",
+          "code": "class Solution:\n    def longestIncreasingPath(self, matrix: list[list[int]]) -> int:\n        if not matrix:\n            return 0\n        \n        m, n = len(matrix), len(matrix[0])\n        memo = {}  # (i, j) -> longest path starting at (i, j)\n        \n        def dfs(i, j):\n            if (i, j) in memo:\n                return memo[(i, j)]\n            \n            max_len = 1  # at least the cell itself\n            for di, dj in [(-1, 0), (1, 0), (0, -1), (0, 1)]:\n                ni, nj = i + di, j + dj\n                if 0 <= ni < m and 0 <= nj < n and matrix[ni][nj] > matrix[i][j]:\n                    max_len = max(max_len, 1 + dfs(ni, nj))\n            \n            memo[(i, j)] = max_len\n            return max_len\n        \n        return max(dfs(i, j) for i in range(m) for j in range(n))",
+          "timeComplexity": "O(m × n) — each cell visited once",
+          "spaceComplexity": "O(m × n)"
+        }
+      ],
+      "description": "Given an m x n integers matrix, return the length of the longest increasing path in matrix.",
+      "phaseId": 3,
+      "important": true,
+      "subcategory": "grid-dp"
+    },
+    {
+      "id": "distinct-subsequences",
+      "title": "Distinct Subsequences",
+      "leetcodeSlug": "distinct-subsequences",
+      "difficulty": "Hard",
+      "patternId": "two-d-dp",
+      "tags": [
+        "string",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Distinct Subsequences (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Distinct+Subsequences",
+        "lang": "python"
+      },
+      "keyIdeas": "Two-string DP counting problem. `dp[i][j]` = number of ways `t[:j]` appears as a subsequence in `s[:i]`. If characters match, you can either use the match (take diagonal) or skip it (take from above). If no match, you can only skip the current character of s.",
+      "hints": [
+        "Think recursively: how many ways can t[:j] appear in s[:i]? If s[i-1] == t[j-1], you can match them or not.",
+        "Build a table: dp[i][j] = distinct subsequences of t[:j] in s[:i]. Base case: dp[i][0] = 1 (empty string is always a subsequence).",
+        "Recurrence: if s[i-1] == t[j-1], dp[i][j] = dp[i-1][j-1] (use match) + dp[i-1][j] (skip). Else dp[i][j] = dp[i-1][j]."
+      ],
+      "solutions": [
+        {
+          "label": "Top-down with memoization",
+          "keyIdea": "Recursively count ways by either using a match (if chars match) or skipping the current char in s. Cache by (i, j) indices. Natural starting point before learning tabulation.",
+          "code": "class Solution:\n    def numDistinct(self, s: str, t: str) -> int:\n        from functools import lru_cache\n        \n        @lru_cache(None)\n        def dp(i, j):\n            # Base case: matched all of t\n            if j == len(t):\n                return 1\n            # Exhausted s but not t\n            if i == len(s):\n                return 0\n            \n            # Always can skip s[i]\n            count = dp(i + 1, j)\n            \n            # If match, also count using this character\n            if s[i] == t[j]:\n                count += dp(i + 1, j + 1)\n            \n            return count\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Better — bottom-up 2-D table",
+          "keyIdea": "Build a table where dp[i][j] counts ways to form t[:j] from s[:i]. Match → add both use and skip. No match → skip. Standard two-string counting DP.",
+          "code": "class Solution:\n    def numDistinct(self, s: str, t: str) -> int:\n        m, n = len(s), len(t)\n        # dp[i][j] = number of distinct subsequences of t[:j] in s[:i]\n        dp = [[0] * (n + 1) for _ in range(m + 1)]\n        \n        # Base case: empty t is a subsequence of any s\n        for i in range(m + 1):\n            dp[i][0] = 1\n        \n        for i in range(1, m + 1):\n            for j in range(1, n + 1):\n                # Always can skip s[i-1]\n                dp[i][j] = dp[i - 1][j]\n                # If characters match, also add the count from matching\n                if s[i - 1] == t[j - 1]:\n                    dp[i][j] += dp[i - 1][j - 1]\n        \n        return dp[m][n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Optimal — 1-D space",
+          "keyIdea": "Only need the previous row. Traverse backwards to avoid overwriting values we still need. Reach for this when strings are long and you need to optimize space.",
+          "code": "class Solution:\n    def numDistinct(self, s: str, t: str) -> int:\n        n = len(t)\n        prev = [1] + [0] * n  # prev[0] = 1 (empty t)\n        \n        for char_s in s:\n            curr = [1] + [0] * n\n            for j in range(1, n + 1):\n                curr[j] = prev[j]  # skip char_s\n                if char_s == t[j - 1]:\n                    curr[j] += prev[j - 1]  # use match\n            prev = curr\n        \n        return prev[n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(n)"
+        }
+      ],
+      "description": "Given two strings s and t, return the number of distinct subsequences of s which equals t.",
+      "phaseId": 4,
+      "important": true,
+      "subcategory": "strings"
+    },
+    {
+      "id": "burst-balloons",
+      "title": "Burst Balloons",
+      "leetcodeSlug": "burst-balloons",
+      "difficulty": "Hard",
+      "patternId": "two-d-dp",
+      "tags": [
+        "array",
+        "dynamic-programming"
+      ],
+      "video": {
+        "title": "NeetCode — Burst Balloons (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Burst+Balloons",
+        "lang": "python"
+      },
+      "keyIdeas": "Counterintuitive DP: instead of thinking 'which balloon to burst first', think 'which balloon to burst **last** in a range'. `dp[i][j]` = max coins from bursting balloons in `[i, j]`. For each range, try every balloon as the last one burst, and add the coins it gives (with boundaries still intact) plus the max from the left and right subranges.",
+      "hints": [
+        "Bursting a balloon changes the neighbors, making it hard to reason forward. What if you think backward: which balloon is burst last?",
+        "Add 1s at both ends of the array so boundary balloons have neighbors. Then define dp[i][j] = max coins bursting all balloons between i and j (exclusive).",
+        "For each range [i, j], try every balloon k in between as the last one burst. The coins you get are nums[i]*nums[k]*nums[j] + dp[i][k] + dp[k][j]."
+      ],
+      "solutions": [
+        {
+          "label": "Bottom-up interval DP",
+          "keyIdea": "Add boundary 1s. For each range, try every balloon as the last burst. Build from small ranges to large.",
+          "code": "class Solution:\n    def maxCoins(self, nums: list[int]) -> int:\n        # Add boundaries\n        nums = [1] + nums + [1]\n        n = len(nums)\n        \n        # dp[i][j] = max coins bursting balloons between i and j (exclusive)\n        dp = [[0] * n for _ in range(n)]\n        \n        # Build up from length 2 ranges (i and j are boundaries, nothing in between)\n        for length in range(2, n):  # length of range including boundaries\n            for i in range(n - length):\n                j = i + length\n                # Try every balloon k as the last one burst in (i, j)\n                for k in range(i + 1, j):\n                    coins = nums[i] * nums[k] * nums[j]\n                    dp[i][j] = max(dp[i][j], coins + dp[i][k] + dp[k][j])\n        \n        return dp[0][n - 1]",
+          "timeComplexity": "O(n^3)",
+          "spaceComplexity": "O(n^2)"
+        }
+      ],
+      "description": "You are given n balloons, indexed from 0 to n - 1. Each balloon is painted with a number on it represented by an array nums. You are asked to burst all the balloons.",
+      "phaseId": 4,
+      "important": true,
+      "subcategory": "partitions"
+    },
+    {
+      "id": "regular-expression-matching",
+      "title": "Regular Expression Matching",
+      "leetcodeSlug": "regular-expression-matching",
+      "difficulty": "Hard",
+      "patternId": "two-d-dp",
+      "tags": [
+        "string",
+        "dynamic-programming",
+        "recursion"
+      ],
+      "video": {
+        "title": "NeetCode — Regular Expression Matching (Python)",
+        "url": "https://www.youtube.com/results?search_query=NeetCode+Regular+Expression+Matching",
+        "lang": "python"
+      },
+      "keyIdeas": "Two-string DP with branching logic. `dp[i][j]` = whether `s[:i]` matches `p[:j]`. The tricky part is `*`: it can match zero or more of the preceding character. If you see `p[j-1] == '*'`, you have two choices: use it (stay at same i, move pattern back by 2) or skip it (move pattern back by 2). Handle `.` as a wildcard match.",
+      "hints": [
+        "Recursively: does s[i:] match p[j:]? If p[j+1] is '*', you can use the star (match one more s[i]) or skip the star (move p by 2).",
+        "Build a table dp[i][j]. Base case: dp[0][0] = True. Handle '*' by checking if we can match zero occurrences or one-or-more.",
+        "If p[j-1] == '*', dp[i][j] = dp[i][j-2] (skip *) or (if p[j-2] matches s[i-1], dp[i-1][j] — use the star one more time)."
+      ],
+      "solutions": [
+        {
+          "label": "Top-down with memoization",
+          "keyIdea": "Recursively try matching with . and * branching logic, cache by (i, j). Natural starting point for understanding the problem. Reach for this when the recursive structure is clearer than tabulation.",
+          "code": "class Solution:\n    def isMatch(self, s: str, p: str) -> bool:\n        from functools import lru_cache\n        \n        @lru_cache(None)\n        def dp(i, j):\n            # Base case: both exhausted\n            if j == len(p):\n                return i == len(s)\n            \n            # Check if current characters match\n            first_match = i < len(s) and (p[j] == s[i] or p[j] == '.')\n            \n            # Handle '*'\n            if j + 1 < len(p) and p[j + 1] == '*':\n                # Try: skip pattern (zero match) OR use match (one or more)\n                return dp(i, j + 2) or (first_match and dp(i + 1, j))\n            else:\n                # No '*': must match current character\n                return first_match and dp(i + 1, j + 1)\n        \n        return dp(0, 0)",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        },
+        {
+          "label": "Optimal — bottom-up 2-D DP",
+          "keyIdea": "Build a (len(s)+1) × (len(p)+1) table. Handle . and * with careful case logic. More efficient in practice due to no recursion overhead.",
+          "code": "class Solution:\n    def isMatch(self, s: str, p: str) -> bool:\n        m, n = len(s), len(p)\n        # dp[i][j] = does s[:i] match p[:j]\n        dp = [[False] * (n + 1) for _ in range(m + 1)]\n        dp[0][0] = True  # empty matches empty\n        \n        # Handle patterns like a*, a*b*, etc. that can match empty string\n        for j in range(2, n + 1):\n            if p[j - 1] == '*':\n                dp[0][j] = dp[0][j - 2]\n        \n        for i in range(1, m + 1):\n            for j in range(1, n + 1):\n                if p[j - 1] == '*':\n                    # '*' matches zero of the preceding element\n                    dp[i][j] = dp[i][j - 2]\n                    # '*' matches one or more: check if preceding char matches\n                    if p[j - 2] == s[i - 1] or p[j - 2] == '.':\n                        dp[i][j] = dp[i][j] or dp[i - 1][j]\n                elif p[j - 1] == '.' or p[j - 1] == s[i - 1]:\n                    dp[i][j] = dp[i - 1][j - 1]\n        \n        return dp[m][n]",
+          "timeComplexity": "O(m × n)",
+          "spaceComplexity": "O(m × n)"
+        }
+      ],
+      "description": "Given an input string s and a pattern p, implement regular expression matching with support for &#39;.&#39; and &#39;*&#39; where:",
+      "phaseId": 4,
+      "important": true,
+      "subcategory": "string-matching"
+    }
+  ]
+}
