@@ -309,13 +309,20 @@ export async function revisionView(app) {
     runRevision(questions);
   }
 
-  function runRevision(questions) {
-    let currentIndex = 0;
-    let reviewed = 0;
-    let needsPractice = 0;
+  function runRevision(questions, resumeIndex = 0) {
+    let currentIndex = resumeIndex;
+    let reviewed = parseInt(sessionStorage.getItem('revision:reviewed') || '0');
+    let needsPractice = parseInt(sessionStorage.getItem('revision:needsPractice') || '0');
+
+    // Save session state
+    sessionStorage.setItem('revision:session', JSON.stringify(questions));
+    sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
 
     function renderQuestion() {
       const problem = questions[currentIndex];
+
+      // Update session state
+      sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
 
       function markConfidence(gotIt) {
         // Update spaced repetition
@@ -324,15 +331,18 @@ export async function revisionView(app) {
           const revision = store.getRevisionData(problem.id);
           store.recordRevisionAnswer(problem.id, true);
           reviewed++;
+          sessionStorage.setItem('revision:reviewed', reviewed.toString());
         } else {
           // Reset interval, needs practice
           store.recordRevisionAnswer(problem.id, false);
           needsPractice++;
+          sessionStorage.setItem('revision:needsPractice', needsPractice.toString());
         }
 
         // Next problem or finish
         if (currentIndex < questions.length - 1) {
           currentIndex++;
+          sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
           renderQuestion();
         } else {
           showSummary();
@@ -406,6 +416,12 @@ export async function revisionView(app) {
     function showSummary() {
       const total = questions.length;
 
+      // Clear session state
+      sessionStorage.removeItem('revision:session');
+      sessionStorage.removeItem('revision:currentIndex');
+      sessionStorage.removeItem('revision:reviewed');
+      sessionStorage.removeItem('revision:needsPractice');
+
       mount(app, el('div', { class: 'revision-summary' },
         el('div', { class: 'card' },
           el('h1', { text: '✓ Revision Complete!' }),
@@ -427,7 +443,13 @@ export async function revisionView(app) {
         ),
 
         el('div', { class: 'card revision-summary-actions' },
-          el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => mount(app, renderSetup()) }),
+          el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => {
+            sessionStorage.removeItem('revision:session');
+            sessionStorage.removeItem('revision:currentIndex');
+            sessionStorage.removeItem('revision:reviewed');
+            sessionStorage.removeItem('revision:needsPractice');
+            mount(app, renderSetup());
+          }}),
           el('a', { class: 'btn btn-secondary', href: '#/', text: '← Back to Roadmap' })
         )
       ));
@@ -508,6 +530,26 @@ export async function revisionView(app) {
       }
     });
     return count;
+  }
+
+  // Check for existing session to resume
+  const savedSession = sessionStorage.getItem('revision:session');
+  if (savedSession) {
+    try {
+      const questions = JSON.parse(savedSession);
+      const currentIndex = parseInt(sessionStorage.getItem('revision:currentIndex') || '0');
+      if (questions && questions.length > 0 && currentIndex < questions.length) {
+        // Resume the session
+        runRevision(questions, currentIndex);
+        return;
+      }
+    } catch (e) {
+      // Invalid session data, clear and continue
+      sessionStorage.removeItem('revision:session');
+      sessionStorage.removeItem('revision:currentIndex');
+      sessionStorage.removeItem('revision:reviewed');
+      sessionStorage.removeItem('revision:needsPractice');
+    }
   }
 
   // Start with setup screen
