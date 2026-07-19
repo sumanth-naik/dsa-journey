@@ -13,10 +13,12 @@ export async function homeView(app) {
   nodes.push(el('p', { class: 'muted', text: 'Learn the pattern first, then apply it. Reveal hints and solutions only when you want them — never a cold problem.' }));
 
   // stat strip
+  const bookmarked = m.problemIndex.filter(p => !!store.getProblem(p.id).revision).length;
   nodes.push(el('div', { class: 'stat-row' },
     el('a', { href: '#/solved', style: 'text-decoration: none; color: inherit;' }, stat(solved, 'Solved')),
-    stat(totalProblems, 'Total'),
-    stat(store.streak(), 'Day streak 🔥'),
+    el('a', { href: '#/search', style: 'text-decoration: none; color: inherit;' }, stat(totalProblems, 'Total')),
+    el('a', { href: '#/bookmarked', style: 'text-decoration: none; color: inherit;' }, stat(bookmarked, 'Bookmarked')),
+    el('a', { href: '#/streak', style: 'text-decoration: none; color: inherit;' }, stat(store.streak(), 'Day streak 🔥')),
   ));
 
   // patterns grid

@@ -392,6 +392,60 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
   .revision-summary-score-big { font-size: 2.5rem; }
 }
 
+/* Streak page */
+.streak-stats {
+  display: flex; gap: 24px; justify-content: space-around; flex-wrap: wrap; padding: 20px 0;
+}
+.streak-stat {
+  text-align: center; min-width: 100px;
+}
+.streak-number {
+  font-size: 2.5rem; font-weight: 700; color: var(--accent);
+}
+.streak-label {
+  font-size: 0.9rem; color: var(--text-dim); margin-top: 4px;
+}
+
+.calendar-heatmap {
+  margin-top: 20px; overflow-x: auto;
+}
+.calendar-months {
+  display: grid; grid-auto-flow: column; gap: 4px; margin-bottom: 8px;
+  font-size: 0.75rem; color: var(--text-dim);
+}
+.calendar-days {
+  position: absolute; left: 0; top: 30px;
+  font-size: 0.7rem; color: var(--text-dim); display: grid; gap: 3px;
+}
+.calendar-grid {
+  display: flex; gap: 4px; margin-left: 30px; position: relative;
+}
+.calendar-week {
+  display: grid; gap: 3px; grid-template-rows: repeat(7, 12px);
+}
+.calendar-day {
+  width: 12px; height: 12px; border-radius: 2px; cursor: pointer;
+  background: var(--bg-elev2); border: 1px solid var(--border);
+}
+.calendar-day.level-0 { background: var(--bg-elev2); }
+.calendar-day.level-1 { background: rgba(110, 168, 254, 0.3); }
+.calendar-day.level-2 { background: rgba(110, 168, 254, 0.5); }
+.calendar-day.level-3 { background: rgba(110, 168, 254, 0.7); }
+.calendar-day.level-4 { background: rgba(110, 168, 254, 1); }
+.calendar-legend {
+  display: flex; gap: 4px; align-items: center; justify-content: flex-end;
+  margin-top: 12px; font-size: 0.75rem; color: var(--text-dim);
+}
+.legend-label {
+  margin: 0 4px;
+}
+
+@media (max-width: 560px) {
+  .calendar-week { grid-template-rows: repeat(7, 10px); }
+  .calendar-day { width: 10px; height: 10px; }
+  .streak-number { font-size: 2rem; }
+}
+
 /* Quiz pattern/difficulty filters */
 .revision-pattern-mode { display: flex; gap: 10px; margin: 12px 0; }
 .revision-pattern-mode-btn {

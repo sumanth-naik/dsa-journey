@@ -137,6 +137,33 @@ const store = {
     return streak;
   },
 
+  longestStreak() {
+    // find the longest consecutive day streak ever
+    const days = new Set();
+    for (const p of Object.values(this.progress.problems)) {
+      for (const t of [p.firstAttemptedAt, p.solvedAt, p.updatedAt]) if (t) days.add(todayKey(new Date(t)));
+    }
+    if (days.size === 0) return 0;
+
+    const sortedDays = Array.from(days).sort();
+    let maxStreak = 1, currentStreak = 1;
+
+    for (let i = 1; i < sortedDays.length; i++) {
+      const prevDate = new Date(sortedDays[i - 1]);
+      const currDate = new Date(sortedDays[i]);
+      const dayDiff = Math.round((currDate - prevDate) / DAY);
+
+      if (dayDiff === 1) {
+        currentStreak++;
+        maxStreak = Math.max(maxStreak, currentStreak);
+      } else {
+        currentStreak = 1;
+      }
+    }
+
+    return maxStreak;
+  },
+
   lastActiveProblemId() {
     let best = null, bestT = 0;
     for (const [id, p] of Object.entries(this.progress.problems)) {
