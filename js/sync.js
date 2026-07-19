@@ -64,7 +64,8 @@ async function pull() {
 
     if (!res.ok) throw new Error('GET gist ' + res.status);
     const data = await res.json();
-    const content = data.files?.[FILE]?.content;
+    const fileName = getFileName();
+    const content = data.files?.[fileName]?.content;
     if (content) {
       const remote = JSON.parse(content);
       store.replaceProgress(merge(store.progress, remote));

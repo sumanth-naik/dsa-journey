@@ -26,7 +26,7 @@ export async function settingsView(app) {
     const collision = await sync.checkNameCollision(newName);
 
     if (collision) {
-      mount(nameStatus, el('span', { style: 'color: var(--red)', text: `Name "${newName}" is already taken. Choose another.` }));
+      mount(nameStatus, el('span', { style: 'color: var(--red)', text: 'Name "' + newName + '" is already taken. Choose another.' }));
       nameInput.value = oldName;
       return;
     }
@@ -53,28 +53,28 @@ export async function settingsView(app) {
   );
 
   // ---- Sync status ----
-  const syncCard = el(‘div’, { class: ‘card’ });
-  syncCard.append(el(‘h2’, { text: ‘Sync’, style: ‘margin-top:0’ }));
-  syncCard.append(el(‘p’, { class: ‘muted small’, text: ‘Your progress automatically syncs across all your devices using your name.’ }));
+  const syncCard = el('div', { class: 'card' });
+  syncCard.append(el('h2', { text: 'Sync', style: 'margin-top:0' }));
+  syncCard.append(el('p', { class: 'muted small', text: 'Your progress automatically syncs across all your devices using your name.' }));
 
-  const status = el(‘div’, { class: ‘muted small’, style: ‘margin-top:12px’ });
+  const status = el('div', { class: 'muted small', style: 'margin-top:12px' });
   const gid = store.getGistId();
   if (gid) {
-    status.append(el(‘span’, { style: ‘color: var(--green)’ }, ‘✓ Synced’));
+    status.append(el('span', { style: 'color: var(--green)' }, '✓ Synced'));
   } else {
-    status.append(el(‘span’, {}, ‘Not synced yet’));
+    status.append(el('span', {}, 'Not synced yet'));
   }
 
-  const syncNow = el(‘button’, { class: ‘btn’, text: ‘Sync now’ });
-  syncNow.addEventListener(‘click’, async () => {
-    mount(status, el(‘span’, { text: ‘Syncing...’ }));
+  const syncNow = el('button', { class: 'btn', text: 'Sync now' });
+  syncNow.addEventListener('click', async () => {
+    mount(status, el('span', { text: 'Syncing...' }));
     await sync.findOrCreateGist();
     await sync.push();
     await sync.pull();
-    mount(status, el(‘span’, { style: ‘color: var(--green)’ }, ‘✓ Synced ‘ + new Date().toLocaleTimeString()));
+    mount(status, el('span', { style: 'color: var(--green)' }, '✓ Synced ' + new Date().toLocaleTimeString()));
   });
 
-  syncCard.append(el(‘div’, { class: ‘btn-row’ }, syncNow), status);
+  syncCard.append(el('div', { class: 'btn-row' }, syncNow), status);
   nodes.push(syncCard);
 
   // ---- Backup ----
@@ -97,7 +97,7 @@ export async function settingsView(app) {
   // Security note
   nodes.push(el('div', { class: 'card' },
     el('h3', { text: 'Is this safe?', style: 'margin-top:0' }),
-    el('p', { class: 'muted small', text: 'The token is stored only in this browser (localStorage) — never committed to the site and never written into the gist. It can only read/write your gists (not your repos or account) and you can revoke it anytime from GitHub settings. The progress gist is “secret” (not indexed) but anyone with its link could view it, so it holds only problem statuses and your notes — no secrets.' })));
+    el('p', { class: 'muted small', text: 'The token is stored only in this browser (localStorage) — never committed to the site and never written into the gist. It can only read/write your gists (not your repos or account) and you can revoke it anytime from GitHub settings. The progress gist is "secret" (not indexed) but anyone with its link could view it, so it holds only problem statuses and your notes — no secrets.' })));
 
   mount(app, nodes);
 }
