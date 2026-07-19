@@ -161,12 +161,20 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
 /* Bottom nav */
 .bottomnav {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 20;
-  display: flex; justify-content: space-around; align-items: center;
+  display: flex; align-items: center;
   background: rgba(15,20,32,.92); backdrop-filter: blur(10px);
   border-top: 1px solid var(--border); padding: 6px 0 max(6px, env(safe-area-inset-bottom));
+  overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
+.bottomnav::-webkit-scrollbar { display: none; }
 @media (prefers-color-scheme: light) { .bottomnav { background: rgba(255,255,255,.92); } }
-.bottomnav a { color: var(--text-dim); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .68rem; padding: 4px 14px; }
+.bottomnav a {
+  color: var(--text-dim); display: flex; flex-direction: column; align-items: center;
+  gap: 2px; font-size: .68rem; padding: 4px 14px;
+  flex: 0 0 auto; min-width: 70px;
+}
 .bottomnav a:hover { text-decoration: none; }
 .bottomnav a.active { color: var(--accent); }
 .bottomnav .ic { font-size: 1.25rem; }
