@@ -20,7 +20,7 @@
 @media (prefers-color-scheme: light) {
   :root {
     --bg: #f6f8fc; --bg-elev: #fff; --bg-elev2: #eef2f9; --border: #dde4ef;
-    --text: #16202e; --text-dim: #5a677d; --accent: #2f6fe0; --accent-soft: #dce8ff;
+    --text: #16202e; --text-dim: #5a677d; --accent: #2861d8; --accent-soft: #dce8ff;
   }
 }
 
