@@ -131,18 +131,22 @@ async function findOrCreateGist() {
   if (!token) return;
 
   try {
-    // Search for existing gist by description
-    const res = await fetch(`${API}/gists`, { headers: headers() });
+    // Search for existing gist by filename (more reliable than description)
+    // Get up to 100 gists to handle users with many gists
+    const res = await fetch(`${API}/gists?per_page=100`, { headers: headers() });
     if (res.ok) {
       const gists = await res.json();
-      const existing = gists.find(g => g.description?.includes('dsa-journey progress'));
-      if (existing && existing.files?.[FILE]) {
+      // Find gist that has our specific filename
+      const existing = gists.find(g => g.files?.[FILE]);
+      if (existing) {
         store.setGistId(existing.id);
+        console.log('Found existing gist:', existing.id);
         return;
       }
     }
 
     // No existing gist found, create new one
+    console.log('No existing gist found, creating new one');
     const body = JSON.stringify({
       description: `dsa-journey progress (${store.settings.name || 'user'})`,
       public: false,
@@ -152,6 +156,7 @@ async function findOrCreateGist() {
     if (createRes.ok) {
       const data = await createRes.json();
       store.setGistId(data.id);
+      console.log('Created new gist:', data.id);
     }
   } catch (e) {
     console.error('findOrCreateGist failed:', e);
