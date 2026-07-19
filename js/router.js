@@ -39,7 +39,7 @@ async function render() {
         el('a', { class: 'btn', href: '#/', text: 'Back to roadmap' })
       )
     ));
-  }, 15000); // 15s timeout
+  }, 5000); // 5s timeout
 
   try {
     await matched.handler(app, matched.params);
