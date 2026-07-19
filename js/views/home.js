@@ -14,7 +14,7 @@ export async function homeView(app) {
 
   // stat strip
   nodes.push(el('div', { class: 'stat-row' },
-    stat(solved, 'Solved'),
+    el('a', { href: '#/solved', style: 'text-decoration: none; color: inherit;' }, stat(solved, 'Solved')),
     stat(totalProblems, 'Total'),
     stat(store.streak(), 'Day streak 🔥'),
   ));

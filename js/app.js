@@ -13,10 +13,12 @@ import { searchView } from './views/search.js';
 import { revisionView } from './views/revision.js';
 import { onboardingView } from './views/onboarding.js';
 import { debugView } from './views/debug.js';
+import { solvedView } from './views/solved.js';
 
 route('#/', homeView);
 route('#/debug', debugView);
 route('#/onboarding', onboardingView);
+route('#/solved', solvedView);
 route('#/phase/:id', phaseView);
 route('#/pattern/:id', patternView);
 route('#/problem/:id', problemView);
