@@ -27,13 +27,31 @@ async function render() {
 
   if (!matched) { location.hash = '#/'; return; }
   mount(app, el('div', { class: 'loading', text: 'Loading…' }));
+
+  // Timeout to prevent infinite loading
+  const timeout = setTimeout(() => {
+    mount(app, el('div', { class: 'card' },
+      el('h2', { text: 'Loading timeout' }),
+      el('p', { class: 'muted', text: 'The page took too long to load. Check your connection or try reloading.' }),
+      el('p', {},
+        el('button', { class: 'btn primary', onclick: () => location.reload(), text: 'Reload' }),
+        ' ',
+        el('a', { class: 'btn', href: '#/', text: 'Back to roadmap' })
+      )
+    ));
+  }, 15000); // 15s timeout
+
   try {
     await matched.handler(app, matched.params);
+    clearTimeout(timeout);
     window.scrollTo(0, 0);
   } catch (e) {
+    clearTimeout(timeout);
+    console.error('Route error:', e);
     mount(app, el('div', { class: 'card' },
       el('h2', { text: 'Something went wrong' }),
       el('p', { class: 'muted', text: e.message }),
+      el('pre', { style: 'font-size: 0.8em; color: var(--red); overflow: auto;', text: e.stack || '' }),
       el('p', {}, el('a', { class: 'btn', href: '#/', text: '← Back to roadmap' }))
     ));
   }

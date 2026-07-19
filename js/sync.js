@@ -162,7 +162,15 @@ function init() {
   store.onChange(scheduleFlush);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
   window.addEventListener('pagehide', flushNow);
-  if (store.getToken()) pull(); else setBadge('local', 'Local only (no token)');
+  if (store.getToken()) {
+    // Pull in background, don't block app startup
+    pull().catch(e => {
+      console.error('Initial sync failed:', e);
+      setBadge('err', 'Sync failed');
+    });
+  } else {
+    setBadge('local', 'Local only (no token)');
+  }
 }
 
 export { init, pull, push, testToken, setBadge, findOrCreateGist };
