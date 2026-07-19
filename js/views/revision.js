@@ -568,6 +568,13 @@ export async function revisionView(app) {
         ),
 
         el('div', { class: 'card revision-summary-actions' },
+          el('button', { class: 'btn', text: '← Continue Reviewing', onclick: () => {
+            // Go back to last question
+            sessionStorage.removeItem('revision:complete');
+            currentIndex = questions.length - 1;
+            sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
+            renderQuestion();
+          }}),
           el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => {
             sessionStorage.removeItem('revision:session');
             sessionStorage.removeItem('revision:currentIndex');
@@ -759,6 +766,14 @@ export async function revisionView(app) {
       ),
 
       el('div', { class: 'card revision-summary-actions' },
+        el('button', { class: 'btn', text: '← Continue Reviewing', onclick: () => {
+          // Go back to last question and resume
+          sessionStorage.removeItem('revision:complete');
+          sessionStorage.setItem('revision:currentIndex', (questions.length - 1).toString());
+          // Reload the page to trigger runRevision
+          location.hash = '#/revision';
+          location.reload();
+        }}),
         el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => {
           sessionStorage.removeItem('revision:session');
           sessionStorage.removeItem('revision:currentIndex');
