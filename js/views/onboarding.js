@@ -25,10 +25,9 @@ export function onboardingView(app) {
           style: 'padding: 12px 32px; font-size: 16px;',
           onclick: () => {
             const finalName = name.trim() || 'there';
-            store.settings.name = finalName;
+            store.setSettings({ name: finalName });
             store.progress.user = finalName;
-            store.saveSettings();
-            store.saveProgress();
+            store._persist();
             location.hash = '#/';
           }
         })
