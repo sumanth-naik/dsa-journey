@@ -73,16 +73,10 @@ async function pull() {
     if (content) {
       const remote = JSON.parse(content);
       const merged = merge(store.progress, remote);
-      const hadChanges = JSON.stringify(store.progress) !== JSON.stringify(merged);
       store.replaceProgress(merged);
       // Always sync name from progress.user to settings.name
       if (remote.user) {
         store.setSettings({ name: remote.user });
-      }
-      // Force reload if data changed during initial sync
-      if (hadChanges && window.location.hash === '#/') {
-        console.log('[Sync] Data changed after pull, reloading page...');
-        window.location.reload();
       }
     }
     store.setLastSync(new Date().toISOString());
@@ -190,7 +184,7 @@ async function checkNameCollision(name) {
   return false;
 }
 
-function init() {
+async function init() {
   store.onChange(scheduleFlush);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
   window.addEventListener('pagehide', flushNow);
@@ -199,14 +193,16 @@ function init() {
   if (SYNC_TOKEN !== 'YOUR_GITHUB_TOKEN_HERE' && store.settings.name) {
     console.log('[Sync] Initializing for user:', store.settings.name);
     console.log('[Sync] Existing gist ID:', store.getGistId() || 'none');
-    // Pull in background, don't block app startup
-    findOrCreateGist().then(() => {
+    // Wait for initial sync to complete before rendering
+    try {
+      await findOrCreateGist();
       console.log('[Sync] After findOrCreate, gist ID:', store.getGistId());
-      return pull();
-    }).catch(e => {
+      await pull();
+      console.log('[Sync] Initial sync complete');
+    } catch (e) {
       console.error('Initial sync failed:', e);
       setBadge('err', 'Sync failed');
-    });
+    }
   } else {
     console.log('[Sync] Not syncing - token:', SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE' ? 'not set' : 'set', 'name:', store.settings.name || 'not set');
     setBadge('local', 'Local only');

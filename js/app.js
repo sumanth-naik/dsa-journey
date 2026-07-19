@@ -26,19 +26,18 @@ route('#/revision', revisionView);
 route('#/dashboard', dashboardView);
 route('#/settings', settingsView);
 
-sync.init();
+// Wait for sync to complete before rendering
+(async () => {
+  await sync.init();
 
-// Check if first-time user (wait a bit for sync to complete)
-setTimeout(() => {
-  // Only redirect if truly new (no progress AND no token)
+  // Check if first-time user
   if (!store.settings.name || store.settings.name === 'Shirisha') {
     const hasProgress = localStorage.getItem('dsa:progress') && Object.keys(store.progress.problems).length > 0;
-    const hasToken = store.getToken();
-    const isNew = !hasProgress && !hasToken;
+    const isNew = !hasProgress;
     if (isNew && location.hash !== '#/onboarding') {
       location.hash = '#/onboarding';
     }
   }
-}, 500);
 
-startRouter();
+  startRouter();
+})();
