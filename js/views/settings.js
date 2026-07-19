@@ -45,8 +45,14 @@ export async function settingsView(app) {
 
     await sync.pull();  // pull first to get remote data
     await sync.push();  // then push local changes
-    mount(status, el('span', { style: 'color:var(--green)', text: '✓ Connected and synced.' }));
-    location.reload(); // reload to show synced data
+
+    const gid = store.getGistId();
+    mount(status, el('span', { style: 'color:var(--green)' },
+      '✓ Connected and synced. ',
+      gid ? el('a', { href: 'https://gist.github.com/' + gid, target: '_blank', rel: 'noopener', text: gid }) : null,
+      el('br'),
+      el('a', { href: '#/', text: '← Back to home to see synced data' })
+    ));
   });
   const syncNow = el('button', { class: 'btn', text: 'Sync now' });
   syncNow.addEventListener('click', async () => { await sync.push(); await sync.pull(); mount(status, el('span', { text: 'Synced ' + new Date().toLocaleTimeString() })); });

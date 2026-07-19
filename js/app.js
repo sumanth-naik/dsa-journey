@@ -28,8 +28,11 @@ sync.init();
 
 // Check if first-time user (wait a bit for sync to complete)
 setTimeout(() => {
+  // Only redirect if truly new (no progress AND no token)
   if (!store.settings.name || store.settings.name === 'Shirisha') {
-    const isNew = !localStorage.getItem('dsa:progress') || Object.keys(store.progress.problems).length === 0;
+    const hasProgress = localStorage.getItem('dsa:progress') && Object.keys(store.progress.problems).length > 0;
+    const hasToken = store.getToken();
+    const isNew = !hasProgress && !hasToken;
     if (isNew && location.hash !== '#/onboarding') {
       location.hash = '#/onboarding';
     }

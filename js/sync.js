@@ -46,7 +46,15 @@ async function pull() {
   if (!token || !gistId) return;
   try {
     setBadge('', 'Syncing…');
-    const res = await fetch(`${API}/gists/${gistId}`, { headers: headers() });
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const res = await fetch(`${API}/gists/${gistId}`, {
+      headers: headers(),
+      signal: controller.signal
+    });
+    clearTimeout(timeout);
+
     if (!res.ok) throw new Error('GET gist ' + res.status);
     const data = await res.json();
     const content = data.files?.[FILE]?.content;
@@ -60,7 +68,10 @@ async function pull() {
     }
     store.setLastSync(new Date().toISOString());
     setBadge('ok', 'Synced');
-  } catch (e) { setBadge('err', 'Sync error: ' + e.message); }
+  } catch (e) {
+    setBadge('err', 'Sync error: ' + e.message);
+    console.error('Pull failed:', e);
+  }
 }
 
 async function push() {
