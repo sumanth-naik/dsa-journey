@@ -27,6 +27,7 @@ route('#/problem/:id', problemView);
 route('#/review', reviewView);
 route('#/search', searchView);
 route('#/revision', revisionView);
+route('#/revision/summary', revisionView);
 route('#/dashboard', dashboardView);
 route('#/settings', settingsView);
 

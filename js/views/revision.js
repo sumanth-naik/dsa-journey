@@ -518,6 +518,9 @@ export async function revisionView(app) {
       // Mark session as complete but don't clear yet (so we can return to summary)
       sessionStorage.setItem('revision:complete', 'true');
 
+      // Update hash to indicate we're on summary (enables back button to work)
+      history.replaceState(null, '', '#/revision/summary');
+
       mount(app, el('div', { class: 'revision-summary' },
         el('div', { class: 'card' },
           el('h1', { text: '✓ Revision Complete!' }),
@@ -565,13 +568,6 @@ export async function revisionView(app) {
         ),
 
         el('div', { class: 'card revision-summary-actions' },
-          el('button', { class: 'btn', text: '← Continue Reviewing', onclick: () => {
-            // Go back to last question
-            sessionStorage.removeItem('revision:complete');
-            currentIndex = questions.length - 1;
-            sessionStorage.setItem('revision:currentIndex', currentIndex.toString());
-            renderQuestion();
-          }}),
           el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => {
             sessionStorage.removeItem('revision:session');
             sessionStorage.removeItem('revision:currentIndex');
@@ -665,15 +661,17 @@ export async function revisionView(app) {
   // Check for existing session to resume
   const savedSession = sessionStorage.getItem('revision:session');
   const sessionComplete = sessionStorage.getItem('revision:complete');
+  const isSummaryRoute = location.hash.includes('/summary');
 
   console.log('[Revision] Checking session state:', {
     hasSavedSession: !!savedSession,
     sessionComplete,
+    isSummaryRoute,
     reviewed: sessionStorage.getItem('revision:reviewed'),
     needsPractice: sessionStorage.getItem('revision:needsPractice')
   });
 
-  if (savedSession && sessionComplete === 'true') {
+  if (savedSession && (sessionComplete === 'true' || isSummaryRoute)) {
     // Session is complete, just need to show summary
     console.log('[Revision] Restoring completed session summary');
     try {
@@ -761,14 +759,6 @@ export async function revisionView(app) {
       ),
 
       el('div', { class: 'card revision-summary-actions' },
-        el('button', { class: 'btn', text: '← Continue Reviewing', onclick: () => {
-          // Go back to last question and resume
-          sessionStorage.removeItem('revision:complete');
-          sessionStorage.setItem('revision:currentIndex', (questions.length - 1).toString());
-          // Reload the page to trigger runRevision
-          location.hash = '#/revision';
-          location.reload();
-        }}),
         el('button', { class: 'btn btn-primary', text: '🔄 New Revision Session', onclick: () => {
           sessionStorage.removeItem('revision:session');
           sessionStorage.removeItem('revision:currentIndex');
