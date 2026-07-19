@@ -94,17 +94,31 @@ function statusControls(id) {
   const wrap = el('div', { class: 'card' });
   const cur = store.getProblem(id);
   const isSolved = cur.status === 'solved';
+  const needsRevision = !!cur.revision;
 
-  const btn = el('button', {
+  const solvedBtn = el('button', {
     class: 'btn' + (isSolved ? ' primary' : ''),
     text: isSolved ? '✓ Solved' : 'Mark as Solved',
   });
-  btn.addEventListener('click', () => {
+  solvedBtn.addEventListener('click', () => {
     store.setStatus(id, isSolved ? 'not-started' : 'solved');
     rerender();
   });
 
-  wrap.append(el('div', { class: 'btn-row' }, btn));
+  const revisionBtn = el('button', {
+    class: 'btn' + (needsRevision ? ' primary' : ''),
+    text: needsRevision ? '🔁 Remove from Revision' : 'Add to Revision',
+  });
+  revisionBtn.addEventListener('click', () => {
+    if (needsRevision) {
+      store.clearRevision(id);
+    } else {
+      store.addRevision(id);
+    }
+    rerender();
+  });
+
+  wrap.append(el('div', { class: 'btn-row' }, solvedBtn, revisionBtn));
 
   if (cur.revision) {
     wrap.append(el('div', { class: 'muted small', text: `Next revision: ${new Date(cur.revision.due).toLocaleDateString()}` }));

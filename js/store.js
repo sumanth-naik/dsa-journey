@@ -64,6 +64,25 @@ const store = {
 
   setNotes(id, notes) { const p = this._touch(id); p.notes = notes; this._persist(); },
 
+  // Add problem to revision queue (starts at 1 day)
+  addRevision(id) {
+    const p = this._touch(id);
+    if (!p.revision) {
+      p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
+    }
+    this._persist();
+  },
+
+  // Remove problem from revision queue
+  clearRevision(id) {
+    const p = this.progress.problems[id];
+    if (p && p.revision) {
+      delete p.revision;
+      p.updatedAt = nowISO();
+      this._persist();
+    }
+  },
+
   // advance a review one step along 1→3→7→21 then graduate (clear)
   reviewed(id) {
     const p = this.progress.problems[id]; if (!p || !p.revision) return;

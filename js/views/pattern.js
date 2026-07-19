@@ -69,22 +69,12 @@ export async function patternView(app, { id }) {
       const list = el('div', { class: 'card' });
 
       for (const p of problems) {
-        const st = store.getProblem(p.id).status;
+        const prob = store.getProblem(p.id);
+        const st = prob.status;
         const isSolved = st === 'solved';
+        const needsRevision = !!prob.revision;
 
-        const row = el('div', { class: 'prob-row', style: 'display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border);' });
-
-        // Checkbox
-        const checkbox = el('input', {
-          type: 'checkbox',
-          checked: isSolved,
-          style: 'width: 18px; height: 18px; cursor: pointer;',
-          onclick: (e) => {
-            e.stopPropagation();
-            store.setStatus(p.id, isSolved ? 'not-started' : 'solved');
-            render();
-          }
-        });
+        const row = el('div', { class: 'prob-row', style: 'display: flex; align-items: center; gap: 8px; padding: 12px 4px; border-bottom: 1px solid var(--border);' });
 
         // Status dot
         const dot = el('span', { class: 'status-dot ' + st });
@@ -99,7 +89,37 @@ export async function patternView(app, { id }) {
         // Difficulty chip
         const diff = el('span', { class: 'chip ' + p.difficulty, text: p.difficulty });
 
-        row.append(checkbox, dot, title, diff);
+        // Solved button
+        const solvedBtn = el('button', {
+          class: 'btn btn-sm' + (isSolved ? ' primary' : ''),
+          text: isSolved ? '✓ Solved' : 'Solved',
+          style: 'min-width: 80px;',
+          onclick: (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            store.setStatus(p.id, isSolved ? 'not-started' : 'solved');
+            render();
+          }
+        });
+
+        // Revision button
+        const revisionBtn = el('button', {
+          class: 'btn btn-sm' + (needsRevision ? ' primary' : ''),
+          text: needsRevision ? '🔁 Revise' : 'Revise',
+          style: 'min-width: 80px;',
+          onclick: (e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            if (needsRevision) {
+              store.clearRevision(p.id);
+            } else {
+              store.addRevision(p.id);
+            }
+            render();
+          }
+        });
+
+        row.append(dot, title, diff, solvedBtn, revisionBtn);
         list.append(row);
       }
       nodes.push(list);
