@@ -5,8 +5,7 @@
 import { store } from './store.js';
 
 const API = 'https://api.github.com';
-// TODO: Replace with your actual GitHub token (Gists: Read and Write)
-const SYNC_TOKEN = 'YOUR_GITHUB_TOKEN_HERE';
+const SYNC_TOKEN = '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';
 const DEBOUNCE_MS = 2500;
 
 function getFileName() {
