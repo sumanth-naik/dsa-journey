@@ -354,9 +354,8 @@ export async function revisionView(app) {
             el('span', { class: `badge badge-${problem.difficulty.toLowerCase()}`, text: problem.difficulty }),
             el('a', {
               class: 'revision-leetcode-link',
-              href: `https://leetcode.com/problems/${problem.leetcodeSlug || problem.id}/`,
-              target: '_blank',
-              text: '📖 View on LeetCode'
+              href: `#/problem/${problem.id}`,
+              text: '📖 View Full Problem'
             })
           ),
           problem.description ? el('div', { class: 'revision-problem-statement' },
@@ -364,16 +363,25 @@ export async function revisionView(app) {
           ) : null,
 
           el('div', { class: 'revision-approaches' },
-            el('h3', { class: 'revision-approaches-title', text: 'Approaches' }),
-            ...problem.allSolutions.map(s =>
-              el('div', { class: 'revision-approach' },
+            el('h3', { class: 'revision-approaches-title', text: 'Solutions' }),
+            ...problem.allSolutions.map((s, idx) => {
+              const detailsId = `solution-${currentIndex}-${idx}`;
+              const isExpanded = false;
+
+              return el('div', { class: 'revision-approach' },
                 el('div', { class: 'revision-approach-header' },
-                  el('span', { class: 'revision-approach-label', text: s.label }),
+                  el('span', { class: 'revision-approach-label', text: s.label === 'Solution from repo' ? `Solution ${idx + 1}` : s.label }),
                   el('span', { class: 'revision-approach-complexity', text: s.timeComplexity })
                 ),
-                el('div', { class: 'revision-approach-keyidea', text: s.keyIdea })
-              )
-            )
+                el('div', { class: 'revision-approach-keyidea', text: s.keyIdea }),
+                s.code ? el('details', { id: detailsId, class: 'revision-code-details' },
+                  el('summary', { class: 'revision-code-toggle', text: '▶ View Code' }),
+                  el('pre', { class: 'revision-code' },
+                    el('code', { text: s.code })
+                  )
+                ) : null
+              );
+            })
           ),
 
           el('div', { class: 'revision-actions' },

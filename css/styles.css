@@ -500,3 +500,38 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
 .revision-option-content { flex: 1; }
 .revision-option-label { font-weight: 600; margin-bottom: 4px; color: var(--text); }
 .revision-option-keyidea { font-size: 0.85rem; color: var(--text-dim); line-height: 1.4; }
+
+/* Revision code display */
+.revision-code-details {
+  margin-top: 12px;
+}
+.revision-code-details summary {
+  cursor: pointer;
+  user-select: none;
+  font-size: 0.85rem;
+  color: var(--accent);
+  font-weight: 600;
+  padding: 8px 0;
+  list-style: none;
+}
+.revision-code-details summary::-webkit-details-marker {
+  display: none;
+}
+.revision-code-details[open] summary {
+  margin-bottom: 8px;
+}
+.revision-code {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  overflow-x: auto;
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text);
+  margin: 0;
+}
+.revision-code code {
+  font-family: inherit;
+}
