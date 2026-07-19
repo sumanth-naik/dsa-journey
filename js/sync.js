@@ -114,6 +114,39 @@ async function testToken(token) {
   return res.ok;
 }
 
+// Find existing dsa-journey gist or create new one
+async function findOrCreateGist() {
+  const token = store.getToken();
+  if (!token) return;
+
+  try {
+    // Search for existing gist by description
+    const res = await fetch(`${API}/gists`, { headers: headers() });
+    if (res.ok) {
+      const gists = await res.json();
+      const existing = gists.find(g => g.description?.includes('dsa-journey progress'));
+      if (existing && existing.files?.[FILE]) {
+        store.setGistId(existing.id);
+        return;
+      }
+    }
+
+    // No existing gist found, create new one
+    const body = JSON.stringify({
+      description: `dsa-journey progress (${store.settings.name || 'user'})`,
+      public: false,
+      files: { [FILE]: { content: store.exportJSON() } },
+    });
+    const createRes = await fetch(`${API}/gists`, { method: 'POST', headers: headers(), body });
+    if (createRes.ok) {
+      const data = await createRes.json();
+      store.setGistId(data.id);
+    }
+  } catch (e) {
+    console.error('findOrCreateGist failed:', e);
+  }
+}
+
 function init() {
   store.onChange(scheduleFlush);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushNow(); });
@@ -121,4 +154,4 @@ function init() {
   if (store.getToken()) pull(); else setBadge('local', 'Local only (no token)');
 }
 
-export { init, pull, push, testToken, setBadge };
+export { init, pull, push, testToken, setBadge, findOrCreateGist };

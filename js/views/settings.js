@@ -36,9 +36,17 @@ export async function settingsView(app) {
     mount(status, el('span', { text: 'Testing token…' }));
     const ok = await sync.testToken(t);
     if (!ok) { mount(status, el('span', { style: 'color:var(--red)', text: 'Token rejected. Check the Gists permission and try again.' })); return; }
-    await sync.push();  // creates the gist on first save
-    await sync.pull();  // merge anything already there
+
+    // If no gist ID yet, search for existing gist first
+    if (!store.getGistId()) {
+      mount(status, el('span', { text: 'Looking for existing gist…' }));
+      await sync.findOrCreateGist();
+    }
+
+    await sync.pull();  // pull first to get remote data
+    await sync.push();  // then push local changes
     mount(status, el('span', { style: 'color:var(--green)', text: '✓ Connected and synced.' }));
+    location.reload(); // reload to show synced data
   });
   const syncNow = el('button', { class: 'btn', text: 'Sync now' });
   syncNow.addEventListener('click', async () => { await sync.push(); await sync.pull(); mount(status, el('span', { text: 'Synced ' + new Date().toLocaleTimeString() })); });
