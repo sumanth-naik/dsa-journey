@@ -53,21 +53,14 @@ const store = {
 
   setStatus(id, status) {
     const p = this._touch(id);
-    const prev = p.status;
     p.status = status;
-    if (status === 'attempted' && prev === 'not-started') { p.attempts = (p.attempts || 0) + 1; p.firstAttemptedAt = p.firstAttemptedAt || nowISO(); }
     if (status === 'solved') {
       p.solvedAt = p.solvedAt || nowISO();
       // seed spaced-repetition schedule on first solve
       if (!p.revision) p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
     }
-    if (status === 'needs-revision') {
-      p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
-    }
     this._persist();
   },
-
-  bumpAttempt(id) { const p = this._touch(id); p.attempts = (p.attempts || 0) + 1; if (p.status === 'not-started') p.status = 'attempted'; p.firstAttemptedAt = p.firstAttemptedAt || nowISO(); this._persist(); },
 
   setNotes(id, notes) { const p = this._touch(id); p.notes = notes; this._persist(); },
 
@@ -102,8 +95,11 @@ const store = {
 
   // ---------- derived selectors ----------
   counts() {
-    const c = { 'not-started': 0, attempted: 0, solved: 0, 'needs-revision': 0 };
-    for (const p of Object.values(this.progress.problems)) c[p.status] = (c[p.status] || 0) + 1;
+    const c = { 'not-started': 0, solved: 0 };
+    for (const p of Object.values(this.progress.problems)) {
+      const status = p.status === 'solved' ? 'solved' : 'not-started';
+      c[status] = (c[status] || 0) + 1;
+    }
     return c;
   },
 

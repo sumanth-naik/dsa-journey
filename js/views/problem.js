@@ -93,15 +93,22 @@ function codeBlock(code) {
 function statusControls(id) {
   const wrap = el('div', { class: 'card' });
   const cur = store.getProblem(id);
-  const opts = [['attempted', 'Attempted'], ['solved', 'Solved ✓'], ['needs-revision', 'Needs revision']];
-  const row = el('div', { class: 'btn-row' });
-  for (const [val, label] of opts) {
-    const b = el('button', { class: 'btn' + (cur.status === val ? ' primary' : ''), text: label });
-    b.addEventListener('click', () => { store.setStatus(id, cur.status === val ? 'not-started' : val); rerender(); });
-    row.append(b);
+  const isSolved = cur.status === 'solved';
+
+  const btn = el('button', {
+    class: 'btn' + (isSolved ? ' primary' : ''),
+    text: isSolved ? '✓ Solved' : 'Mark as Solved',
+  });
+  btn.addEventListener('click', () => {
+    store.setStatus(id, isSolved ? 'not-started' : 'solved');
+    rerender();
+  });
+
+  wrap.append(el('div', { class: 'btn-row' }, btn));
+
+  if (cur.revision) {
+    wrap.append(el('div', { class: 'muted small', text: `Next revision: ${new Date(cur.revision.due).toLocaleDateString()}` }));
   }
-  wrap.append(row);
-  wrap.append(el('div', { class: 'muted small', text: `Attempts: ${cur.attempts || 0}${cur.revision ? ' · next revision ' + new Date(cur.revision.due).toLocaleDateString() : ''}` }));
 
   // Notes — USER INPUT: value goes in via .value (safe), never as html.
   const ta = el('textarea', { placeholder: 'Your notes (gotchas, what tripped you up)…' });

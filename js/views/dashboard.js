@@ -9,10 +9,10 @@ export async function dashboardView(app) {
 
   const nodes = [el('h1', { text: '📊 Progress' })];
 
+  const total = m.problemIndex.length;
   nodes.push(el('div', { class: 'stat-row' },
     stat(counts.solved || 0, 'Solved'),
-    stat(counts.attempted || 0, 'Attempted'),
-    stat(counts['needs-revision'] || 0, 'Needs revision'),
+    stat(total - (counts.solved || 0), 'Remaining'),
     stat(store.streak(), 'Day streak 🔥'),
   ));
 
@@ -31,18 +31,16 @@ export async function dashboardView(app) {
   nodes.push(heat);
 
   // Due for revision
-  nodes.push(el('h2', { text: `Due for revision (${due.length})` }));
-  if (!due.length) {
-    nodes.push(el('p', { class: 'muted', text: 'Nothing due. Solve problems and mark tricky ones "Needs revision" — they’ll resurface on a 1 → 3 → 7 → 21 day schedule.' }));
-  } else {
-    const list = el('div', { class: 'card' });
+  if (due.length > 0) {
+    nodes.push(el(‘h2’, { text: `Due for revision (${due.length})` }));
+    const list = el(‘div’, { class: ‘card’ });
     for (const d of due) {
       const entry = m.problemIndex.find(p => p.id === d.id);
       if (!entry) continue;
-      list.append(el('a', { class: 'prob-row', href: `#/problem/${d.id}` },
-        el('span', { class: 'status-dot needs-revision' }),
-        el('span', { class: 'title', text: entry.title }),
-        el('span', { class: 'muted small', text: 'due ' + new Date(d.due).toLocaleDateString() })));
+      list.append(el(‘a’, { class: ‘prob-row’, href: `#/problem/${d.id}` },
+        el(‘span’, { class: ‘status-dot solved’ }),
+        el(‘span’, { class: ‘title’, text: entry.title }),
+        el(‘span’, { class: ‘muted small’, text: ‘due ‘ + new Date(d.due).toLocaleDateString() })));
     }
     nodes.push(list);
   }
