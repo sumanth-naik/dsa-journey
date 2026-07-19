@@ -4,7 +4,7 @@ import { getManifest, getAllPatterns } from '../data.js';
 import { store } from '../store.js';
 
 const DISTRACTOR_POOL_SIZE = 4; // how many wrong options per question
-const SESSION_LENGTHS = [5, 10, 20];
+const SESSION_LENGTHS = [3, 5, 10, 20];
 
 export async function revisionView(app) {
   const manifest = await getManifest();

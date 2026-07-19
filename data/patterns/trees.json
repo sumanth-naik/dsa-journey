@@ -870,7 +870,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Post-order: flatten children, then connect root -> flattened_left -> flattened_right, returning first and last nodes.",
           "code": "\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\nclass Solution:\n    def flatten(self, root):\n        \n        def preorderTraversal(node):\n            if node:\n                leftFirst, leftLast = preorderTraversal(node.left)\n                rightFirst, rightLast = preorderTraversal(node.right)\n                if leftFirst:\n                    node.right = leftFirst\n                    node.left = None\n                    if rightFirst:\n                        leftLast.right = rightFirst\n                        leftLast.left = None\n                elif rightFirst:\n                    node.right = rightFirst\n                    node.left = None\n                return node, rightLast if rightLast else leftLast if leftLast else node\n            return None, None\n\n        preorderTraversal(root)\n        return root  \n\n\n    def flatten2(root):\n        def reversedPreorder(node):\n            if node:\n                nonlocal prevNode\n                reversedPreorder(node.right)\n                reversedPreorder(node.left)\n                node.right = prevNode\n                node.left = None\n                prevNode = node\n\n        prevNode = None\n        reversedPreorder(root)\n        return root\n\n    def morrisTraversal(root):\n        currNode = root\n        while(currNode):\n            if currNode.left:\n                rightMostNode = currNode.left\n                while rightMostNode.right:\n                    rightMostNode = rightMostNode.right\n                rightMostNode.right = currNode.right\n                currNode.right = currNode.left\n                currNode.left = None\n            currNode = currNode.right\n        return root",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -920,7 +920,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Track min and max ancestor values along each path. At every node, max difference is max(abs(current - min_ancestor), abs(current - max_ancestor)). Update bounds and recurse to children.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -928,7 +928,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "DFS passing min/max ancestors down; at each node compute max(abs(val - min), abs(val - max)) and update global max.",
           "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef traversal(node, minAncestorVal, maxAncestorVal, maxDiff):\n    if node:\n        maxDiff[0] = max(maxDiff[0], max(abs(node.val - minAncestorVal), abs(node.val - maxAncestorVal)))\n        traversal(node.left, min(minAncestorVal, node.val), max(maxAncestorVal, node.val), maxDiff)\n        traversal(node.right, min(minAncestorVal, node.val), max(maxAncestorVal, node.val), maxDiff)\n        \n\ndef maxAncestorDiff(root):\n    maxDiff = []\n    traversal(root, root.val, root.val, maxDiff)\n    return maxDiff[0]",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -949,7 +949,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Post-order recursion returns max single-branch sum (node + max(left, right, 0)). At each node, update global max considering the path through node (node + left + right). Path can use both children but can only extend one branch upward.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -957,7 +957,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Return max single-path (node + best child); update global with through-node sum (node + left + right).",
           "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef binaryTreeMaxPathSum(node):\n    if not node:\n        return -float('inf'),-float('inf')\n    leftSubTreeMaxBranchSum, leftSubTreeMaxPathSum = binaryTreeMaxPathSum(node.left)\n    rightSubTreeMaxBranchSum, rightSubTreeMaxPathSum = binaryTreeMaxPathSum(node.right)\n    subTreeMax = max(max(max(leftSubTreeMaxBranchSum + rightSubTreeMaxBranchSum + node.val, node.val), leftSubTreeMaxBranchSum + node.val), rightSubTreeMaxBranchSum + node.val)\n    return max(max(leftSubTreeMaxBranchSum + node.val, rightSubTreeMaxBranchSum + node.val), node.val), max(subTreeMax, max(leftSubTreeMaxPathSum, rightSubTreeMaxPathSum))\n \n\nclass Solution:\n    def maxPathSum(self, root: Optional[TreeNode]) -> int:\n        maxSumSeen = -1e9\n\n        def dfs(node):\n            nonlocal maxSumSeen\n            if not node: return -1e9\n            leftSubtreeMax = dfs(node.left)\n            rightSubtreeMax = dfs(node.right)\n            onlyNode = node.val\n            nodeAndLeft = node.val + leftSubtreeMax\n            nodeAndRight = node.val + rightSubtreeMax\n            nodeAndBoth = node.val + leftSubtreeMax + rightSubtreeMax\n            maxSumSeen = max(maxSumSeen, onlyNode, nodeAndLeft, nodeAndRight, nodeAndBoth)\n            return max(onlyNode, nodeAndLeft, nodeAndRight)\n        dfs(root)\n        return maxSumSeen\n\n",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -1007,7 +1007,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Assign each node an index (left child = 2*i, right = 2*i+1). BFS level-by-level, width at each level = rightmost_index - leftmost_index + 1. Track min/max indices per level.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -1015,7 +1015,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "BFS or DFS with node indices (2*i, 2*i+1). At each level, width = max_index - min_index + 1.",
           "code": "\ndef traversal(node, minMaxTupleArr, height, indexInLevel):\n    if node:\n        if not len(minMaxTupleArr)>height:\n            minMaxTupleArr.append([float('inf'), -float('inf')])\n        minMaxTupleArr[height][0] = min(minMaxTupleArr[height][0], indexInLevel)\n        minMaxTupleArr[height][1] = max(minMaxTupleArr[height][1], indexInLevel)\n        traversal(node.left, minMaxTupleArr, height+1, 2*indexInLevel)\n        traversal(node.right, minMaxTupleArr, height+1, 2*indexInLevel+1)\n\ndef maxWidthOfABinaryTree(root):\n    minMaxTupleArr = []\n    traversal(root, minMaxTupleArr, 0, 0)\n    maxDiff = 0\n    print(minMaxTupleArr)\n    for left, right in minMaxTupleArr:\n        maxDiff = max(maxDiff, right-left+1)\n        print(maxDiff)\n    return maxDiff\n\n\n\ndef maxWidthBFS(root):\n    levelList = [(1, root)]\n    maxWidth = 1\n    while levelList:\n        maxWidth = max(maxWidth, levelList[-1][0] - levelList[0][0]+1)\n        nextLevelList = []\n        for nodeIndex, node in levelList:\n            if node.left:\n                nextLevelList.append((2*nodeIndex, node.left))\n            if node.right:\n                nextLevelList.append((2*nodeIndex+1, node.right))\n        levelList = nextLevelList\n    return maxWidth",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -1036,7 +1036,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Tree DFS: each subtree returns number of people traveling through it. At each node, calculate cars needed = ceil(people / seats), add to fuel cost. Post-order: accumulate people counts from children + 1 (current node).",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -1044,7 +1044,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "DFS returns people count; at each node add ceil(count / seats) to fuel, propagate count + 1 upward.",
           "code": "import math\nclass Solution:\n    def minimumFuelCost(self, roads, seats):\n        adjList = [[] for _ in range(len(roads)+1)]\n        for road in roads:\n            adjList[road[0]].append(road[1])\n            adjList[road[1]].append(road[0])\n\n        fuelCost = 0\n        def dfs(node, parent):\n            nonlocal fuelCost\n            numChildren = 1\n            for neigh in adjList[node]:\n                if neigh != parent:\n                    numChildren += dfs(neigh, node)\n            if parent!=-1:\n                fuelCost += math.ceil(numChildren/seats)\n            return numChildren\n        dfs(0,-1)\n        return fuelCost",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -1066,7 +1066,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "A good path has endpoints with same value and all intermediate nodes <= that value. DFS returns counter of reachable endpoint values from each subtree. At each node, count cross-branch pairs with matching endpoint values, filter out smaller values.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -1074,7 +1074,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "DFS returns Counter of reachable endpoint values; count cross-subtree pairs with same value, prune smaller values at each node.",
           "code": "\nfrom collections import Counter\nclass Solution:\n    def numberOfGoodPaths(self, vals, edges):\n        adjList = {}\n        for edge in edges:\n            if not edge[0] in adjList:\n                adjList[edge[0]] = []\n            if not edge[1] in adjList:\n                adjList[edge[1]] = []\n            adjList[edge[0]].append(edge[1])\n            adjList[edge[1]].append(edge[0])\n\n        visited = set()\n        numGoodPaths = 0\n        def dfs(num):\n            visited.add(num)\n            nonlocal numGoodPaths\n            counter = Counter()\n            counter[vals[num]] = 1\n            \n            possiblePathEndingVertexToCountMapAcrossAllBranches = []\n            for neighbor in adjList[num]:\n                if neighbor not in visited:\n                    possiblePathEndingVertexToCountMap = dfs(neighbor)\n                    for endingVertex in list(possiblePathEndingVertexToCountMap.keys()):\n                        if endingVertex<vals[num]:\n                            del possiblePathEndingVertexToCountMap[endingVertex]\n                        if endingVertex==vals[num]:\n                            numGoodPaths += possiblePathEndingVertexToCountMap[endingVertex]\n                    possiblePathEndingVertexToCountMapAcrossAllBranches.append(possiblePathEndingVertexToCountMap)\n                    counter += possiblePathEndingVertexToCountMap\n                    \n            for i in range(len(possiblePathEndingVertexToCountMapAcrossAllBranches)):\n                for j in range(i+1, len(possiblePathEndingVertexToCountMapAcrossAllBranches)):\n                    for numKey in possiblePathEndingVertexToCountMapAcrossAllBranches[i]:\n                        if numKey in possiblePathEndingVertexToCountMapAcrossAllBranches[j]:\n                            numGoodPaths += (possiblePathEndingVertexToCountMapAcrossAllBranches[i][numKey] * possiblePathEndingVertexToCountMapAcrossAllBranches[j][numKey]) \n        \n            return counter\n\n        def dfs2(num):\n            visited.add(num)\n            nonlocal numGoodPaths\n            counter = Counter()\n            counter[vals[num]] = 1\n            \n            for neighbor in adjList[num]:\n                if neighbor not in visited:\n                    possiblePathEndingVertexToCountMap = dfs(neighbor)\n                    for endingVertex in list(possiblePathEndingVertexToCountMap.keys()):\n                        if endingVertex<vals[num]:\n                            del possiblePathEndingVertexToCountMap[endingVertex]\n                        elif endingVertex in counter:\n                            numGoodPaths += possiblePathEndingVertexToCountMap[endingVertex]*counter[endingVertex]\n                    counter += possiblePathEndingVertexToCountMap\n                    \n            return counter\n\n\n        dfs(0)\n\n        return numGoodPaths + len(visited)",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -1096,7 +1096,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "BFS level-order: link each node to the next in the same level. For perfect binary tree, O(1) space solution: traverse level using existing next pointers, link children (left.next = right, right.next = parent.next.left).",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -1104,7 +1104,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "BFS linking level nodes; O(1) space for perfect tree by using existing next pointers to traverse and link children.",
           "code": "class Node:\n    def __init__(self, val: int = 0, left: 'Node' = None, right: 'Node' = None, next: 'Node' = None):\n        self.val = val\n        self.left = left\n        self.right = right\n        self.next = next\n\ndef populateRightPointersInBinaryTree(root):\n    levelNodesList = [root]\n    while levelNodesList:\n        nextLevelNodesList = []\n        for index in range(len(levelNodesList)-1):\n            levelNodesList[index].right = levelNodesList[index+1]\n            if levelNodesList[index].left:\n                nextLevelNodesList.append(levelNodesList[index].left)\n                nextLevelNodesList.append(levelNodesList[index].right)\n        levelNodesList = nextLevelNodesList\n\n\ndef populateRightPointersInBinaryTreeOptimale(root):\n    levelStart = root\n    while levelStart:\n        node = levelStart\n        while node:\n            node.left.next = node.right\n            if node.next:\n                node.right.next = node.next.left\n            node = node.next \n        levelStart = levelStart.left\n",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -1155,7 +1155,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "BFS level-order with alternating direction. Collect each level normally, then reverse the list for alternate levels. Alternatively, process nodes in reverse order and add children in opposite order for true zigzag.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -1163,7 +1163,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "BFS collecting levels; toggle direction flag and reverse alternate levels, or process in reverse with opposite child order.",
           "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\ndef zigzagLevelOrder(root):\n    if not root:\n        return []\n    levelNodesList = [root]\n    fromLeft = False\n    zigzagLevelOrderList = [[root.val]]\n    while levelNodesList:\n        nextLevelNodesList = []\n        zigzagLevel = []\n        for i in range(len(levelNodesList)-1, -1, -1):\n            node = levelNodesList[i]\n            if fromLeft:\n                if node.left:\n                    nextLevelNodesList.append(node.left)\n                    zigzagLevel.append(node.left.val)\n                if node.right:\n                    nextLevelNodesList.append(node.right)\n                    zigzagLevel.append(node.right.val)\n            else:\n                if node.right:\n                    nextLevelNodesList.append(node.right)\n                    zigzagLevel.append(node.right.val)\n                if node.left:\n                    nextLevelNodesList.append(node.left)\n                    zigzagLevel.append(node.left.val)\n\n\n        fromLeft = not fromLeft\n        levelNodesList = nextLevelNodesList\n        if zigzagLevel:\n            zigzagLevelOrderList.append(zigzagLevel)\n    \n    return zigzagLevelOrderList\n\n\n    \ndef zigzagLevelOrder(root):\n    if not root:\n        return []\n    levelNodesList = [root]\n    fromLeft = False\n    zigzagLevelOrderList = [[root.val]]\n    while levelNodesList:\n        nextLevelNodesList = []\n        zigzagLevel = []\n        for node in levelNodesList:\n            if node.left:\n                nextLevelNodesList.append(node.left)\n                zigzagLevel.append(node.left.val)\n            if node.right:\n                nextLevelNodesList.append(node.right)\n                zigzagLevel.append(node.right.val)\n\n        if not fromLeft:\n            zigzagLevel.reverse()\n\n        fromLeft = not fromLeft\n        levelNodesList = nextLevelNodesList\n        if zigzagLevel:\n            zigzagLevelOrderList.append(zigzagLevel)\n    \n    return zigzagLevelOrderList",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
