@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Background circle -->
+  <circle cx="50" cy="50" r="48" fill="#2861d8"/>
+
+  <!-- Tree/Graph structure -->
+  <!-- Root node -->
+  <circle cx="50" cy="30" r="8" fill="#fff"/>
+
+  <!-- Left child -->
+  <line x1="50" y1="38" x2="30" y2="55" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="30" cy="60" r="7" fill="#fff"/>
+
+  <!-- Right child -->
+  <line x1="50" y1="38" x2="70" y2="55" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="70" cy="60" r="7" fill="#fff"/>
+
+  <!-- Left-left grandchild -->
+  <line x1="30" y1="67" x2="20" y2="77" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="20" cy="82" r="6" fill="#fff"/>
+
+  <!-- Left-right grandchild -->
+  <line x1="30" y1="67" x2="40" y2="77" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="40" cy="82" r="6" fill="#fff"/>
+
+  <!-- Right-left grandchild -->
+  <line x1="70" y1="67" x2="60" y2="77" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="60" cy="82" r="6" fill="#fff"/>
+
+  <!-- Right-right grandchild -->
+  <line x1="70" y1="67" x2="80" y2="77" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="80" cy="82" r="6" fill="#fff"/>
+</svg>
