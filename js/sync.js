@@ -185,12 +185,18 @@ function init() {
 
   // Auto-sync if token configured and user has name
   if (SYNC_TOKEN !== 'YOUR_GITHUB_TOKEN_HERE' && store.settings.name) {
+    console.log('[Sync] Initializing for user:', store.settings.name);
+    console.log('[Sync] Existing gist ID:', store.getGistId() || 'none');
     // Pull in background, don't block app startup
-    findOrCreateGist().then(() => pull()).catch(e => {
+    findOrCreateGist().then(() => {
+      console.log('[Sync] After findOrCreate, gist ID:', store.getGistId());
+      return pull();
+    }).catch(e => {
       console.error('Initial sync failed:', e);
       setBadge('err', 'Sync failed');
     });
   } else {
+    console.log('[Sync] Not syncing - token:', SYNC_TOKEN === 'YOUR_GITHUB_TOKEN_HERE' ? 'not set' : 'set', 'name:', store.settings.name || 'not set');
     setBadge('local', 'Local only');
   }
 }
