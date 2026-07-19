@@ -29,7 +29,18 @@ export function onboardingView(app) {
       if (!finalName) {
         error = 'Please enter your name to continue.';
         errorEl.textContent = error;
+        errorEl.style.color = 'var(--red)';
         return;
+      }
+
+      // Check if name exists
+      const exists = await sync.checkNameCollision(finalName);
+      if (exists) {
+        errorEl.textContent = `Welcome back! Loading your existing data...`;
+        errorEl.style.color = 'var(--text-dim)';
+      } else {
+        errorEl.textContent = 'Creating your account...';
+        errorEl.style.color = 'var(--text-dim)';
       }
 
       // Save name and sync (will find existing gist or create new)
