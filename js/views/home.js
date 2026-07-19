@@ -8,7 +8,6 @@ export async function homeView(app) {
   const totalProblems = m.problemIndex.length;
   const solved = counts.solved || 0;
   const due = store.dueForRevision().length;
-  const resumeId = store.lastActiveProblemId();
 
   const nodes = [];
   nodes.push(el('h1', { text: `Hi ${store.settings.name || 'there'} 👋` }));
@@ -21,11 +20,6 @@ export async function homeView(app) {
     stat(store.streak(), 'Day streak 🔥'),
     stat(due, 'Due to revise'),
   ));
-
-  if (resumeId) {
-    const entry = m.problemIndex.find(p => p.id === resumeId);
-    if (entry) nodes.push(el('a', { class: 'btn primary', href: `#/problem/${resumeId}` }, `▶ Resume: ${entry.title}`));
-  }
 
   // patterns grid
   const card = el('div', { class: 'card' });
