@@ -49,6 +49,13 @@ function merge(local, remote) {
   for (const id of ids) {
     const l = local.problems[id], r = remote.problems[id];
     if (l && r) {
+      // If local has no updatedAt, it's a stub - always prefer remote
+      if (!l.updatedAt && r.updatedAt) {
+        out.problems[id] = r;
+        keptRemote++;
+        continue;
+      }
+
       const lTime = new Date(l.updatedAt || 0);
       const rTime = new Date(r.updatedAt || 0);
       const useRemote = rTime > lTime;
