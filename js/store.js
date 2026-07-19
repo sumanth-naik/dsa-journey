@@ -56,8 +56,6 @@ const store = {
     p.status = status;
     if (status === 'solved') {
       p.solvedAt = p.solvedAt || nowISO();
-      // seed spaced-repetition schedule on first solve
-      if (!p.revision) p.revision = { interval: REVIEW_STEPS[0], due: new Date(Date.now() + REVIEW_STEPS[0] * DAY).toISOString(), lastReviewedAt: nowISO() };
     }
     this._persist();
   },
