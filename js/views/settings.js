@@ -31,13 +31,30 @@ export async function settingsView(app) {
   const saveBtn = el('button', { class: 'btn primary', text: 'Save & test' });
   saveBtn.addEventListener('click', async () => {
     const t = tokenInput.value.trim();
+    const oldToken = store.getToken();
+
     store.setToken(t);
-    if (!t) { sync.setBadge('local', 'Local only'); mount(status, el('span', { text: 'Token cleared — local-only mode.' })); return; }
+    if (!t) {
+      store.setGistId(''); // Clear gist ID when clearing token
+      sync.setBadge('local', 'Local only');
+      mount(status, el('span', { text: 'Token cleared — local-only mode.' }));
+      return;
+    }
+
     mount(status, el('span', { text: 'Testing token…' }));
     const ok = await sync.testToken(t);
-    if (!ok) { mount(status, el('span', { style: 'color:var(--red)', text: 'Token rejected. Check the Gists permission and try again.' })); return; }
+    if (!ok) {
+      mount(status, el('span', { style: 'color:var(--red)', text: 'Token rejected. Check the Gists permission and try again.' }));
+      return;
+    }
 
-    // If no gist ID yet, search for existing gist first
+    // If token changed, clear old gist ID and search for new one
+    if (t !== oldToken) {
+      store.setGistId('');
+      mount(status, el('span', { text: 'New token - searching for gist…' }));
+    }
+
+    // Search for existing gist or create new one
     if (!store.getGistId()) {
       mount(status, el('span', { text: 'Looking for existing gist…' }));
       await sync.findOrCreateGist();
@@ -57,7 +74,23 @@ export async function settingsView(app) {
   const syncNow = el('button', { class: 'btn', text: 'Sync now' });
   syncNow.addEventListener('click', async () => { await sync.push(); await sync.pull(); mount(status, el('span', { text: 'Synced ' + new Date().toLocaleTimeString() })); });
 
-  syncCard.append(el('label', { text: 'GitHub token (Gists: read & write)' }), tokenInput, el('div', { class: 'btn-row' }, saveBtn, syncNow), status);
+  const clearBtn = el('button', { class: 'btn', text: 'Clear token & gist', style: 'color: var(--red)' });
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Clear token and gist ID? You can re-paste the token to reconnect.')) {
+      store.setToken('');
+      store.setGistId('');
+      tokenInput.value = '';
+      mount(status, el('span', { text: 'Token and gist cleared.' }));
+      sync.setBadge('local', 'Local only');
+    }
+  });
+
+  syncCard.append(
+    el('label', { text: 'GitHub token (Gists: read & write)' }),
+    tokenInput,
+    el('div', { class: 'btn-row' }, saveBtn, syncNow, clearBtn),
+    status
+  );
   nodes.push(syncCard);
 
   // ---- Backup ----
