@@ -70,11 +70,37 @@ export async function patternView(app, { id }) {
 
       for (const p of problems) {
         const st = store.getProblem(p.id).status;
-        list.append(el('a', { class: 'prob-row', href: `#/problem/${p.id}` },
-          el('span', { class: 'status-dot ' + st }),
-          el('span', { class: 'title', text: p.title }),
-          el('span', { class: 'chip ' + p.difficulty, text: p.difficulty }),
-        ));
+        const isSolved = st === 'solved';
+
+        const row = el('div', { class: 'prob-row', style: 'display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--border);' });
+
+        // Checkbox
+        const checkbox = el('input', {
+          type: 'checkbox',
+          checked: isSolved,
+          style: 'width: 18px; height: 18px; cursor: pointer;',
+          onclick: (e) => {
+            e.stopPropagation();
+            store.setStatus(p.id, isSolved ? 'not-started' : 'solved');
+            render();
+          }
+        });
+
+        // Status dot
+        const dot = el('span', { class: 'status-dot ' + st });
+
+        // Title (clickable link)
+        const title = el('a', {
+          href: `#/problem/${p.id}`,
+          style: 'flex: 1; color: var(--text); text-decoration: none;',
+          text: p.title
+        });
+
+        // Difficulty chip
+        const diff = el('span', { class: 'chip ' + p.difficulty, text: p.difficulty });
+
+        row.append(checkbox, dot, title, diff);
+        list.append(row);
       }
       nodes.push(list);
     }
