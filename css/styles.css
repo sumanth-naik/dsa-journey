@@ -384,6 +384,41 @@ label { display: block; font-weight: 600; margin: 14px 0 6px; }
 
 .revision-summary-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
 
+.revision-summary-list {
+  display: flex; flex-direction: column; gap: 8px; margin-top: 16px;
+}
+.revision-summary-item {
+  display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+  background: var(--bg-elev2); border-radius: var(--radius-sm);
+  text-decoration: none; transition: background 0.15s;
+  border-left: 3px solid var(--border);
+}
+.revision-summary-item:hover {
+  background: var(--bg-elev); border-left-color: var(--accent);
+}
+.revision-summary-item-number {
+  font-size: 0.9rem; font-weight: 700; color: var(--text-dim);
+  min-width: 24px; text-align: center;
+}
+.revision-summary-item-content {
+  flex: 1; display: flex; flex-direction: column; gap: 6px;
+}
+.revision-summary-item-title {
+  color: var(--text); font-weight: 600; font-size: 0.95rem;
+}
+.revision-summary-item-meta {
+  display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+}
+.revision-summary-badge {
+  font-size: 0.75rem; padding: 3px 8px; border-radius: 6px; font-weight: 600;
+}
+.revision-summary-badge.got-it {
+  background: rgba(67, 193, 135, 0.15); color: var(--green);
+}
+.revision-summary-badge.needs-practice {
+  background: rgba(232, 182, 76, 0.15); color: var(--amber);
+}
+
 @media (max-width: 560px) {
   .revision-question-title { font-size: 1.2rem; }
   .revision-summary-score-big { font-size: 2.5rem; }

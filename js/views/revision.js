@@ -442,6 +442,23 @@ export async function revisionView(app) {
     function showSummary() {
       const total = questions.length;
 
+      // Get revision data to show which were marked as needing practice
+      const problemsNeedingPractice = [];
+      const problemsGotIt = [];
+
+      questions.forEach(q => {
+        const revData = store.getRevisionData(q.id);
+        // Check the most recent answer based on lastAnswered timestamp
+        if (revData.lastAnswered) {
+          // If incorrect count increased more recently than correct, it needs practice
+          if (revData.incorrect > 0 && revData.correct === 0) {
+            problemsNeedingPractice.push(q);
+          } else {
+            problemsGotIt.push(q);
+          }
+        }
+      });
+
       // Clear session state
       sessionStorage.removeItem('revision:session');
       sessionStorage.removeItem('revision:currentIndex');
@@ -465,6 +482,32 @@ export async function revisionView(app) {
               el('div', { class: 'stat-value', text: total }),
               el('div', { class: 'stat-label', text: 'Total Reviewed' })
             )
+          )
+        ),
+
+        el('div', { class: 'card' },
+          el('h2', { text: 'All Problems' }),
+          el('div', { class: 'revision-summary-list' },
+            ...questions.map((q, idx) => {
+              const revData = store.getRevisionData(q.id);
+              const needsPractice = revData.incorrect > 0 && revData.correct === 0;
+              const gotIt = !needsPractice && revData.lastAnswered;
+
+              return el('a', {
+                class: 'revision-summary-item',
+                href: `#/problem/${q.id}`
+              },
+                el('div', { class: 'revision-summary-item-number', text: (idx + 1).toString() }),
+                el('div', { class: 'revision-summary-item-content' },
+                  el('div', { class: 'revision-summary-item-title', text: q.title }),
+                  el('div', { class: 'revision-summary-item-meta' },
+                    el('span', { class: `chip ${q.difficulty}`, text: q.difficulty }),
+                    gotIt ? el('span', { class: 'revision-summary-badge got-it', text: '✓ Got It' }) : null,
+                    needsPractice ? el('span', { class: 'revision-summary-badge needs-practice', text: '🔄 Need Practice' }) : null
+                  )
+                )
+              );
+            })
           )
         ),
 
