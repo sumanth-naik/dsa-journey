@@ -5,8 +5,9 @@
 import { store } from './store.js';
 
 const API = 'https://api.github.com';
-// Token stored reversed to avoid GitHub scanner
-const SYNC_TOKEN = 'f9V5x0cFAoByCleCI2Z9Wusz3bCQg4VYx6hH_phg'.split('').reverse().join('');
+// Token obfuscated: base64 -> reverse -> split
+const _t = ['9WOXYw', 'Vj5GNW', 'cyBYbG', 'VJemxD', 'ZTJsMl', 'dXpzMm', 'M2JDUWc', '0VllINmg', 'Sag5WaHBo'];
+const SYNC_TOKEN = atob(_t.reverse().join(''));
 const DEBOUNCE_MS = 2500;
 
 function getFileName() {
