@@ -14,11 +14,13 @@ import { revisionView } from './views/revision.js';
 import { onboardingView } from './views/onboarding.js';
 import { debugView } from './views/debug.js';
 import { solvedView } from './views/solved.js';
+import { bookmarkedView } from './views/bookmarked.js';
 
 route('#/', homeView);
 route('#/debug', debugView);
 route('#/onboarding', onboardingView);
 route('#/solved', solvedView);
+route('#/bookmarked', bookmarkedView);
 route('#/phase/:id', phaseView);
 route('#/pattern/:id', patternView);
 route('#/problem/:id', problemView);
