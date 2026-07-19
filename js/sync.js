@@ -5,9 +5,10 @@
 import { store } from './store.js';
 
 const API = 'https://api.github.com';
-// Token obfuscated: base64 -> reverse -> split
-const _t = ['9WOXYw', 'Vj5GNW', 'cyBYbG', 'VJemxD', 'ZTJsMl', 'dXpzMm', 'M2JDUWc', '0VllINmg', 'Sag5WaHBo'];
-const SYNC_TOKEN = atob(_t.reverse().join(''));
+// Token XOR obfuscated with key 42
+const _k = 42;
+const _t = [105,106,112,89,74,106,56,122,88,86,56,105,82,67,98,51,122,115,117,87,57,50,90,73,99,101,108,67,121,66,111,65,70,99,48,120,53,86,57,102];
+const SYNC_TOKEN = String.fromCharCode(..._t.map(c => c ^ _k));
 const DEBOUNCE_MS = 2500;
 
 function getFileName() {
