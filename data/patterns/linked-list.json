@@ -424,7 +424,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Three approaches: (1) Recursive counts from end during backtrack - when count reaches n+1, skip next node. (2) Two-pointer runner with n-step gap - when fast reaches end, slow is before target. Both avoid two-pass traversal by cleverly positioning pointers or using recursion's return path to count backwards.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -432,7 +432,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Recursive backtracking counts position from end (1, 2, 3...). When returning count equals n+1, current node skips its next. Two-pointer variant maintains n-step gap so when fast ends, slow is at delete target's predecessor.",
           "code": "def removeNthFromEnd(head, n: int):\n    \n    if recursiveDeleteNthNode(head,n)!=0:\n        head = head.next\n    return head\n    \n    \n    \n    \ndef recursiveDeleteNthNode(node, n):\n    if not node:\n        return 1\n    numIndexFromReverse = recursiveDeleteNthNode(node.next,n)\n    if numIndexFromReverse==n+1:\n        node.next = node.next.next\n        return 0\n    return 0 if numIndexFromReverse==0 else numIndexFromReverse+1\n    \n\n\n\n\n\ndef removeNthFromEnd2(head, n: int):\n    return recursiveDeleteNthNode2(None, head, n)[0]\n    \n      \n    \ndef recursiveDeleteNthNode2(prevNode, currNode, n):\n    if not currNode:\n        return None,1\n    \n    _,numIndexFromReverse = recursiveDeleteNthNode2(currNode,currNode.next,n)\n    if numIndexFromReverse==n:\n        if prevNode:\n            prevNode.next = currNode.next\n        else:\n            return currNode.next,0\n    return currNode,numIndexFromReverse+1\n\n\ndef removeNthFromEndTwoPointer(head, n: int):\n    \n    right = head\n    for _ in range(n):\n        right = right.next\n    if not right:\n        return head.next\n    left = head\n    while right:\n        right = right.next\n        left = left.next\n    left.next = left.next.next\n    return head\n    \n    ",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -482,7 +482,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Directed graph where each node has at most one outgoing edge (edges[i] = next node or -1). Walk both starting nodes simultaneously, tracking visited sets. The first node that appears in both visited sets (or is reached by either pointer) is the closest meeting point. Early termination when pointers can't advance further.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -490,7 +490,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Parallel walk from both starting nodes, each maintaining visited set. At each step, check if current positions appear in opposite visited sets. Return smallest index among candidates, or -1 if no intersection.",
           "code": "class Solution:\n    def closestMeetingNode(self, edges, node1: int, node2: int):\n        if node1 is node2: return node1\n        visited1, visited2 = set([node1]), set([node2])\n        while node1 is not None or node2 is not None:\n            if node1 is not None and edges[node1] not in visited1 and edges[node1]!=-1:\n                node1 = edges[node1]\n                visited1.add(node1)\n            else:\n                node1 = None\n            if node2 is not None and edges[node2] not in visited2 and edges[node2]!=-1:\n                node2 = edges[node2]\n                visited2.add(node2)\n            else: \n                node2 = None\n            solutions = []\n            if node1 in visited2:\n                solutions.append(node1)\n            if node2 in visited1:\n                solutions.append(node2)\n            if solutions:\n                return min(solutions)\n        return -1",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -570,7 +570,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Given only the node to delete (not the head), you can't reach its predecessor to rewire pointers. Solution: copy the next node's value into current node, then skip the next node. Effectively deletes next while appearing to delete current. Only works when node is not the tail.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -578,7 +578,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Copy next node's value to current node, then bypass next node. This makes current node take next's identity while removing next from the chain.",
           "code": "def deleteNode(self, node):\n    node.val = node.next.val\n    node.next = node.next.next",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -599,7 +599,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Floyd's cycle detection - fast pointer moves 2 steps, slow moves 1 step. If a cycle exists, fast will eventually catch up to slow inside the cycle (they'll meet). If fast reaches None, no cycle exists. This is the O(1) space approach for cycle detection.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -607,7 +607,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Fast/slow pointers at different speeds. In a cycle, faster pointer laps slower one. If fast hits None, no cycle.",
           "code": "\ndef detectCycle(head) :\n    slowPointer = head\n    fastPointer = head.next  \n    while(slowPointer!=fastPointer and fastPointer):\n        slowPointer = slowPointer.next\n        if fastPointer.next:\n            fastPointer = fastPointer.next.next\n        else:\n            return False\n    if fastPointer:\n        return True\n    return False",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -628,7 +628,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Two lists that intersect share the same tail after intersection point. Calculate both lengths, then advance the longer list's pointer by the difference. Now both pointers are equidistant from the end - walk together until they meet (the intersection) or both reach None (no intersection).",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -636,7 +636,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Count lengths of both lists. Advance pointer in longer list by (length difference) steps. Then walk both pointers together - they'll meet at intersection or both reach None.",
           "code": "\ndef findIntersection(firstHead, secondHead):\n\n    len1 = 0\n    len2 = 0\n    \n    node1, node2 = firstHead, secondHead\n    while(node1 or node2):\n        if node1:\n            len1 += 1\n            node1 = node1.next\n        if node2:\n            len2 += 1\n            node2 = node2.next\n\n    diff = abs(len1-len2)\n\n    if len1>len2:\n        node1, node2 = firstHead, secondHead\n    else:\n        node2, node1 = firstHead, secondHead\n    \n    for _ in range(diff):\n        node1 = node1.next\n\n    for _ in range(min(len1,len2)):\n        if node1==node2:\n            return node1.val\n        node1 = node1.next\n        node2 = node2.next\n    \n    return -1\n",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -658,7 +658,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Floyd's algorithm in two phases: (1) Fast/slow pointers detect cycle by meeting inside it. (2) Reset one pointer to head, move both one step at a time - they meet at cycle entrance. Mathematical proof: distance from head to entrance equals distance from meeting point to entrance (modulo cycle length).",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -666,7 +666,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Phase 1: Fast/slow meet inside cycle. Phase 2: Reset slow to head, move both one step - they meet at cycle start. This works because of the mathematical relationship between distances.",
           "code": "def detectCycle(head):\n    if not head: return None\n    slowPointer = head\n    fastPointer = head.next\n    while fastPointer and fastPointer.next and fastPointer!=slowPointer:\n        fastPointer = fastPointer.next.next\n        slowPointer = slowPointer.next\n\n    if not fastPointer or not fastPointer.next:\n        return None\n    slowPointer = head\n    fastPointer = fastPointer.next\n    while fastPointer!=slowPointer:\n        fastPointer = fastPointer.next\n        slowPointer = slowPointer.next\n    return fastPointer",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -776,7 +776,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Partition list by index position (odd indices 1,3,5... then even indices 2,4,6...). Rewire pointers in-place: each odd node points to the next odd (skip one), each even node points to next even (skip one). Keep track of even list's head and odd list's tail, then connect odd tail to even head at the end. O(n) time, O(1) space.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -784,7 +784,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Walk the list, rewiring each node to skip its neighbor (odd->odd, even->even). Track evenHead and oddTail separately, then connect oddTail.next = evenHead.",
           "code": "def oddEvenLinkedList(head):\n    node, oddTail, isOddList = head,  None, True\n    evenHead = head.next if head else None\n    while node:\n        nextNode = node.next\n        if nextNode:\n            node.next = nextNode.next\n        if isOddList:\n            oddTail = node\n        isOddList = not isOddList\n        node = nextNode\n    if oddTail:\n        oddTail.next = evenHead\n    return head\n    ",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -836,7 +836,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Rotate right by k means moving the last k nodes to the front. First, make the list circular by connecting tail to head. Then find the new tail (at position n-k-1), break the circle there, and return the node after it as new head. Use k%n to handle k > n cases efficiently.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -844,7 +844,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Count length n and find tail. Reduce k modulo n. Walk to position (n-k-1), which becomes new tail. Connect old tail to old head, break at new tail, return new head.",
           "code": "\ndef rotateRight(head, k):\n    n = 0\n    tail = head\n    while tail.next:\n        tail = tail.next\n        n += 1\n    k = k%n\n    if k==0: return head\n    k = n-k\n    node = head\n    while k!=1:\n        k -= 1\n        node = node.next    \n        \n    node.next, head, tail.next = None, node.next, head\n\n    return head",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"

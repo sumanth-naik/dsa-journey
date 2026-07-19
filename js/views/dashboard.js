@@ -107,72 +107,97 @@ function renderCalendar() {
       const date = new Date(p.updatedAt);
       date.setHours(0, 0, 0, 0);
       const key = date.toISOString().split('T')[0];
-      if (!activityMap[key]) activityMap[key] = 0;
+      if (!activityMap[key]) activityMap[key] = 1;
     }
   }
 
-  // Calculate start date (12 months ago, Sunday)
+  // Calculate start date (12 months ago, start of week)
   const startDate = new Date(today);
   startDate.setMonth(startDate.getMonth() - 12);
-  startDate.setDate(startDate.getDate() - startDate.getDay());
+  startDate.setDate(startDate.getDate() - startDate.getDay()); // Go to Sunday
 
-  // Month labels
-  const monthLabels = el('div', { class: 'calendar-months' });
-  let currentMonth = null;
-  const weeks = [];
+  // Build calendar data grouped by month
+  const monthsData = [];
+  let currentMonthData = null;
   let currentWeek = [];
 
   const date = new Date(startDate);
   while (date <= today) {
     const monthName = date.toLocaleDateString('en-US', { month: 'short' });
-    if (monthName !== currentMonth) {
-      currentMonth = monthName;
-      if (currentWeek.length > 0 && date.getDay() === 0) {
-        monthLabels.append(el('span', { text: monthName, style: `grid-column: ${weeks.length + 1}` }));
+    const year = date.getFullYear();
+    const monthKey = `${monthName} ${year}`;
+
+    // Start new month if needed
+    if (!currentMonthData || currentMonthData.name !== monthKey) {
+      if (currentMonthData && currentWeek.length > 0) {
+        currentMonthData.weeks.push(currentWeek);
+        currentWeek = [];
       }
+      if (currentMonthData) {
+        monthsData.push(currentMonthData);
+      }
+      currentMonthData = { name: monthKey, weeks: [] };
     }
 
     const key = date.toISOString().split('T')[0];
     const count = activityMap[key] || 0;
     const level = count === 0 ? 0 : count === 1 ? 1 : count <= 3 ? 2 : count <= 5 ? 3 : 4;
 
-    const cell = el('div', {
-      class: `calendar-day level-${level}`,
-      title: `${key}: ${count} problem${count !== 1 ? 's' : ''}`,
+    currentWeek.push({
+      date: key,
+      count,
+      level,
+      dayOfWeek: date.getDay()
     });
 
-    currentWeek.push(cell);
-
-    if (date.getDay() === 6) {
-      weeks.push(currentWeek);
+    if (date.getDay() === 6) { // Saturday, end of week
+      currentMonthData.weeks.push(currentWeek);
       currentWeek = [];
     }
 
     date.setDate(date.getDate() + 1);
   }
 
-  if (currentWeek.length > 0) {
-    weeks.push(currentWeek);
+  // Push remaining week
+  if (currentWeek.length > 0 && currentMonthData) {
+    currentMonthData.weeks.push(currentWeek);
+  }
+  if (currentMonthData) {
+    monthsData.push(currentMonthData);
   }
 
-  container.append(monthLabels);
+  // Render each month
+  monthsData.forEach(month => {
+    const monthSection = el('div', { class: 'calendar-month-section' });
+    monthSection.append(el('div', { class: 'calendar-month-label', text: month.name }));
 
-  // Day labels
-  const dayLabels = el('div', { class: 'calendar-days' },
-    el('span', { text: 'Mon', style: 'grid-row: 2' }),
-    el('span', { text: 'Wed', style: 'grid-row: 4' }),
-    el('span', { text: 'Fri', style: 'grid-row: 6' })
-  );
-  container.append(dayLabels);
+    const monthGrid = el('div', { class: 'calendar-month-grid' });
 
-  // Grid
-  const grid = el('div', { class: 'calendar-grid' });
-  weeks.forEach(week => {
-    const weekCol = el('div', { class: 'calendar-week' });
-    week.forEach(day => weekCol.append(day));
-    grid.append(weekCol);
+    month.weeks.forEach(week => {
+      const weekCol = el('div', { class: 'calendar-week' });
+
+      // Fill empty days at start of first week
+      if (week.length > 0) {
+        const firstDay = week[0].dayOfWeek;
+        for (let i = 0; i < firstDay; i++) {
+          weekCol.append(el('div', { class: 'calendar-day-empty' }));
+        }
+      }
+
+      week.forEach(day => {
+        const cell = el('div', {
+          class: `calendar-day level-${day.level}`,
+          title: `${day.date}: ${day.count} problem${day.count !== 1 ? 's' : ''}`,
+        });
+        weekCol.append(cell);
+      });
+
+      monthGrid.append(weekCol);
+    });
+
+    monthSection.append(monthGrid);
+    container.append(monthSection);
   });
-  container.append(grid);
 
   // Legend
   const legend = el('div', { class: 'calendar-legend' },

@@ -208,7 +208,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Sort first, then fix each element and use two-pointer two-sum on the remaining array to find pairs that sum to the complement. Sorting enables the two-pointer technique and makes duplicate-skipping natural. This reduces O(n³) brute force to O(n²).",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -216,10 +216,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Sort first, then fix each element and use two-pointer two-sum on the remaining array to find pairs that sum to the complement. A set dedupes triplets automatically.",
           "code": "nums = [-1,0,1,2,-1,-4]\n\n\ndef twoPointerSum(i, j, nums, sum, tripletSet):\n    while i<j:\n        currSum = nums[i] + nums[j]\n        if currSum<sum:\n            i += 1\n        elif currSum>sum:\n            j -= 1\n        else:\n            tripletSet.add((-sum, nums[i], nums[j]))\n            i += 1\n\ndef threeSum(nums):\n    nums.sort()\n    tripletSet, n = set(), len(nums)\n    for index in range(n):\n        twoPointerSum(index+1, n-1, nums, -nums[index], tripletSet)\n    return tripletSet\n\nprint(threeSum(nums))",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n^2)",
+          "spaceComplexity": "O(n)"
         }
       ],
       "phaseId": 2
@@ -237,7 +237,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Sort first, then nest two loops to fix two elements, and run two-pointer on the remaining array to find pairs that complete the quadruplet. This is 3Sum wrapped in one more loop — O(n³) but optimal without hashing.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -245,10 +245,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Fix first two elements (i, j), then two-pointer the rest to find pairs summing to (target - nums[i] - nums[j]). A set dedupes quadruplets.",
           "code": "\nnums = [-4,-3,-2,-1,0,0,1,2,3,4]\n\ntarget = 0\n\nvalidTuples = set()\nnums.sort()\nn = len(nums)\nfor i in range(0,n):\n    for j in range(i+1, n):\n        twoSumTarget = target - nums[i] - nums[j]\n        \n        l=n-1\n        k=j+1\n        while(k<l):\n            print(i,j,k,l)\n            if(twoSumTarget==nums[k] + nums[l]):\n                print(i,j,k,l,\"came\")\n                validTuples.add((nums[i],nums[j],nums[k],nums[l]))\n                k += 1\n                l -= 1\n            elif(twoSumTarget>nums[k] + nums[l]):\n                k += 1\n            else:\n                l -= 1\n                \nprint(validTuples)\n",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n^3)",
+          "spaceComplexity": "O(n)"
         }
       ],
       "phaseId": 2
@@ -325,7 +325,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Sliding window with character frequency tracking. Maintain a counter of what you still need from pattern p; expand right to consume characters, shrink left when you hit invalid state. Window is an anagram when all counters reach zero.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -333,10 +333,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Track character frequencies needed from p. Expand window right; when a character appears too often or isn't in p, shrink left until valid. Record start index when need counter sums to zero.",
           "code": "from collections import Counter\nclass Solution:\n    def findAnagrams(self, s: str, p: str):\n        need = Counter(p)\n        left, right, n = 0, 0, len(s)\n        indices = []\n        while right<n:\n            if s[right] not in need:\n                right += 1\n                left = right\n                need = Counter(p)\n            else:\n                if need[s[right]]==0:\n                    while left<=right and s[left]!=s[right]:\n                        if s[left] in need:\n                            need[s[left]] += 1\n                        left += 1\n                    left += 1\n                else:\n                    need[s[right]] -= 1\n                    if sum(need.values())==0:\n                        indices.append(left)\n                        need[s[left]] += 1\n                        left += 1\n                right += 1\n        return indices\n\n\nclass Solution:\n    def findAnagrams(self, s: str, p: str):\n        lenOfS, lenOfP, hashOfS, hashOfP, indices, counterOfP = len(s), len(p), 0, 0, [], Counter(p)\n        if lenOfP>lenOfS: return []\n        for i in range(lenOfP):\n            hashOfP += hash(p[i])\n            hashOfS += hash(s[i])\n        if hashOfS==hashOfP and Counter(s[0:lenOfP])==counterOfP: indices.append(0)\n        for i in range(lenOfP, lenOfS):\n            hashOfS = hashOfS + hash(s[i]) - hash(s[i-lenOfP])\n            if hashOfS==hashOfP and Counter(s[i+1:i+lenOfP+1])==counterOfP: indices.append(i-lenOfP+1)\n        return indices",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
         }
       ],
       "phaseId": 3
@@ -354,7 +354,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "This is 'longest subarray with at most 2 distinct elements' in disguise. Track the last-seen index of each fruit type; when you encounter a third type, remove the fruit with the smallest last-seen index and start a new window from there.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -362,10 +362,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Maintain a map of at most 2 fruit types to their last-seen indices. When a third type appears, evict the type with the earliest last-seen index and shrink window start to one past that index.",
           "code": "class Solution:\n    def totalFruit(self, fruits):\n        fruitToLastSeenIndexMap = {}\n        firstIndexInSubarray, maxFruitsInBasket = 0, 0\n        for index, fruit in enumerate(fruits):\n            if fruit in fruitToLastSeenIndexMap or len(fruitToLastSeenIndexMap)<2:\n                fruitToLastSeenIndexMap[fruit] = index\n            else:\n                minIndexOfFruitThatAreInBasket = min(fruitToLastSeenIndexMap.values())\n                del fruitToLastSeenIndexMap[fruits[minIndexOfFruitThatAreInBasket]]\n                fruitToLastSeenIndexMap[fruit] = index\n                firstIndexInSubarray = minIndexOfFruitThatAreInBasket + 1\n            maxFruitsInBasket = max(maxFruitsInBasket, index - firstIndexInSubarray + 1)\n        return maxFruitsInBasket",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
         }
       ],
       "description": "You are visiting a farm that has a single row of fruit trees arranged from left to right. The trees are represented by an integer array fruits where fruits[i] is the type of fruit the ith tree produces.",
@@ -384,7 +384,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Sliding window that tolerates at most one zero (the element to delete). Track zero count; expand right, shrink left when you see more than one zero. Window length minus 1 gives the subarray after deletion.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -392,10 +392,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Maintain a window with at most one zero. Count zeros as you expand right; when count exceeds 1, shrink left until you've removed one zero. Answer is window length (already accounts for the deleted element).",
           "code": "class Solution:\n    def longestSubarray(self, nums: List[int]) -> int:\n        left, right, n = 0, 0, len(nums)\n        hasZero, bestWindowLength = False, 0\n        while right<n:                \n            if nums[right]==0:\n                if hasZero:\n                    while nums[left]==1: left += 1 # skip all ones\n                    left += 1 # skip that left zero\n                else:\n                    hasZero = True\n            right += 1\n            bestWindowLength = max(bestWindowLength, right-left-1 if hasZero else right-left)\n        return bestWindowLength if bestWindowLength!=n else n-1\n\n        \nclass Solution:\n    def longestSubarray(self, nums: List[int]) -> int:\n        left, right, n = 0, 0, len(nums)\n        numZeroes, bestWindowLength = 0, 0\n        while right<n:\n            numZeroes += (nums[right]==0)\n            while numZeroes>1: \n                numZeroes -= (nums[left]==0)\n                left += 1\n            bestWindowLength = max(bestWindowLength, right-left)\n            right += 1\n        return bestWindowLength\n            \n",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
         }
       ],
       "phaseId": 3
@@ -442,7 +442,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Sliding window with a set tracking characters in the current window. Expand right; when you hit a duplicate, shrink left until the duplicate is removed. The set membership check makes duplicate detection O(1).",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -450,10 +450,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Maintain a set of characters in the window [left, right]. Expand right; when s[right] is already in the set, remove s[left] and advance left until the duplicate is gone.",
           "code": "def lengthOfLongestSubstring(s: str) -> int:\n    \n    charSet = set()\n    i,j  = 0,0\n    n = len(s)\n    if n==0: return 0\n    maxLen = 1\n    while(j<n):\n        if s[j] in charSet:\n            while s[i]!=s[j]:\n                charSet.remove(s[i])\n                i += 1\n            i+= 1\n\n        charSet.add(s[j])\n        maxLen = max(maxLen,j-i+1)\n        j += 1\n\n    return maxLen\ns = \"abcabcbb\"\nprint(lengthOfLongestSubstring(s))",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(min(n, alphabet_size))"
         }
       ],
       "description": "Given a string s, find the length of the longest substring without duplicate characters.",
@@ -473,7 +473,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "For each contiguous group of same-colored balloons, keep the one with maximum removal time (it's cheapest to keep) and remove all others. Sum the times of all removed balloons across all groups.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -481,10 +481,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Identify consecutive runs of the same color. For each run, sum all removal times and subtract the maximum (the one you keep). Add that difference to total cost.",
           "code": "   \nclass Solution:\n    def minCost(self, colors: str, neededTime):\n        i, j, n, totalTime = 0, 0, len(colors), 0\n    \n        while i<n:\n            maxInRange = sumInRange = neededTime[i]\n            while j+1<n and colors[i]==colors[j+1]: \n                j+=1\n                maxInRange = max(maxInRange, neededTime[j])\n                sumInRange += neededTime[j]\n            totalTime += (sumInRange - maxInRange)\n            i = j = j+1\n\n        return totalTime\n",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(n)",
+          "spaceComplexity": "O(1)"
         }
       ],
       "description": "Alice has n balloons arranged on a rope. You are given a 0-indexed string colors where colors[i] is the color of the ith balloon.",
@@ -503,7 +503,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Sliding window with character frequency counter. Expand right until window contains all characters from t (use a 'chars found' counter). Then shrink left while it's still valid to minimize window size. Track the smallest valid window seen.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -511,10 +511,10 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Track required character counts from t in a counter (can go negative for extras). Expand right, decrement counts; when all required chars are found (count comparison), shrink left maximally while window stays valid, recording minimum.",
           "code": "s = \"ADOBECODEBANC\"\nt = \"ABC\"\nfrom collections import Counter\ndef minimumWindowSubstring(s, t):\n    minimumString = None\n    tCounter, sCounter = Counter(t), {}\n    left, right, moveLeft = 0, 0, False\n    m, n = len(s), len(t)\n    while right<m and left<m-n+1:\n        if not moveLeft:\n            if not s[right] in sCounter:\n                sCounter[s[right]] = 0\n            sCounter[s[right]] += 1\n            if contains(sCounter,tCounter):\n                if not minimumString or len(minimumString)>right-left+1:\n                    minimumString = s[left:right+1]\n                moveLeft = True\n            else:\n                right += 1\n        else:\n            sCounter[s[left]] -= 1\n            if sCounter[s[left]] == 0:\n                del sCounter[s[left]]\n            left += 1\n            if contains(sCounter,tCounter):\n                if len(minimumString)>right-left+1:\n                    minimumString = s[left:right+1]\n            else:\n                right += 1\n                moveLeft = False\n    return minimumString if minimumString is not None else \"\"\n\ndef contains(counter1, counter2):\n    for char in counter2:\n        if not char in counter1 or not counter1[char]>=counter2[char]:\n            return False\n    return True\n\nprint(minimumWindowSubstring(s, t))\n\n\n\n\ndef minimumWindowSubstringOptimal(s, t):\n    requiredCharsCounter = Counter(t)\n    left, right, minimumWindowSubstringLeft, minimumWindowSubstringRight = 0, 0, None, 0\n    m, n, charsFound = len(s), len(t), 0\n    while left<m and right<m:\n        if s[right] in requiredCharsCounter:\n            if requiredCharsCounter[s[right]]>0:\n                charsFound += 1\n            requiredCharsCounter[s[right]] -= 1\n        \n        if charsFound == n:\n            while s[left] not in requiredCharsCounter or requiredCharsCounter[s[left]]<0:\n                if requiredCharsCounter[s[left]]<0:\n                    requiredCharsCounter[s[left]] += 1\n                left += 1\n            if minimumWindowSubstringLeft is None or minimumWindowSubstringRight - minimumWindowSubstringLeft > right - left:    \n                print(minimumWindowSubstringLeft, minimumWindowSubstringRight, left, right)\n                minimumWindowSubstringLeft = left\n                minimumWindowSubstringRight = right\n        \n        right += 1\n    return s[minimumWindowSubstringLeft:minimumWindowSubstringRight+1] if minimumWindowSubstringLeft is not None else \"\"\ns = \"ab\"\nt = \"a\"\nprint(minimumWindowSubstringOptimal(s,t))\n\n\n\n\n",
-          "timeComplexity": "O(?)",
-          "spaceComplexity": "O(?)"
+          "timeComplexity": "O(m + n)",
+          "spaceComplexity": "O(n)"
         }
       ],
       "description": "Given two strings s and t of lengths m and n respectively, return the minimum window substring of s such that every character in t (including duplicates) is included in the window. If there is no such substring, return the empty string \"\".",

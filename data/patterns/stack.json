@@ -253,7 +253,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Scan right-to-left, maintaining a monotonic decreasing stack to find the pattern. Track the 'second largest' value (the '3' in 1-3-2) as you pop smaller elements. If you encounter any number smaller than this second largest, you've found a valid 1-3-2 pattern. The stack efficiently maintains candidates for the '2' position while tracking the largest '3' that has a valid '2' after it.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -261,7 +261,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Scan right-to-left maintaining a decreasing stack. Track the largest '2' value found so far; if we see a smaller number, it's a valid '1'.",
           "code": "from sortedcontainers import SortedList\nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        sortedList, minima = SortedList(nums), nums[0]\n        for mid in nums:\n            sortedList.remove(mid)\n            minima = min(minima, mid)\n            if mid!=minima:\n                index = bisect_left(sortedList, minima+1)\n                if index!=len(sortedList) and sortedList[index]<mid: return True\n        return False\n\n    \nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        stack, secondLargest = [], -1e9\n        for num in nums[::-1]:\n            if stack and secondLargest>num: return True\n            while stack and stack[-1]<num: secondLargest = stack.pop()\n            stack.append(num)\n        return False\n\nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        n = len(nums)\n        \n        minFromLeft = [nums[0]]\n        for i in range(1, n):\n            minFromLeft.append(min(minFromLeft[i-1], nums[i]))\n        \n        stack = [] \n        \n        for j in range(n-1, -1, -1):\n            if nums[j] > minFromLeft[j]:\n                while stack and stack[-1] <= minFromLeft[j]:\n                    stack.pop()\n                if stack and stack[-1] < nums[j]:\n                    return True\n                stack.append(nums[j])\n        \n        return False\n\n\nclass BIT:\n    def __init__(self, n):\n        self.bitSize = n+1\n        self.bit = defaultdict(int)\n\n    def insert(self, index, val):\n        index += 1\n        while index<self.bitSize:\n            self.bit[index] += val\n            index += (index & -index)\n    \n    def getCountTill(self, index):\n        total = 0\n        index += 1\n        while index>0:\n            total += self.bit[index]\n            index -= (index & -index)\n        return total\n\n    def rangeSum(self, left, right):\n        return self.getCountTill(right)-self.getCountTill(left-1)\n\n\nclass Solution:\n    def find132pattern(self, nums: List[int]) -> bool:\n        minNum, maxNum = min(nums), max(nums)\n        bit = BIT(maxNum-minNum+1)\n        for num in nums:\n            bit.insert(num-minNum, 1)\n\n        minToLeft = nums[0]-minNum\n        for num in nums:\n            bit.insert(num-minNum, -1)\n            minToLeft = min(minToLeft, num-minNum)\n            if minToLeft<num-minNum and bit.rangeSum(minToLeft+1, num-minNum-1)>0: return True\n        return False\n\n",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -312,7 +312,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Monotonic stack scanned right-to-left keeps indices of temperatures in increasing order. For each day, pop all temperatures <= current temperature (they're not the answer), then the stack top is the next warmer day. Each index is pushed and popped at most once, giving O(n) time. This is the same problem as the main 'Daily Temperatures' but solved backwards.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -320,7 +320,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Scan right-to-left with a monotonic increasing stack. Pop temperatures <= current, the remaining top is the next warmer day.",
           "code": "def dailyTemperatures(temperature):\n        \n    stack = [(0,0)]\n    n = len(temperatures)\n    nextHigherTempArr = [0 for _ in range(n)]\n\n    for i in range(n-1, -1, -1):\n        \n        while len(stack)>1 and temperatures[i] >= stack[len(stack)-1][0]:\n            stack.pop()\n        \n        nextHigherTempArr[i] = max(0, stack[len(stack)-1][1] - i)\n        \n        stack.append((temperatures[i], i))\n        \n    return nextHigherTempArr\n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \n    \ntemperatures = [230,160,90]\nprint(dailyTemperatures(temperatures))",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -371,7 +371,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Key insight: each increment operation increases a contiguous subarray by 1. The minimum operations needed equals the sum of all 'uphill climbs' in the array. Use a monotonic stack to track when values increase — count only the increments (num - stack[-1]) when going uphill. When going downhill, pop the stack (those increments were already counted). This works because you can 'reuse' an increment operation across multiple elements in a subarray.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -379,7 +379,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Track uphill climbs with a stack. Count operations only when increasing; pop when decreasing to reuse previous operations.",
           "code": "class Solution:\n    def minNumberOperations(self, target):\n        stack, numOperations = [0], 0\n        for num in target:\n            if num>stack[-1]:\n                numOperations += (num-stack[-1])\n            while num<stack[-1]:\n                stack.pop()\n            stack.append(num)\n\n        return numOperations\n",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -400,7 +400,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Classic monotonic stack problem: scan right-to-left maintaining a decreasing stack of unresolved elements. For each element, pop all smaller/equal values (they can't be the 'next greater' for this element), then the stack top is the answer. Push current element to become a candidate for future elements. O(n) because each element is pushed and popped at most once.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -408,7 +408,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Right-to-left scan with monotonic decreasing stack. Pop smaller elements, stack top is the next greater element.",
           "code": "nums = [1,2,3,4,3]\n\n\ndef nextGreaterElement(nums):\n    stack = [-1]\n    for i in range(len(nums)-1,-1,-1):\n        while len(stack)>1 and stack[-1]<=nums[i]:\n            stack.pop()\n        stack.append(nums[i])\n    output = [0 for i in range(len(nums))]\n    for i in range(len(nums)-1,-1,-1):\n        while len(stack)>1 and stack[-1]<=nums[i]:\n            stack.pop()\n        output[i] = stack[-1]\n        stack.append(nums[i])\n    return output\nprint(nextGreaterElement(nums))",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -429,7 +429,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Build the lexicographically smallest result greedily using a monotonic increasing stack. For each character, if it's smaller than the stack top AND the stack top appears later in the string, pop the stack top (defer it for later). This ensures we pick the smallest character at each position while maintaining the constraint that all characters must appear. Track last occurrence of each char to know if popping is safe.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -437,7 +437,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Monotonic stack with greedy selection. Pop larger characters only if they appear later; defer them to get lexicographically smaller result.",
           "code": "class Solution:\n    def removeDuplicateLetters(self, s: str) -> str:\n        charToIndicesMap = defaultdict(list)\n        for index, char in enumerate(s):\n            charToIndicesMap[char].append(index)\n        \n        output, searchStartIndex, sortedChars = [], 0, sorted(charToIndicesMap.keys())\n        for outputIndex in range(len(charToIndicesMap)):\n            for char in sortedChars:\n                possibleStartIndex = bisect.bisect_left(charToIndicesMap[char], searchStartIndex)\n                if possibleStartIndex!=len(charToIndicesMap[char]) \\\n                    and (all(char==otherChar or (bisect.bisect_left(charToIndicesMap[otherChar], charToIndicesMap[char][possibleStartIndex])!=len(charToIndicesMap[otherChar])) for otherChar in sortedChars)):\n                        output.append(char)\n                        sortedChars.remove(char)\n                        searchStartIndex = charToIndicesMap[char][possibleStartIndex]+1\n                        break\n        return ''.join(output)\n\nfrom sortedcontainers import SortedSet\nclass Solution:\n    def removeDuplicateLetters(self, s: str) -> str:\n        charToIndicesMap = defaultdict(list)\n        for index, char in enumerate(s):\n            charToIndicesMap[char].append(index)\n        \n        output, searchStartIndex, sortedChars = [], 0, SortedSet(charToIndicesMap.keys())\n        for outputIndex in range(len(charToIndicesMap)):\n            for char in sortedChars:\n                possibleStartIndex = bisect.bisect_left(charToIndicesMap[char], searchStartIndex)\n                if possibleStartIndex!=len(charToIndicesMap[char]) \\\n                    and (all(charToIndicesMap[otherChar][-1]>=charToIndicesMap[char][possibleStartIndex] for otherChar in sortedChars)):\n                        output.append(char)\n                        sortedChars.remove(char)\n                        searchStartIndex = charToIndicesMap[char][possibleStartIndex]+1\n                        break\n        return ''.join(output)\n\n\nclass Solution:\n    def removeDuplicateLetters(self, s: str) -> str:\n        charToLastIndexMap = defaultdict(int)\n        for index, char in enumerate(s):\n            charToLastIndexMap[char] = index\n\n        stack, visited = [], set()\n        for index, char in enumerate(s):\n            if char not in visited:\n                while stack and stack[-1]>char and charToLastIndexMap[stack[-1]]>index: # if it can be added later, add later\n                    visited.remove(stack.pop())\n                stack.append(char)\n                visited.add(char)\n        return ''.join(stack)",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -459,7 +459,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Divide array into blocks of size k. For each block, precompute left-to-right max (leftMax) and right-to-left max (rightMax). For any window [i, i+k-1], the maximum is max(rightMax[i], leftMax[i+k-1]) — the max from i to its block end, and from (i+k-1)'s block start to i+k-1. This avoids recomputing max for every window (O(n) vs O(nk)). Alternative approach uses a deque to maintain decreasing order of candidates.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -467,7 +467,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Precompute block-wise left and right max arrays. For each window, combine the relevant left and right maxes in O(1).",
           "code": "nums = [1,3,-1,-3,5,3,6,7]\nk = 3\n\n\ndef slidingWindowMaximum(nums, k):\n    leftMaxArray = []\n    leftMax = -10e10\n    n = len(nums)\n    for i in range(0, n):\n        if i%k==0:\n            leftMax = -10e10\n        leftMax = max(leftMax, nums[i])\n        leftMaxArray.append(leftMax)\n\n    rightMaxArray = []\n    rightMax = -10e10\n    for i in range(n-1, -1, -1):\n        rightMax = max(rightMax, nums[i])\n        rightMaxArray.append(rightMax)\n        if i%k==0:\n            rightMax = -10e10\n    return [max(rightMaxArray[i],leftMaxArray[i+k-1]) for i in range(n-k+1)]\n\nprint(slidingWindowMaximum(nums, k))\n    ",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -489,7 +489,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Monotonic decreasing stack tracks unresolved days (prices that haven't found a greater/equal price yet). For each new price, pop all smaller prices from the stack — those days are now resolved. The span is the distance from the current day to the index at the new stack top. This efficiently computes how many consecutive days (including today) had price <= today's price. Amortized O(1) per call since each day is pushed and popped at most once.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -497,7 +497,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Monotonic decreasing stack of (price, index) pairs. Pop smaller prices, span is distance to new stack top.",
           "code": "class StockSpanner:\n\n    def __init__(self):\n        self.stack = [(0,-1)]\n        self.nextIndex = 0\n\n    def next(self, price: int) -> int:\n        \n        while len(self.stack)>1 and price>=self.stack[len(self.stack)-1][0]:\n            self.stack.pop()\n        \n        span = self.nextIndex - self.stack[len(self.stack)-1][1]\n        self.stack.append((price,self.nextIndex))\n        self.nextIndex += 1\n        return span\n\n",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"

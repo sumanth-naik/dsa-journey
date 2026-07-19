@@ -18,7 +18,7 @@ export async function homeView(app) {
     el('a', { href: '#/solved', style: 'text-decoration: none; color: inherit;' }, stat(solved, 'Solved')),
     el('a', { href: '#/search', style: 'text-decoration: none; color: inherit;' }, stat(totalProblems, 'Total')),
     el('a', { href: '#/bookmarked', style: 'text-decoration: none; color: inherit;' }, stat(bookmarked, 'Bookmarked')),
-    el('a', { href: '#/streak', style: 'text-decoration: none; color: inherit;' }, stat(store.streak(), 'Day streak 🔥')),
+    el('a', { href: '#/dashboard', style: 'text-decoration: none; color: inherit;' }, stat(store.streak(), 'Day streak 🔥')),
   ));
 
   // patterns grid

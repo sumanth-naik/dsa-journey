@@ -744,7 +744,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Preorder gives the root (first element), inorder splits left/right subtrees around that root. Build a hashmap of inorder indices for O(1) lookup. Recursively consume preorder left-to-right while narrowing the inorder range to partition left and right children.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -752,7 +752,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Hash inorder indices, then recursively build: preorder[i] is root, find it in inorder to split ranges for left/right subtrees.",
           "code": "\nclass TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\nclass Solution:\n    def buildTree(self, preorder, inorder):\n        inorderValToIndexMap = {}\n        for index, val in enumerate(inorder):\n            inorderValToIndexMap[val] = index\n        return createTree(inorder, 0, len(preorder)-1, inorderValToIndexMap, preorder, 0)[0]\n\ndef createTree(inorder, inorderLeft, inorderRight, inorderValToIndexMap, preorder, preorderIndex):\n    if inorderLeft>inorderRight:\n        return None, preorderIndex\n    currentNodePreorderIndex = inorderValToIndexMap[preorder[preorderIndex]]\n    node = TreeNode(preorder[preorderIndex])\n    preorderIndex += 1\n    if preorderIndex!=len(preorder):\n        node.left, preorderIndex = createTree(inorder, inorderLeft, currentNodePreorderIndex-1, inorderValToIndexMap, preorder, preorderIndex)\n    if preorderIndex!=len(preorder):\n        node.right, preorderIndex = createTree(inorder, currentNodePreorderIndex+1, inorderRight, inorderValToIndexMap, preorder, preorderIndex)\n    return node, preorderIndex\n\n\n\n\nclass Solution2:\n    def buildTree(self, preorder, inorder):\n       \n        def createTree(inorderLeft, inorderRight):\n            nonlocal preorderIndex\n            if inorderLeft>inorderRight:\n                return None\n            currentNodePreorderIndex = inorderValToIndexMap[preorder[preorderIndex]]\n            node = TreeNode(preorder[preorderIndex])\n            preorderIndex += 1\n            node.left = createTree(inorderLeft, currentNodePreorderIndex-1)\n            node.right = createTree(currentNodePreorderIndex+1, inorderRight)\n            return node\n\n        preorderIndex = 0\n        inorderValToIndexMap = {}\n        for index, val in enumerate(inorder):\n            inorderValToIndexMap[val] = index\n        return createTree(0, len(preorder)-1)\n\n\n\n\nclass SolutionPostOrder:\n    def buildTree(self, inorder, postorder):\n\n        def buildTreeFromArr(inorderLeft, inorderRight):\n            nonlocal postorderIndex\n            if inorderLeft>inorderRight:\n                return None\n            nodeVal = postorder[postorderIndex]\n            node = TreeNode(nodeVal)\n            postorderIndex -= 1\n            node.right = buildTreeFromArr(inorderValToIndexMap[nodeVal]+1,inorderRight)\n            node.left = buildTreeFromArr(inorderLeft, inorderValToIndexMap[nodeVal]-1)\n            return node\n\n        postorderIndex = len(postorder)-1\n        inorderValToIndexMap = {}\n        for index, val in enumerate(inorder):\n            inorderValToIndexMap[val] = index\n        return buildTreeFromArr(0, len(inorder)-1)\n\n        \n\n ",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -803,7 +803,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "BST property lets you insert each preorder element via standard BST insertion (go left if smaller, right if larger). Alternatively, use a stack to track ancestors and attach nodes in O(n) by maintaining valid parent pointers.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
@@ -811,7 +811,7 @@
       "solutions": [
         {
           "label": "Solution from repo",
-          "keyIdea": "TODO: Add key ideas",
+          "keyIdea": "Simple approach: BST insert each element O(n log n). Optimized stack approach: maintain ancestors to attach nodes in one pass O(n).",
           "code": "class TreeNode:\n    def __init__(self, val=0, left=None, right=None):\n        self.val = val\n        self.left = left\n        self.right = right\n\n\ndef bstFromPreorder(self, preorder):\n    def bstSearch(node, searchVal):\n        if node:\n            if node.val<searchVal:\n                if node.right:\n                    bstSearch(node.right, searchVal)\n                else:\n                    node.right = TreeNode(searchVal)\n            else:\n                if node.left:\n                    bstSearch(node.left, searchVal)\n                else:\n                    node.left = TreeNode(searchVal)\n\n    root = TreeNode(preorder[0])\n    for index in range(1, len(preorder)):\n        bstSearch(root, preorder[index])\n\n    return root\n\n\n\ndef bstFromPreorder(self, preorder):\n   \n    root = TreeNode(preorder[0])\n    stack = [root]\n    for index in range(1, len(preorder)):\n        while len(stack)>1 and stack[-2].val<preorder[index]:\n            stack.pop()\n        nodeToAdd = TreeNode(preorder[index])\n        if stack[-1].val>preorder[index]:\n            stack[-1].left = nodeToAdd\n        else:\n            stack[-1].right = nodeToAdd\n            stack.pop()\n            stack.append(nodeToAdd)\n            \n\n    return root",
           "timeComplexity": "O(?)",
           "spaceComplexity": "O(?)"
@@ -862,7 +862,7 @@
         "url": "",
         "lang": "python"
       },
-      "keyIdeas": "TODO: Add key ideas",
+      "keyIdeas": "Flatten to preorder linked list. Post-order recursion: flatten left and right subtrees, then wire root -> left_flattened -> right_flattened. Morris traversal achieves O(1) space by threading the rightmost node of left subtree to current's right.",
       "hints": [
         "Consider the constraints",
         "Think about the optimal approach"
