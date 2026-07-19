@@ -35,6 +35,7 @@ function setBadge(state, title) {
 
 // last-write-wins merge over the UNION of problem ids
 function merge(local, remote) {
+  console.log('[Sync] Merging - local problems:', Object.keys(local?.problems || {}).length, 'remote problems:', Object.keys(remote?.problems || {}).length);
   if (!remote || !remote.problems) return local;
   if (!local || !local.problems) return remote;
   const out = { ...local, problems: { ...local.problems } };
@@ -46,6 +47,7 @@ function merge(local, remote) {
   }
   out.updatedAt = (new Date(remote.updatedAt || 0) > new Date(local.updatedAt || 0)) ? remote.updatedAt : local.updatedAt;
   out.phaseStartedAt = { ...(remote.phaseStartedAt || {}), ...(local.phaseStartedAt || {}) };
+  console.log('[Sync] Merge result:', Object.keys(out.problems).length, 'problems');
   return out;
 }
 
@@ -70,10 +72,17 @@ async function pull() {
     const content = data.files?.[fileName]?.content;
     if (content) {
       const remote = JSON.parse(content);
-      store.replaceProgress(merge(store.progress, remote));
+      const merged = merge(store.progress, remote);
+      const hadChanges = JSON.stringify(store.progress) !== JSON.stringify(merged);
+      store.replaceProgress(merged);
       // Always sync name from progress.user to settings.name
       if (remote.user) {
         store.setSettings({ name: remote.user });
+      }
+      // Force reload if data changed during initial sync
+      if (hadChanges && window.location.hash === '#/') {
+        console.log('[Sync] Data changed after pull, reloading page...');
+        window.location.reload();
       }
     }
     store.setLastSync(new Date().toISOString());
