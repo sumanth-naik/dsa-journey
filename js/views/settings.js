@@ -7,7 +7,12 @@ export async function settingsView(app) {
 
   // Name
   const nameInput = el('input', { type: 'text', value: store.settings.name || '' });
-  nameInput.addEventListener('change', () => store.setSettings({ name: nameInput.value.trim() }));
+  nameInput.addEventListener('change', () => {
+    const newName = nameInput.value.trim();
+    store.setSettings({ name: newName });
+    store.progress.user = newName; // Also update progress.user so it syncs
+    store._persist(); // Save to trigger sync
+  });
   nodes.push(el('label', { text: 'Your name (shown on the home screen)' }), nameInput);
 
   // ---- Cross-device sync ----

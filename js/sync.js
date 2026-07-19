@@ -61,8 +61,8 @@ async function pull() {
     if (content) {
       const remote = JSON.parse(content);
       store.replaceProgress(merge(store.progress, remote));
-      // Sync name from progress.user to settings.name if not set
-      if (remote.user && !store.settings.name) {
+      // Always sync name from progress.user to settings.name
+      if (remote.user) {
         store.setSettings({ name: remote.user });
       }
     }
