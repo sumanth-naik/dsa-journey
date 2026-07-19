@@ -45,16 +45,28 @@ function merge(local, remote) {
   const out = { ...local, problems: { ...local.problems } };
   const ids = new Set([...Object.keys(local.problems), ...Object.keys(remote.problems)]);
 
-  let keptLocal = 0, keptRemote = 0;
+  let keptLocal = 0, keptRemote = 0, conflicts = [];
   for (const id of ids) {
     const l = local.problems[id], r = remote.problems[id];
     if (l && r) {
-      const useRemote = new Date(r.updatedAt || 0) > new Date(l.updatedAt || 0);
+      const lTime = new Date(l.updatedAt || 0);
+      const rTime = new Date(r.updatedAt || 0);
+      const useRemote = rTime > lTime;
+
+      // Log first few conflicts
+      if (conflicts.length < 3 && l.status !== r.status) {
+        conflicts.push({ id, lStatus: l.status, rStatus: r.status, lTime: l.updatedAt, rTime: r.updatedAt, chose: useRemote ? 'remote' : 'local' });
+      }
+
       out.problems[id] = useRemote ? r : l;
       if (useRemote) keptRemote++; else keptLocal++;
     } else {
       out.problems[id] = l || r;
     }
+  }
+
+  if (conflicts.length > 0) {
+    console.log('[Sync] Sample conflicts:', conflicts);
   }
 
   out.updatedAt = (new Date(remote.updatedAt || 0) > new Date(local.updatedAt || 0)) ? remote.updatedAt : local.updatedAt;
