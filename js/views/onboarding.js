@@ -32,19 +32,12 @@ export function onboardingView(app) {
         return;
       }
 
-      // Check if name is taken
-      const taken = await sync.checkNameCollision(finalName);
-      if (taken) {
-        error = `Name "${finalName}" is already taken. Choose another.`;
-        errorEl.textContent = error;
-        return;
-      }
-
+      // Save name and sync (will find existing gist or create new)
       store.setSettings({ name: finalName });
       store.progress.user = finalName;
       store._persist();
 
-      // Auto-sync
+      // Find existing gist or create new one
       await sync.findOrCreateGist();
       await sync.pull();
 
